@@ -65,7 +65,7 @@ public class VistaLoginE2E {
   void deberiaNavegarAlHomeSiElUsuarioExiste() throws MalformedURLException {
     dadoQueElUsuarioCargaSusDatosDeLoginCon("test@unlam.edu.ar", "test");
     cuandoElUsuarioTocaElBotonDeLogin();
-    entoncesDeberiaSerRedirigidoALaVistaDeHome();
+    entoncesDeberiaSerRedirigidoALasVacantesRecomendadas();
   }
 
   @Test
@@ -75,7 +75,7 @@ public class VistaLoginE2E {
     dadoQueElUsuarioEstaEnLaVistaDeLogin();
     dadoQueElUsuarioCargaSusDatosDeLoginCon("juan@unlam.edu.ar", "123456");
     cuandoElUsuarioTocaElBotonDeLogin();
-    entoncesDeberiaSerRedirigidoALaVistaDeHome();
+    entoncesDeberiaSerRedirigidoALasVacantesRecomendadas();
   }
 
   private void entoncesDeberiaVerUNLAMEnElNavbar() {
@@ -92,9 +92,12 @@ public class VistaLoginE2E {
     vistaLogin.darClickEnIniciarSesion();
   }
 
-  private void entoncesDeberiaSerRedirigidoALaVistaDeHome() throws MalformedURLException {
+  private void entoncesDeberiaSerRedirigidoALasVacantesRecomendadas() throws MalformedURLException {
     URL url = vistaLogin.obtenerURLActual();
-    assertThat(url.getPath(), matchesPattern("^/spring/home(?:;jsessionid=[^/\\s]+)?$"));
+    assertThat(
+      url.getPath(),
+      matchesPattern("^/spring/vacantes/recomendadas(?:;jsessionid=[^/\\s]+)?$")
+    );
   }
 
   private void entoncesDeberiaVerUnMensajeDeError() {
