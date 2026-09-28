@@ -12,7 +12,7 @@
     integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 
   <!-- custom style -->
-  <link rel="stylesheet" th:href="@{/css/main.css}" />
+  <link rel="stylesheet" th:href="@{/css/nuevo-usuario.css}" />
 
 </head>
 
@@ -22,10 +22,10 @@
     <a class="navbar-brand" href="#">UNLAM</a>
   </nav>
 
-  <main role="main" class="container">
+  <main role="main" class="container register-page">
 
-    <div class="container">
-      <div id="loginbox" style="margin-top:50px;" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+    <div class="register-box">
+      <div id="loginbox" class="mainbox">
         <form action="#" th:action="@{/registrarme}" method="POST" th:object="${usuario}">
           <h3 class="form-signin-heading">Nuevo Usuario</h3>
           <hr class="colorgraph"><br>

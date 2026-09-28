@@ -1,0 +1,38 @@
+body {
+  padding-top: 5rem;
+  background-color: #f8f9fa;
+}
+
+.login-page {
+  display: flex;
+  justify-content: center;
+}
+
+.login-box {
+  margin-top: 2rem;
+  max-width: 32rem;
+  width: 100%;
+}
+
+.login-box h3 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.login-box input {
+  margin-bottom: 1rem;
+}
+
+.login-box .btn {
+  width: 100%;
+}
+
+#btn-register {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.navbar-brand {
+  margin: 0 2rem;
+}
