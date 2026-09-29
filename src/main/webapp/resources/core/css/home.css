@@ -51,15 +51,16 @@ h1, h2, h3, p { margin-top: 0; }
 
 .navbar-brand:hover, .footer-brand:hover { color: var(--text); }
 
-.brand-mark {
+#Logo-ant {
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: 4rem;
+  height: 4rem;
   place-items: center;
   border-radius: 0.5rem;
-  color: var(--text);
-  background-color: var(--accent);
-  font-size: 1rem;
+}
+#Logo-user{
+width: 4rem;
+  height: 4rem;
 }
 
 .navbar-collapse { justify-content: flex-end; gap: 1.25rem; }

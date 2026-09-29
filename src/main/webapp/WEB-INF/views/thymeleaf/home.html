@@ -22,7 +22,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container navbar-container">
       <a class="navbar-brand" href="#inicio">
-        <span class="brand-mark"><i class="bi bi-signpost-2-fill" aria-hidden="true"></i></span>
+        <img th:src="@{/img/HormigaLogo.png}" alt="Logo-ant" id="Logo-ant">
         <span>Agarra la Pala</span>
       </a>
 
@@ -30,44 +30,52 @@
         aria-controls="main-menu" aria-expanded="false" aria-label="Abrir menú">
         <span class="navbar-toggler-icon"></span>
       </button>
-
       <div class="collapse navbar-collapse" id="main-menu">
         <div class="search-shell">
           <i class="bi bi-search" aria-hidden="true"></i>
           <input type="search" aria-label="Buscar ofertas" placeholder="Buscar puesto, empresa o palabra clave">
         </div>
-
-        <div class="filters" aria-label="Filtros de ofertas">
-          <div class="dropdown">
-            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Rubro
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#ofertas">Tecnología</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Diseño</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Administración</a></li>
-            </ul>
-          </div>
-          <div class="dropdown">
-            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-geo-alt" aria-hidden="true"></i> Ubicación
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#ofertas">Buenos Aires</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Córdoba</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Cualquier lugar</a></li>
-            </ul>
-          </div>
-          <div class="dropdown">
-            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-laptop" aria-hidden="true"></i> Modalidad
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#ofertas">Remoto</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Presencial</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Híbrido</a></li>
-            </ul>
-          </div>
+<nav class="barra-nav"> <!-- podriamos poner iconos -->
+  <!-- Para mi el menu deberia ser despegable o sea cada opcion que tenga una flechita y se abra cada opcion y el texto blanco -->
+  <!-- en el user aderntro iria toda la info , el codigo mas adelante que comente podria estar cuando ya hizo la busqueda y puede aplicarle esos filtros-->
+  <ul>
+    <li><a href="#empleos">Empleos</a></li>
+    <li><a href="#notificaciones">Notificaciones</a></li>  <!-- podria ser una campanita -->
+    <li><a href="#contacto">Para empresas</a></li>
+  </ul>
+ <img th:src="@{/img/UserLogo.png}" alt="Logo-user" id="Logo-user">
+</nav >
+        <!--        <div class="filters" aria-label="Filtros de ofertas">-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Rubro-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Tecnología</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Diseño</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Administración</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-geo-alt" aria-hidden="true"></i> Ubicación-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Buenos Aires</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Córdoba</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Cualquier lugar</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-laptop" aria-hidden="true"></i> Modalidad-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Remoto</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Presencial</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Híbrido</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
         </div>
       </div>
     </div>
