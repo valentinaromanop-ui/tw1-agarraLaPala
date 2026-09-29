@@ -41,7 +41,7 @@ public class ControladorLogin {
     );
     if (usuarioBuscado != null) {
       request.getSession().setAttribute("ROL", usuarioBuscado.getRol());
-      return new ModelAndView("redirect:/home");
+      return new ModelAndView("redirect:/vacantes/recomendadas");
     } else {
       Map<String, Object> model = new ModelMap();
       model.put("error", "Usuario o clave incorrecta");
