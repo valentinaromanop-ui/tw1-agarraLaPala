@@ -30,7 +30,8 @@
           <h2 class="h5" th:text="${vacante.titulo}">Título de la vacante</h2>
           <p>
             <strong th:text="${vacante.empresa}">Empresa</strong> ·
-            <span th:text="${vacante.ubicacion}">Ubicación</span> · Remoto
+            <span th:text="${vacante.ubicacion}">Ubicación</span> ·
+            <span th:text="${vacante.modalidad}">Modalidad</span>
           </p>
           <p>
             Skills coincidentes (<span th:text="${#lists.size(vacante.skills)}"></span>):
@@ -46,6 +47,7 @@
             class="btn btn-primary" target="_blank" rel="noopener noreferrer">
             Ver oferta en <span th:text="${vacante.fuente}">Jobicy</span>
           </a>
+          <p th:if="${vacante.fuente == 'LOCAL'}">Oferta de nuestra plataforma</p>
         </div>
       </div>
     </div>
