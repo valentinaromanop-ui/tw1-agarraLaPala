@@ -18,6 +18,24 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
   }
 
   @Override
+  public void guardar(Vacante vacante) {}
+
+  @Override
+  public boolean existePorIdExterno(String idExterno) {
+    return false;
+  }
+
+  @Override
+  public List<Vacante> buscarPorCategoria(String categoria) {
+    return List.of();
+  }
+
+  @Override
+  public Vacante obtenerPorId(Long id) {
+    return null;
+  }
+
+  @Override
   public List<Vacante> buscarPorSkills(List<String> skills) {
     return sessionFactory
       .getCurrentSession()
@@ -25,7 +43,9 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
         "SELECT DISTINCT v FROM Vacante v " +
         "JOIN VacanteSkill vs ON v.id = vs.vacante.id " +
         "JOIN Skill s ON vs.skill.id = s.id " +
-        "WHERE v.activa = true AND LOWER(s.nombre) IN (:skills)", Vacante.class)
+        "WHERE v.activa = true AND LOWER(s.nombre) IN (:skills)",
+        Vacante.class
+      )
       .setParameterList("skills", skills)
       .getResultList();
   }

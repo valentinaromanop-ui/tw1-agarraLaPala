@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Buscar ofertas | Agarra la Pala</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+	<link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+		<div class="container-fluid navbar-container justify-content-between">
+			<a class="navbar-brand" th:href="@{/home}">
+				<img th:src="@{/img/HormigaLogo.png}" alt="" id="Logo-ant">
+				<span>Agarra la Pala</span>
+			</a>
+			<a class="nav-link" th:href="@{/home}">Volver al inicio</a>
+		</div>
+	</nav>
+
+	<main class="search-results-page">
+		<div class="container">
+			<div class="search-results-heading">
+				<h1>Buscar ofertas</h1>
+				<form class="search-shell search-autocomplete" role="search" method="get" th:action="@{/buscar}"
+					th:data-sugerencias-url="@{/vacantes/sugerencias}">
+					<i class="bi bi-search" aria-hidden="true"></i>
+					<input id="texto-busqueda" type="search" name="texto" th:value="${texto}"
+						aria-label="Buscar ofertas" placeholder="Cargo, empresa o palabra clave" autocomplete="off"
+						aria-expanded="false" aria-controls="sugerencias-resultados">
+					<div class="search-suggestions" id="sugerencias-resultados" role="listbox" hidden></div>
+				</form>
+			</div>
+
+			<div class="results-layout">
+				<details class="filters-panel" open>
+					<summary>Filtros</summary>
+					<form id="filtros-busqueda" class="filter-fields">
+						<label for="filtro-zona">Zona / ubicación
+							<input id="filtro-zona" name="zona" type="search" placeholder="Ej.: Buenos Aires">
+						</label>
+						<label for="filtro-modalidad">Modalidad
+							<select id="filtro-modalidad" name="modalidad">
+								<option value="">Cualquiera</option>
+								<option value="presencial">Presencial</option>
+								<option value="remota">Remota</option>
+								<option value="hibrida">Híbrida</option>
+							</select>
+						</label>
+						<label for="filtro-horario">Horario
+							<select id="filtro-horario" disabled>
+								<option>Todos</option>
+								<option>Full time</option>
+								<option>Part time</option>
+								<option>Flexible</option>
+							</select>
+						</label>
+						<p class="pending-filter-note">Pendiente: el modelo de ofertas no incluye horario.</p>
+						<label for="filtro-salario">Salario deseado (mínimo)
+							<input id="filtro-salario" type="number" min="0" step="1" placeholder="Importe" disabled>
+						</label>
+						<p class="pending-filter-note">Pendiente: el modelo de ofertas no incluye salario.</p>
+						<label for="filtro-skills">Skills
+							<input id="filtro-skills" name="skills" type="search" placeholder="Ej.: Java, SQL">
+						</label>
+						<label for="filtro-fecha">Fecha de publicación
+							<select id="filtro-fecha" name="fecha">
+								<option value="">Cualquier fecha</option>
+								<option value="24h">Últimas 24 h</option>
+								<option value="semana">Última semana</option>
+								<option value="mes">Último mes</option>
+							</select>
+						</label>
+						<button type="reset" class="clear-filters">Limpiar filtros</button>
+					</form>
+				</details>
+
+				<section class="results-list" id="resultados-vacantes" th:data-endpoint="@{/vacantes}"
+					aria-live="polite" aria-busy="false">
+					<p class="results-status" id="estado-resultados" role="status">Cargando...</p>
+					<div class="results-cards" id="tarjetas-vacantes"></div>
+					<button type="button" class="show-more" id="ver-mas" hidden>Ver más</button>
+				</section>
+			</div>
+		</div>
+	</main>
+
+	<script type="module" th:src="@{/js/busqueda.js}"></script>
+</body>
+</html>

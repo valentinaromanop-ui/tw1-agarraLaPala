@@ -21,7 +21,8 @@ import org.springframework.web.client.RestTemplate;
 
 public class JobicyVacanteProviderTest {
 
-  private static final String URL = "https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}";
+  private static final String URL =
+    "https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}";
   private RestTemplate restTemplateMock;
   private JobicyVacanteProvider provider;
   private ObjectMapper objectMapper;
@@ -35,7 +36,9 @@ public class JobicyVacanteProviderTest {
 
   @Test
   public void devuelveUnaVacanteDeJobicy() throws Exception {
-    JsonNode respuesta = objectMapper.readTree("{\"jobs\":[{\"id\":1,\"jobTitle\":\"Java Developer\"}]}");
+    JsonNode respuesta = objectMapper.readTree(
+      "{\"jobs\":[{\"id\":1,\"jobTitle\":\"Java Developer\"}]}"
+    );
     when(restTemplateMock.getForObject(URL, JsonNode.class, "java")).thenReturn(respuesta);
 
     List<VacanteDTO> resultado = provider.buscarVacantes(busqueda("java"));
@@ -71,7 +74,8 @@ public class JobicyVacanteProviderTest {
 
   @Test
   public void lanzaExcepcionCuandoJobicyFalla() {
-    when(restTemplateMock.getForObject(URL, JsonNode.class, "java")).thenThrow(new RestClientException("Error al consultar Jobicy"));
+    when(restTemplateMock.getForObject(URL, JsonNode.class, "java"))
+      .thenThrow(new RestClientException("Error al consultar Jobicy"));
 
     assertThrows(FuenteVacanteNoDisponible.class, () -> provider.buscarVacantes(busqueda("java")));
   }

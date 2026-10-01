@@ -61,7 +61,11 @@ public class JobicyVacanteProvider implements VacanteProvider {
 
   private JsonNode obtenerPublicaciones(String skill) {
     try {
-      JsonNode respuesta = restTemplate.getForObject("https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}", JsonNode.class, skill);
+      JsonNode respuesta = restTemplate.getForObject(
+        "https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}",
+        JsonNode.class,
+        skill
+      );
       if (respuesta == null || !respuesta.path("jobs").isArray()) {
         throw new FuenteVacanteNoDisponible("Jobicy", null);
       }

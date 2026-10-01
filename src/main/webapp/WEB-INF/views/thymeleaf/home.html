@@ -5,37 +5,235 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>Taller Web I</title>
+  <title>Agarra la Pala | Ofertas de trabajo</title>
 
-  <!-- Boostrap core css -->
+  <!-- Bootstrap core css -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <!-- custom style -->
-  <link rel="stylesheet" th:href="@{/css/main.css}" />
+  <link rel="stylesheet" th:href="@{/css/home.css}" />
 
 </head>
 
 <body>
 
-  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-    <a class="navbar-brand" href="#">UNLAM</a>
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container-fluid navbar-container justify-content-between">
+      <a class="navbar-brand" href="#inicio">
+        <img th:src="@{/img/HormigaLogo.png}" alt="Logo-ant" id="Logo-ant">
+        <span>Agarra la Pala</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-menu"
+        aria-controls="main-menu" aria-expanded="false" aria-label="Abrir menú">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="main-menu">
+        <form class="search-shell search-autocomplete" role="search" method="get" th:action="@{/buscar}"
+          th:data-sugerencias-url="@{/vacantes/sugerencias}">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" name="texto" aria-label="Buscar ofertas"
+            placeholder="Buscar puesto, empresa o palabra clave" autocomplete="off" aria-expanded="false"
+            aria-controls="sugerencias-inicio">
+          <div class="search-suggestions" id="sugerencias-inicio" role="listbox" hidden></div>
+        </form>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="jobs-dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-controls="jobs-dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Empleos">
+              <i class="bi bi-briefcase" aria-hidden="true"></i> Empleos
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="jobs-dropdown">
+              <li><a class="dropdown-item" href="#ofertas"><i class="bi bi-search" aria-hidden="true"></i> Buscar empleos</a></li>
+              <li><a class="dropdown-item" href="#empleos-guardados"><i class="bi bi-bookmark" aria-hidden="true"></i> Empleos guardados</a></li>
+              <li><a class="dropdown-item" href="#postulaciones"><i class="bi bi-send" aria-hidden="true"></i> Postulaciones enviadas</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="notifications-dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-controls="notifications-dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Notificaciones">
+              <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown" aria-label="Notificaciones recientes">
+              <li><h2 class="dropdown-header">Notificaciones recientes</h2></li>
+              <li>
+                <a class="dropdown-item notification-item" href="#postulaciones">
+                  <span class="notification-avatar notification-avatar-company" aria-hidden="true">TC</span>
+                  <span class="notification-content">
+                    <span class="notification-sender"><span class="notification-indicator notification-indicator-company" aria-hidden="true"></span>TechCorp SA</span>
+                    <span class="notification-text">Vio tu postulación para Frontend Developer</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item notification-item" href="#ofertas">
+                  <span class="notification-avatar notification-avatar-company" aria-hidden="true">ND</span>
+                  <span class="notification-content">
+                    <span class="notification-sender"><span class="notification-indicator notification-indicator-company" aria-hidden="true"></span>Nube Digital</span>
+                    <span class="notification-text">Nueva oferta en Tecnología</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item notification-item" href="#notificaciones">
+                  <span class="notification-avatar notification-avatar-system" aria-hidden="true"><i class="bi bi-gear-fill"></i></span>
+                  <span class="notification-content">
+                    <span class="notification-sender"><span class="notification-indicator notification-indicator-system" aria-hidden="true"></span>Sistema</span>
+                    <span class="notification-text">Tu perfil está listo para nuevas oportunidades</span>
+                  </span>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-center" href="#notificaciones">Ver todas las notificaciones</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="business-dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-controls="business-dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Para empresas">
+              <i class="bi bi-building" aria-hidden="true"></i> Para empresas
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="business-dropdown">
+              <li><a class="dropdown-item" href="#candidatos"><i class="bi bi-people" aria-hidden="true"></i> Buscar candidatos</a></li>
+              <li><a class="dropdown-item" href="#publicar-oferta"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</a></li>
+              <li><a class="dropdown-item" href="#busquedas-activas"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas</a></li>
+            </ul>
+          </li>
+        </ul>
+        <img th:src="@{/img/UserLogo.png}" alt="Perfil de usuario" id="Logo-user">
+        <!--        <div class="filters" aria-label="Filtros de ofertas">-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Rubro-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Tecnología</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Diseño</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Administración</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-geo-alt" aria-hidden="true"></i> Ubicación-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Buenos Aires</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Córdoba</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Cualquier lugar</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-laptop" aria-hidden="true"></i> Modalidad-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Remoto</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Presencial</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Híbrido</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+        </div>
+      </div>
+    </div>
   </nav>
 
-  <main role="main" class="container">
-    <div class="container">
-      <h1>Bienvenidos a Taller Web 1</h1>
+  <main id="inicio">
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> Tu próximo trabajo, más cerca</p>
+          <h1>Encontrá oportunidades sin perderte en el camino.</h1>
+          <p class="hero-description">
+            Reunimos ofertas de distintos portales en un solo lugar y te llevamos directo a la publicación original.
+          </p>
+          <div class="hero-actions">
+            <label for="cv-file" class="btn primary-action">Buscar trabajos según tu CV <i class="bi bi-arrow-up-right" aria-hidden="true"></i></label>
+            <a href="#como-funciona" class="text-action">Conocé cómo funciona <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
+          </div>
+          <div class="cv-upload">
+            <i class="bi bi-paperclip" aria-hidden="true"></i>
+            <label for="cv-file">Cargá tu CV para comenzar</label>
+            <input id="cv-file" name="cv-file" type="file" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+          <div class="visual-card visual-card-main">
+            <span class="visual-card-label">OFERTA DESTACADA</span>
+            <strong>Product Designer</strong>
+            <span>Estudio Norte · Remoto</span>
+            <div class="visual-card-footer"><span class="match-score">92% match</span><i class="bi bi-arrow-up-right"></i></div>
+          </div>
+          <div class="visual-card visual-card-small"><i class="bi bi-check2-circle"></i><span>Perfil optimizado</span></div>
+        </div>
+      </div>
+    </section>
 
-      <a th:href="@{/vacantes/recomendadas}" class="btn btn-lg btn-primary">Buscar vacantes</a>
-      <a href="login.html" class="btn btn-lg btn-primary btn-block">Volver</a>
-    </div>
+    <section id="como-funciona" class="cv-section">
+      <div class="container cv-grid">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> Una ayuda extra</p>
+          <h2>Tu CV también puede abrirte puertas.</h2>
+        </div>
+        <div class="cv-content">
+          <p>Una IA analiza tu perfil y te acerca sugerencias concretas para que tu CV muestre mejor todo lo que sabés hacer.</p>
+          <div class="steps-list">
+            <div class="step-item"><span>01</span><p>Subís tu CV</p></div>
+            <div class="step-item"><span>02</span><p>Recibís sugerencias</p></div>
+            <div class="step-item"><span>03</span><p>Postulás mejor</p></div>
+          </div>
+          <label for="cv-file" class="btn outline-action">Mejorá tu CV <i class="bi bi-arrow-up-right" aria-hidden="true"></i></label>
+        </div>
+      </div>
+    </section>
+
+    <section id="ofertas" class="offers-section">
+      <div class="container">
+        <div class="offers-header">
+          <div>
+            <p class="eyebrow"><span></span> Oportunidades para vos</p>
+            <h2>Ofertas que vale la pena mirar.</h2>
+          </div>
+          <span class="offers-count">Mostrando 10 ofertas</span>
+        </div>
+        <div class="offers-grid">
+          <article class="offer-card"><div class="company-logo logo-blue">N</div><div class="offer-info"><h3>Product Designer</h3><p>Estudio Norte</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Product Designer"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-sage">A</div><div class="offer-info"><h3>Frontend Developer</h3><p>Andes Digital</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Buenos Aires</span><span><i class="bi bi-clock"></i> Híbrido</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Frontend Developer"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-sand">M</div><div class="offer-info"><h3>Analista de Marketing</h3><p>Mercado Sur</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Córdoba</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Analista de Marketing"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-olive">C</div><div class="offer-info"><h3>Backend Developer</h3><p>Cauce Tech</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Backend Developer"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-blue">L</div><div class="offer-info"><h3>UX Researcher</h3><p>La Plaza</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Buenos Aires</span><span><i class="bi bi-clock"></i> Híbrido</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de UX Researcher"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-sage">V</div><div class="offer-info"><h3>Project Manager</h3><p>Verde Estudio</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Part time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Project Manager"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-sand">S</div><div class="offer-info"><h3>Cocinero/a</h3><p>Sabor Local</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Palermo</span><span><i class="bi bi-clock"></i> Presencial</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Cocinero o Cocinera"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-olive">R</div><div class="offer-info"><h3>Asistente Administrativo</h3><p>Río Consultores</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Rosario</span><span><i class="bi bi-clock"></i> Híbrido</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Asistente Administrativo"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-blue">P</div><div class="offer-info"><h3>Ejecutivo/a de Ventas</h3><p>Prisma Comercial</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Buenos Aires</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Ejecutivo o Ejecutiva de Ventas"><i class="bi bi-arrow-up-right"></i></a></article>
+          <article class="offer-card"><div class="company-logo logo-sage">E</div><div class="offer-info"><h3>Diseñador/a Gráfico</h3><p>Estudio Estela</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Part time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Diseñador o Diseñadora Gráfico"><i class="bi bi-arrow-up-right"></i></a></article>
+        </div>
+      </div>
+    </section>
   </main>
-  <!-- /.container -->
 
-  <!-- Boostrap core js -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <a class="footer-brand" href="#inicio"><span class="brand-mark"><i class="bi bi-signpost-2-fill" aria-hidden="true"></i></span> Agarra la Pala</a>
+      <p>Menos búsqueda. Más oportunidades.</p>
+      <div class="social-links">
+        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+        <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+        <a href="#" aria-label="Twitter X"><i class="bi bi-twitter-x"></i></a>
+        <a href="#" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap core js -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
     crossorigin="anonymous"></script>
+
+  <script type="module" th:src="@{/js/busqueda.js}"></script>
 
 </body>
 
