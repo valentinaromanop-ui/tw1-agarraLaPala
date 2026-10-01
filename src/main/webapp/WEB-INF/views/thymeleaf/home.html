@@ -20,9 +20,9 @@
 <body>
 
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container navbar-container">
+    <div class="container-fluid navbar-container justify-content-between">
       <a class="navbar-brand" href="#inicio">
-        <span class="brand-mark"><i class="bi bi-signpost-2-fill" aria-hidden="true"></i></span>
+        <img th:src="@{/img/HormigaLogo.png}" alt="Logo-ant" id="Logo-ant">
         <span>Agarra la Pala</span>
       </a>
 
@@ -30,44 +30,105 @@
         aria-controls="main-menu" aria-expanded="false" aria-label="Abrir menú">
         <span class="navbar-toggler-icon"></span>
       </button>
-
       <div class="collapse navbar-collapse" id="main-menu">
-        <div class="search-shell">
+        <div class="search-shell" role="search">
           <i class="bi bi-search" aria-hidden="true"></i>
           <input type="search" aria-label="Buscar ofertas" placeholder="Buscar puesto, empresa o palabra clave">
         </div>
-
-        <div class="filters" aria-label="Filtros de ofertas">
-          <div class="dropdown">
-            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Rubro
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="jobs-dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-controls="jobs-dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Empleos">
+              <i class="bi bi-briefcase" aria-hidden="true"></i> Empleos
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#ofertas">Tecnología</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Diseño</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Administración</a></li>
+            <ul class="dropdown-menu dropdown-menu-end" id="jobs-dropdown">
+              <li><a class="dropdown-item" href="#ofertas"><i class="bi bi-search" aria-hidden="true"></i> Buscar empleos</a></li>
+              <li><a class="dropdown-item" href="#empleos-guardados"><i class="bi bi-bookmark" aria-hidden="true"></i> Empleos guardados</a></li>
+              <li><a class="dropdown-item" href="#postulaciones"><i class="bi bi-send" aria-hidden="true"></i> Postulaciones enviadas</a></li>
             </ul>
-          </div>
-          <div class="dropdown">
-            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-geo-alt" aria-hidden="true"></i> Ubicación
+          </li>
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="notifications-dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-controls="notifications-dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Notificaciones">
+              <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#ofertas">Buenos Aires</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Córdoba</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Cualquier lugar</a></li>
+            <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown" aria-label="Notificaciones recientes">
+              <li><h2 class="dropdown-header">Notificaciones recientes</h2></li>
+              <li>
+                <a class="dropdown-item notification-item" href="#postulaciones">
+                  <span class="notification-avatar notification-avatar-company" aria-hidden="true">TC</span>
+                  <span class="notification-content">
+                    <span class="notification-sender"><span class="notification-indicator notification-indicator-company" aria-hidden="true"></span>TechCorp SA</span>
+                    <span class="notification-text">Vio tu postulación para Frontend Developer</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item notification-item" href="#ofertas">
+                  <span class="notification-avatar notification-avatar-company" aria-hidden="true">ND</span>
+                  <span class="notification-content">
+                    <span class="notification-sender"><span class="notification-indicator notification-indicator-company" aria-hidden="true"></span>Nube Digital</span>
+                    <span class="notification-text">Nueva oferta en Tecnología</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item notification-item" href="#notificaciones">
+                  <span class="notification-avatar notification-avatar-system" aria-hidden="true"><i class="bi bi-gear-fill"></i></span>
+                  <span class="notification-content">
+                    <span class="notification-sender"><span class="notification-indicator notification-indicator-system" aria-hidden="true"></span>Sistema</span>
+                    <span class="notification-text">Tu perfil está listo para nuevas oportunidades</span>
+                  </span>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-center" href="#notificaciones">Ver todas las notificaciones</a></li>
             </ul>
-          </div>
-          <div class="dropdown">
-            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-laptop" aria-hidden="true"></i> Modalidad
+          </li>
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="business-dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-controls="business-dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Para empresas">
+              <i class="bi bi-building" aria-hidden="true"></i> Para empresas
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#ofertas">Remoto</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Presencial</a></li>
-              <li><a class="dropdown-item" href="#ofertas">Híbrido</a></li>
+            <ul class="dropdown-menu dropdown-menu-end" id="business-dropdown">
+              <li><a class="dropdown-item" href="#candidatos"><i class="bi bi-people" aria-hidden="true"></i> Buscar candidatos</a></li>
+              <li><a class="dropdown-item" href="#publicar-oferta"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</a></li>
+              <li><a class="dropdown-item" href="#busquedas-activas"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas</a></li>
             </ul>
-          </div>
+          </li>
+        </ul>
+        <img th:src="@{/img/UserLogo.png}" alt="Perfil de usuario" id="Logo-user">
+        <!--        <div class="filters" aria-label="Filtros de ofertas">-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Rubro-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Tecnología</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Diseño</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Administración</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-geo-alt" aria-hidden="true"></i> Ubicación-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Buenos Aires</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Córdoba</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Cualquier lugar</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
+<!--          <div class="dropdown">-->
+<!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--              <i class="bi bi-laptop" aria-hidden="true"></i> Modalidad-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end">-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Remoto</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Presencial</a></li>-->
+<!--              <li><a class="dropdown-item" href="#ofertas">Híbrido</a></li>-->
+<!--            </ul>-->
+<!--          </div>-->
         </div>
       </div>
     </div>
