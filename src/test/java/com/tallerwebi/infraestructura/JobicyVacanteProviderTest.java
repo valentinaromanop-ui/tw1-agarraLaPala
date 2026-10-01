@@ -3,10 +3,12 @@ package com.tallerwebi.infraestructura;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
@@ -14,71 +16,68 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 public class JobicyVacanteProviderTest {
 
-  private MockRestServiceServer servidor;
+  private static final String URL =
+    "https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}";
+  private RestTemplate restTemplateMock;
   private JobicyVacanteProvider provider;
+  private ObjectMapper objectMapper;
 
   @BeforeEach
   public void preparar() {
-    RestClient.Builder builder = RestClient.builder().baseUrl("https://jobicy.com");
-    servidor = MockRestServiceServer.bindTo(builder).build();
-    provider = new JobicyVacanteProvider(builder.build(), new JobicyMapper());
+    restTemplateMock = mock(RestTemplate.class);
+    provider = new JobicyVacanteProvider(restTemplateMock, new JobicyMapper());
+    objectMapper = new ObjectMapper();
   }
 
   @Test
-  public void devuelveUnaVacanteDeJobicy() {
-    responder("java", "{\"jobs\":[{\"id\":1,\"jobTitle\":\"Java Developer\"}]}");
+  public void devuelveUnaVacanteDeJobicy() throws Exception {
+    JsonNode respuesta = objectMapper.readTree(
+      "{\"jobs\":[{\"id\":1,\"jobTitle\":\"Java Developer\"}]}"
+    );
+    when(restTemplateMock.getForObject(URL, JsonNode.class, "java")).thenReturn(respuesta);
 
     List<VacanteDTO> resultado = provider.buscarVacantes(busqueda("java"));
 
     assertEquals(1, resultado.size());
     assertEquals("Java Developer", resultado.getFirst().getTitulo());
-    servidor.verify();
   }
 
   @Test
-  public void consultaCadaSkillYUneLasVacantesSinRepetirlas() {
-    responder("java", "{\"jobs\":[{\"id\":1},{\"id\":2}]}");
-    responder("sql", "{\"jobs\":[{\"id\":1},{\"id\":3}]}");
+  public void consultaCadaSkillYUneLasVacantesSinRepetirlas() throws Exception {
+    JsonNode respuestaJava = objectMapper.readTree("{\"jobs\":[{\"id\":1},{\"id\":2}]}");
+    JsonNode respuestaSql = objectMapper.readTree("{\"jobs\":[{\"id\":1},{\"id\":3}]}");
+    when(restTemplateMock.getForObject(URL, JsonNode.class, "java")).thenReturn(respuestaJava);
+    when(restTemplateMock.getForObject(URL, JsonNode.class, "sql")).thenReturn(respuestaSql);
 
     List<VacanteDTO> resultado = provider.buscarVacantes(busqueda("java", "sql"));
 
     assertEquals(3, resultado.size());
     assertEquals(Arrays.asList("java", "sql"), resultado.getFirst().getSkills());
-    servidor.verify();
+    verify(restTemplateMock).getForObject(URL, JsonNode.class, "java");
+    verify(restTemplateMock).getForObject(URL, JsonNode.class, "sql");
   }
 
   @Test
-  public void devuelveListaVaciaCuandoNoHayOfertas() {
-    responder("java", "{\"jobs\":[]}");
+  public void devuelveListaVaciaCuandoNoHayOfertas() throws Exception {
+    JsonNode respuesta = objectMapper.readTree("{\"jobs\":[]}");
+    when(restTemplateMock.getForObject(URL, JsonNode.class, "java")).thenReturn(respuesta);
 
     List<VacanteDTO> resultado = provider.buscarVacantes(busqueda("java"));
 
     assertTrue(resultado.isEmpty());
-    servidor.verify();
   }
 
   @Test
   public void lanzaExcepcionCuandoJobicyFalla() {
-    servidor.expect(requestTo(url("java"))).andRespond(withServerError());
+    when(restTemplateMock.getForObject(URL, JsonNode.class, "java"))
+      .thenThrow(new RestClientException("Error al consultar Jobicy"));
 
     assertThrows(FuenteVacanteNoDisponible.class, () -> provider.buscarVacantes(busqueda("java")));
-    servidor.verify();
-  }
-
-  private void responder(String skill, String json) {
-    servidor
-      .expect(requestTo(url(skill)))
-      .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
-  }
-
-  private String url(String skill) {
-    return "https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag=" + skill;
   }
 
   private BusquedaVacanteDTO busqueda(String... skills) {

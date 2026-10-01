@@ -12,13 +12,13 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 public class JobicyVacanteProvider implements VacanteProvider {
 
-  private final RestClient restClient;
+  private final RestTemplate restTemplate;
   private final JobicyMapper jobicyMapper;
 
   @Autowired
@@ -26,16 +26,16 @@ public class JobicyVacanteProvider implements VacanteProvider {
     this(crearCliente(), jobicyMapper);
   }
 
-  public JobicyVacanteProvider(RestClient restClient, JobicyMapper jobicyMapper) {
-    this.restClient = restClient;
+  public JobicyVacanteProvider(RestTemplate restTemplate, JobicyMapper jobicyMapper) {
+    this.restTemplate = restTemplate;
     this.jobicyMapper = jobicyMapper;
   }
 
-  private static RestClient crearCliente() {
+  private static RestTemplate crearCliente() {
     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
     factory.setConnectTimeout(5000);
     factory.setReadTimeout(10000);
-    return RestClient.builder().baseUrl("https://jobicy.com").requestFactory(factory).build();
+    return new RestTemplate(factory);
   }
 
   @Override
@@ -61,11 +61,11 @@ public class JobicyVacanteProvider implements VacanteProvider {
 
   private JsonNode obtenerPublicaciones(String skill) {
     try {
-      JsonNode respuesta = restClient
-        .get()
-        .uri("/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}", skill)
-        .retrieve()
-        .body(JsonNode.class);
+      JsonNode respuesta = restTemplate.getForObject(
+        "https://jobicy.com/api/v2/remote-jobs?count=200&industry=engineering&tag={skill}",
+        JsonNode.class,
+        skill
+      );
       if (respuesta == null || !respuesta.path("jobs").isArray()) {
         throw new FuenteVacanteNoDisponible("Jobicy", null);
       }

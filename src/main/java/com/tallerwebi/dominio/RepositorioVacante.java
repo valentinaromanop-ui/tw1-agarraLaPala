@@ -10,4 +10,6 @@ public interface RepositorioVacante {
   List<Vacante> buscarPorCategoria(String categoria);
 
   Vacante obtenerPorId(Long id);
+
+  List<Vacante> buscarPorSkills(List<String> skills);
 }

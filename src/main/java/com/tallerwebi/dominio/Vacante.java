@@ -5,6 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Vacante {
@@ -13,20 +17,29 @@ public class Vacante {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(unique = true)
-  private String idExterno;
-
+  @Column
   private String titulo;
+
+  @Column
   private String empresa;
 
-  @Column(length = 5000)
+  @Column(length = 500)
   private String descripcion;
 
+  @Column
   private String ubicacion;
+
+  @Column
   private String modalidad;
-  private String url;
-  private String fechaPublicacion;
-  private String categoria;
+
+  @Column(name = "fecha_publicacion")
+  private LocalDateTime fechaPublicacion;
+
+  @Column
+  private Boolean activa = true;
+
+  @OneToMany(mappedBy = "vacante")
+  private Set<VacanteSkill> vacanteSkills = new HashSet<>();
 
   public Long getId() {
     return id;
@@ -34,14 +47,6 @@ public class Vacante {
 
   public void setId(Long id) {
     this.id = id;
-  }
-
-  public String getIdExterno() {
-    return idExterno;
-  }
-
-  public void setIdExterno(String idExterno) {
-    this.idExterno = idExterno;
   }
 
   public String getTitulo() {
@@ -84,27 +89,27 @@ public class Vacante {
     this.modalidad = modalidad;
   }
 
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public String getFechaPublicacion() {
+  public LocalDateTime getFechaPublicacion() {
     return fechaPublicacion;
   }
 
-  public void setFechaPublicacion(String fechaPublicacion) {
+  public void setFechaPublicacion(LocalDateTime fechaPublicacion) {
     this.fechaPublicacion = fechaPublicacion;
   }
 
-  public String getCategoria() {
-    return categoria;
+  public Boolean getActiva() {
+    return activa;
   }
 
-  public void setCategoria(String categoria) {
-    this.categoria = categoria;
+  public void setActiva(Boolean activa) {
+    this.activa = activa;
+  }
+
+  public Set<VacanteSkill> getVacanteSkills() {
+    return vacanteSkills;
+  }
+
+  public void setVacanteSkills(Set<VacanteSkill> vacanteSkills) {
+    this.vacanteSkills = vacanteSkills;
   }
 }
