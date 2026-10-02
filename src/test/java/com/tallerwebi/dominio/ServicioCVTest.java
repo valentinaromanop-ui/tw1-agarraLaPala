@@ -26,4 +26,28 @@ public class ServicioCVTest {
     boolean resultado = servicio.esFormatoValido("miCV.exe");
     assertThat(resultado, equalTo(false));
   }
+
+  @Test
+  public void deberiaFallarSiMiCVesNulo() {
+    boolean resultado = servicio.esFormatoValido(null);
+    assertThat(resultado, equalTo(false));
+  }
+
+  @Test
+  public void deberiaFallarSiMiCVEsUnNombreVacio() {
+    boolean resultado = servicio.esFormatoValido("");
+    assertThat(resultado, equalTo(false));
+  }
+
+  @Test
+  public void deberiaFallarSiMiCVNoTieneExtension() {
+    boolean resultado = servicio.esFormatoValido("miCV");
+    assertThat(resultado, equalTo(false));
+  }
+
+  @Test
+  public void deberiaFallarSiMiCVSeLlamaPDF() {
+    boolean resultado = servicio.esFormatoValido("pdf");
+    assertThat(resultado, equalTo(false));
+  }
 }

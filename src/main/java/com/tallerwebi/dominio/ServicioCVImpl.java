@@ -11,9 +11,12 @@ public class ServicioCVImpl implements ServicioCV {
     if (nombreArchivo == null || nombreArchivo.trim().isEmpty()) {
       return false;
     }
+    if (nombreArchivo.lastIndexOf(".") == -1) {
+      return false;
+    }
     String extension = nombreArchivo
       .substring(nombreArchivo.lastIndexOf(".") + 1)
       .toLowerCase(Locale.ROOT);
-    return "pdf".equals(extension) || "doc".equals(extension) || "docx".equals(extension);
+    return ("pdf".equals(extension) || "doc".equals(extension) || "docx".equals(extension));
   }
 }
