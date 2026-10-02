@@ -5,12 +5,12 @@ import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.Test;
 
-public class ServiceCVTest {
+public class ServicioCVTest {
 
   @Test
   public void esmiCVpdfesUnFormatoValido() {
     ServicioCVImpl servicio = new ServicioCVImpl();
     boolean resultado = servicio.esFormatoValido("miCV.pdf");
-    assertThat(resultado, equalTo(false));
+    assertThat(resultado, equalTo(true));
   }
 }
