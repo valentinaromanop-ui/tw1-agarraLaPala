@@ -14,6 +14,7 @@ public class ServicioCVImpl implements ServicioCV {
     if (nombreArchivo.lastIndexOf(".") == -1) {
       return false;
     }
+
     String extension = nombreArchivo
       .substring(nombreArchivo.lastIndexOf(".") + 1)
       .toLowerCase(Locale.ROOT);
