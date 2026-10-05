@@ -53,6 +53,45 @@ function marcarCoincidencia(boton, cargo, consulta) {
   boton.append(document.createTextNode(cargo.slice(rango.fin)));
 }
 
+function obtenerOfertaIdDeTarjeta(tarjeta) {
+  if (tarjeta.dataset.ofertaId) {
+    return tarjeta.dataset.ofertaId;
+  }
+  const titulo = tarjeta.querySelector(".offer-info h3")?.textContent || "Oferta sin título";
+  const empresa = tarjeta.querySelector(".offer-info > p")?.textContent || "Empresa no informada";
+  return `${titulo} | ${empresa}`;
+}
+
+async function enviarPostulacion(boton, ofertaId) {
+  boton.disabled = true;
+  try {
+    const respuesta = await fetch("/postularse", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ ofertaId }),
+    });
+    const resultado = await respuesta.json();
+    if (!respuesta.ok) {
+      throw new Error(resultado.mensaje || "No se pudo enviar la postulación");
+    }
+    boton.textContent = resultado.mensaje;
+  } catch (error) {
+    boton.disabled = false;
+    boton.textContent = error.message;
+  }
+}
+
+function configurarBotonPostulacion(boton, ofertaId) {
+  boton.addEventListener("click", () => enviarPostulacion(boton, ofertaId));
+}
+
+function iniciarPostulaciones() {
+  document.querySelectorAll(".apply-button").forEach((boton) => {
+    const tarjeta = boton.closest(".offer-card");
+    configurarBotonPostulacion(boton, boton.dataset.ofertaId || obtenerOfertaIdDeTarjeta(tarjeta));
+  });
+}
+
 function iniciarAutocompletado(formulario) {
   const campo = formulario.querySelector('input[name="texto"]');
   const lista = formulario.querySelector(".search-suggestions");
@@ -251,6 +290,13 @@ function iniciarResultados() {
       enlace.textContent = "Ver oferta";
       tarjeta.append(enlace);
     }
+    const botonPostularse = document.createElement("button");
+    botonPostularse.type = "button";
+    botonPostularse.className = "apply-button";
+    botonPostularse.textContent = "Postularme";
+    botonPostularse.dataset.ofertaId = oferta.url || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
+    configurarBotonPostulacion(botonPostularse, botonPostularse.dataset.ofertaId);
+    tarjeta.append(botonPostularse);
     return tarjeta;
   }
 
@@ -325,4 +371,5 @@ function iniciarResultados() {
 if (typeof document !== "undefined") {
   document.querySelectorAll(".search-autocomplete").forEach(iniciarAutocompletado);
   iniciarResultados();
+  iniciarPostulaciones();
 }
