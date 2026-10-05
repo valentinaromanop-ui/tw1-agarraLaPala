@@ -135,3 +135,82 @@ body.vacantes-page {
     transform: none;
   }
 }
+
+.profile-button {
+  float: right;
+}
+
+.profile-page main.container {
+  max-width: 960px;
+}
+
+.profile-page .profile-section {
+  margin-bottom: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 0.5rem;
+  background-color: var(--vacantes-surface);
+}
+
+.profile-page .form-label,
+.profile-page .form-check-label,
+.profile-page legend {
+  color: var(--vacantes-text);
+}
+
+.profile-page .form-control,
+.profile-page .form-select {
+  border-color: var(--vacantes-border);
+  color: var(--vacantes-text);
+  background-color: var(--vacantes-background);
+}
+
+.profile-page .form-control:focus,
+.profile-page .form-select:focus {
+  border-color: var(--vacantes-accent);
+  box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
+}
+
+.profile-page .skill-option,
+.profile-page .language-option {
+  display: inline-block;
+  margin: 0 0.45rem 0.45rem 0;
+}
+
+.profile-page .skill-button,
+.profile-page .language-button {
+  display: block;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 2rem;
+  color: var(--vacantes-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.profile-page .skill-button.selected,
+.profile-page .language-button.selected {
+  border-color: var(--vacantes-accent);
+  color: #111827;
+  background-color: var(--vacantes-accent);
+}
+
+.profile-page .skill-button:focus-visible,
+.profile-page .language-button:focus-visible {
+  outline: 2px solid var(--vacantes-accent);
+  outline-offset: 2px;
+}
+
+.profile-page .language-level {
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.profile-page .form-check-input:checked {
+  border-color: var(--vacantes-accent);
+  background-color: var(--vacantes-accent);
+}
+
+.profile-page .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
+}

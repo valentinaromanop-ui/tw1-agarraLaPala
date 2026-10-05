@@ -101,7 +101,9 @@
             </ul>
           </li>
         </ul>
-        <img th:src="@{/img/UserLogo.png}" alt="Perfil de usuario" id="Logo-user">
+        <a th:href="@{/perfil}" aria-label="Mi perfil">
+          <img th:src="@{/img/UserLogo.png}" alt="Perfil de usuario" id="Logo-user">
+        </a>
         <!--        <div class="filters" aria-label="Filtros de ofertas">-->
 <!--          <div class="dropdown">-->
 <!--            <button class="filter-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
