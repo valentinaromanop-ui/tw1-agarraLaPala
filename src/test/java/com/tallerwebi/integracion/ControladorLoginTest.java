@@ -27,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class })
+@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class }) //SpringWebTestConfig configura la parte web, y HibernateTestConfig usa una base de datos en memoria (HSQLDB),
 public class ControladorLoginTest {
 
   private Usuario usuarioMock;
