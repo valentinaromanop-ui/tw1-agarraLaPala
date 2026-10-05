@@ -5,6 +5,7 @@ import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.VacanteSkill;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,7 +24,7 @@ public class VacanteMapper {
     List<String> coincidencias = new ArrayList<>();
 
     for (VacanteSkill relacion : vacante.getVacanteSkills()) {
-      String nombre = relacion.getSkill().getNombre().toLowerCase();
+      String nombre = relacion.getSkill().getNombre().toLowerCase(Locale.ROOT);
       if (skillsBuscadas.contains(nombre) && !coincidencias.contains(nombre)) {
         coincidencias.add(nombre);
       }

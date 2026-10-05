@@ -6,7 +6,7 @@ import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
 
 import com.microsoft.playwright.*;
 import com.tallerwebi.punta_a_punta.vistas.VistaLogin;
-import com.tallerwebi.punta_a_punta.vistas.VistaNuevoUsuario;
+import com.tallerwebi.punta_a_punta.vistas.VistaRegistro;
 import java.net.MalformedURLException;
 import java.net.URL;
 import org.junit.jupiter.api.AfterAll;
@@ -69,13 +69,11 @@ public class VistaLoginE2E {
   }
 
   @Test
-  void deberiaRegistrarUnUsuarioEIniciarSesionExistosamente() throws MalformedURLException {
+  void deveriaRegistrarUmCandidatoEVoltarAoLogin() throws MalformedURLException {
     dadoQueElUsuarioNavegaALaVistaDeRegistro();
     dadoQueElUsuarioSeRegistraCon("juan@unlam.edu.ar", "123456");
     dadoQueElUsuarioEstaEnLaVistaDeLogin();
-    dadoQueElUsuarioCargaSusDatosDeLoginCon("juan@unlam.edu.ar", "123456");
-    cuandoElUsuarioTocaElBotonDeLogin();
-    entoncesDeberiaSerRedirigidoALasVacantesRecomendadas();
+    entoncesDeberiaVerRegistroRecibido();
   }
 
   private void entoncesDeberiaVerUNLAMEnElNavbar() {
@@ -105,6 +103,14 @@ public class VistaLoginE2E {
     assertThat("Error Usuario o clave incorrecta", equalToIgnoringCase(texto));
   }
 
+  private void entoncesDeberiaVerRegistroRecibido() {
+    String texto = vistaLogin.obtenerMensajeRegistroExitoso();
+    assertThat(
+      "Registro recibido. La creación de cuentas todavía no está habilitada.",
+      equalToIgnoringCase(texto)
+    );
+  }
+
   private void dadoQueElUsuarioCargaSusDatosDeLoginCon(String email, String clave) {
     vistaLogin.escribirEMAIL(email);
     vistaLogin.escribirClave(clave);
@@ -115,9 +121,11 @@ public class VistaLoginE2E {
   }
 
   private void dadoQueElUsuarioSeRegistraCon(String email, String clave) {
-    VistaNuevoUsuario vistaNuevoUsuario = new VistaNuevoUsuario(context.pages().get(0));
-    vistaNuevoUsuario.escribirEMAIL(email);
-    vistaNuevoUsuario.escribirClave(clave);
-    vistaNuevoUsuario.darClickEnRegistrarme();
+    VistaRegistro vistaRegistro = new VistaRegistro(context.pages().get(0));
+    vistaRegistro.darClickEnRegistroCandidato();
+    vistaRegistro.escribirEMAIL(email);
+    vistaRegistro.escribirClave(clave);
+    vistaRegistro.repetirClave(clave);
+    vistaRegistro.darClickEnRegistrar();
   }
 }
