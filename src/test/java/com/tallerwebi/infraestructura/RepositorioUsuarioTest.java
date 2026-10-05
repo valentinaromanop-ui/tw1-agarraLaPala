@@ -1,6 +1,7 @@
 package com.tallerwebi.infraestructura;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -12,6 +13,7 @@ import com.tallerwebi.dominio.excepcion.UsuarioNoEncontrado;
 import com.tallerwebi.infraestructura.config.HibernateInfraestructuraTestConfig;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,21 @@ public class RepositorioUsuarioTest {
 
     // validacion
     this.entoncesSeGuardoElUsuario(emailNuevoUsuario, usuario);
+  }
+
+  @Test
+  @Transactional
+  @Rollback
+  public void deberiaPersistirLasHabilidadesDelCandidato() {
+    Usuario usuario = this.dadoQueTengoUnUsuario("candidato@test.com", "hash", "CANDIDATO");
+    usuario.setHabilidades(List.of("Java", "SQL"));
+
+    this.cuandoGuardoUnUsuario(usuario);
+    this.sessionFactory.getCurrentSession().flush();
+    this.sessionFactory.getCurrentSession().clear();
+
+    Usuario obtenido = this.cuandoObtengoUnUsuarioPorEmail("candidato@test.com");
+    assertThat(obtenido.getHabilidades(), containsInAnyOrder("Java", "SQL"));
   }
 
   @Test
