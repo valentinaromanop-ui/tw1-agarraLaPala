@@ -3,6 +3,10 @@ ON DUPLICATE KEY UPDATE password = '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLY
 
 INSERT INTO Skill (id, nombre) VALUES (1, 'java'), (2, 'sql'), (3, 'php'), (4, 'python')
 ON DUPLICATE KEY UPDATE id = id;
+INSERT INTO Skill (id, nombre) VALUES
+(5, 'JavaScript'), (6, 'HTML'), (7, 'CSS'), (8, 'Git'), (9, 'Spring'),
+(10, 'React'), (11, 'Node.js'), (12, 'C#')
+ON DUPLICATE KEY UPDATE id = id;
 INSERT INTO Vacante (id, titulo, empresa, descripcion, ubicacion, modalidad, fecha_publicacion, activa) VALUES
 (1, 'Desarrollador Java', 'Empresa A', 'Desarrollo de aplicaciones backend con Java y SQL.', 'Argentina', 'REMOTE', '2026-09-28 10:00:00', true)
 ON DUPLICATE KEY UPDATE id = id;
