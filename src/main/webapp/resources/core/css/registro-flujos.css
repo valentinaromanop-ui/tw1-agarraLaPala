@@ -1,0 +1,107 @@
+.login-choice-box h1 {
+  margin-bottom: 1rem;
+  color: var(--highlight);
+  font-weight: 800;
+  text-align: center;
+}
+
+.login-choice-options {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.login-choice-options .btn {
+  min-height: 3.5rem;
+  white-space: normal;
+}
+
+.login-box .form-label,
+.skills-fieldset legend {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.skills-fieldset {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+}
+
+.skills-fieldset legend {
+  float: none;
+  width: auto;
+  margin-bottom: 0.65rem;
+  font-size: 1rem;
+}
+
+.skill-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.skill-chip {
+  position: relative;
+  cursor: pointer;
+}
+
+.skill-checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0 !important;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skill-chip span {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background-color: var(--background);
+  font-size: 0.875rem;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.skill-checkbox:checked + span {
+  border-color: #686ce3;
+  color: var(--highlight);
+  background-color: var(--accent);
+}
+
+.skill-checkbox:focus-visible + span {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+.login-back-link {
+  display: block;
+  margin-top: 1.25rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.login-back-link:hover,
+.login-back-link:focus-visible {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.login-box .alert-danger {
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-chip span {
+    transition: none;
+  }
+}

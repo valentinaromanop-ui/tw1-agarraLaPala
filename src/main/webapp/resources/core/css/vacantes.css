@@ -1,0 +1,216 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+  --vacantes-background: #0f121a;
+  --vacantes-surface: #1b2030;
+  --vacantes-surface-hover: #242c3e;
+  --vacantes-text: #f8f9ff;
+  --vacantes-muted: #b9bfd1;
+  --vacantes-accent: #76baff;
+  --vacantes-border: rgb(210 216 240 / 18%);
+}
+
+body.vacantes-page {
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--vacantes-text);
+  background:
+    radial-gradient(ellipse at 85% 0, rgb(40 45 199 / 16%), transparent 32rem),
+    var(--vacantes-background);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.vacantes-page h1,
+.vacantes-page h2 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.vacantes-page main.container {
+  max-width: 960px;
+  padding-top: 3rem !important;
+  padding-bottom: 4rem !important;
+}
+
+.vacantes-page main.container > a {
+  display: inline-block;
+  margin-bottom: 2.5rem;
+  color: var(--vacantes-accent);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.vacantes-page main.container > a:hover,
+.vacantes-page main.container > a:focus-visible {
+  color: var(--vacantes-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.vacantes-page h1 {
+  margin-bottom: 0.75rem;
+  color: var(--vacantes-text);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.vacantes-page main.container > p:not(.alert) {
+  margin-bottom: 1.5rem;
+  color: var(--vacantes-muted);
+}
+
+.vacantes-page .card {
+  border: 1px solid var(--vacantes-border);
+  border-radius: 0.5rem;
+  color: var(--vacantes-text);
+  background-color: var(--vacantes-surface);
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.vacantes-page .card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(118 186 255 / 48%);
+  background-color: var(--vacantes-surface-hover);
+}
+
+.vacantes-page .card-body {
+  padding: 1.5rem;
+}
+
+.vacantes-page .card h2 {
+  margin-bottom: 0.9rem;
+  color: var(--vacantes-text);
+  font-weight: 600;
+}
+
+.vacantes-page .card p {
+  color: var(--vacantes-muted);
+  line-height: 1.65;
+}
+
+.vacantes-page .card strong {
+  color: var(--vacantes-text);
+}
+
+.vacantes-page .btn-primary {
+  border-color: var(--vacantes-accent);
+  color: #111827;
+  background-color: var(--vacantes-accent);
+  font-weight: 700;
+}
+
+.vacantes-page .btn-primary:hover,
+.vacantes-page .btn-primary:focus-visible {
+  border-color: #a0d0ff;
+  color: #111827;
+  background-color: #a0d0ff;
+}
+
+.vacantes-page .alert-danger {
+  border-color: rgb(255 128 128 / 35%);
+  color: #ffd5d5;
+  background-color: rgb(125 34 49 / 28%);
+}
+
+@media (max-width: 575.98px) {
+  .vacantes-page main.container {
+    padding-top: 1.75rem !important;
+  }
+
+  .vacantes-page main.container > a {
+    margin-bottom: 2rem;
+  }
+
+  .vacantes-page .card-body {
+    padding: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vacantes-page .card {
+    transition: none;
+  }
+
+  .vacantes-page .card:hover {
+    transform: none;
+  }
+}
+
+.profile-button {
+  float: right;
+}
+
+.profile-page main.container {
+  max-width: 960px;
+}
+
+.profile-page .profile-section {
+  margin-bottom: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 0.5rem;
+  background-color: var(--vacantes-surface);
+}
+
+.profile-page .form-label,
+.profile-page .form-check-label,
+.profile-page legend {
+  color: var(--vacantes-text);
+}
+
+.profile-page .form-control,
+.profile-page .form-select {
+  border-color: var(--vacantes-border);
+  color: var(--vacantes-text);
+  background-color: var(--vacantes-background);
+}
+
+.profile-page .form-control:focus,
+.profile-page .form-select:focus {
+  border-color: var(--vacantes-accent);
+  box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
+}
+
+.profile-page .skill-option,
+.profile-page .language-option {
+  display: inline-block;
+  margin: 0 0.45rem 0.45rem 0;
+}
+
+.profile-page .skill-button,
+.profile-page .language-button {
+  display: block;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 2rem;
+  color: var(--vacantes-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.profile-page .skill-button.selected,
+.profile-page .language-button.selected {
+  border-color: var(--vacantes-accent);
+  color: #111827;
+  background-color: var(--vacantes-accent);
+}
+
+.profile-page .skill-button:focus-visible,
+.profile-page .language-button:focus-visible {
+  outline: 2px solid var(--vacantes-accent);
+  outline-offset: 2px;
+}
+
+.profile-page .language-level {
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.profile-page .form-check-input:checked {
+  border-color: var(--vacantes-accent);
+  background-color: var(--vacantes-accent);
+}
+
+.profile-page .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
+}

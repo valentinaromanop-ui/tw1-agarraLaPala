@@ -17,6 +17,10 @@ public class VistaLogin extends VistaWeb {
     return this.obtenerTextoDelElemento("p.alert.alert-danger");
   }
 
+  public String obtenerMensajeRegistroExitoso() {
+    return this.obtenerTextoDelElemento("#registro-exitoso");
+  }
+
   public void escribirEMAIL(String email) {
     this.escribirEnElElemento("#email", email);
   }
