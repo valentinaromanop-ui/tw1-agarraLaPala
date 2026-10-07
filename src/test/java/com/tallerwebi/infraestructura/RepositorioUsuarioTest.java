@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -73,12 +74,30 @@ public class RepositorioUsuarioTest {
   public void deberiaEncontrarUnUsuarioExistenteCuandoBuscoPorEmailYPassword() {
     String email = "test@test.com";
     String password = "123";
-    Usuario usuario = this.dadoQueTengoUnUsuario(email, password, "USER");
+    Usuario usuario =
+      this.dadoQueTengoUnUsuario(email, new BCryptPasswordEncoder().encode(password), "USER");
     this.dadoQueExisteElUsuario(usuario);
 
     Usuario obtenido = this.cuandoBuscoUnUsuario(email, password);
 
     this.entoncesElUsuarioObtenidoEsCorrecto(obtenido, usuario);
+  }
+
+  @Test
+  @Transactional
+  @Rollback
+  public void noDeberiaEncontrarUsuarioConContrasenaIncorrecta() {
+    Usuario usuario =
+      this.dadoQueTengoUnUsuario(
+          "test@test.com",
+          new BCryptPasswordEncoder().encode("correcta"),
+          "USER"
+        );
+    this.dadoQueExisteElUsuario(usuario);
+
+    Usuario obtenido = this.cuandoBuscoUnUsuario("test@test.com", "incorrecta");
+
+    this.entoncesElUsuarioObtenidoEsNull(obtenido);
   }
 
   @Test

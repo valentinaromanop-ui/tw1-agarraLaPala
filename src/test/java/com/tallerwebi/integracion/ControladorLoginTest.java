@@ -125,10 +125,12 @@ public class ControladorLoginTest {
     Usuario usuario = servicioLogin.consultarUsuario(email, "secreto");
     assertThat(usuario.getRol(), is("CANDIDATO"));
 
+    String sessionIdBeforeLogin = session.getId();
     this.mockMvc.perform(
         post("/validar-login").session(session).param("email", email).param("password", "secreto")
       )
       .andExpect(status().is3xxRedirection());
+    org.junit.jupiter.api.Assertions.assertNotEquals(sessionIdBeforeLogin, session.getId());
     assertThat(session.getAttribute("ROL"), is("CANDIDATO"));
   }
 }

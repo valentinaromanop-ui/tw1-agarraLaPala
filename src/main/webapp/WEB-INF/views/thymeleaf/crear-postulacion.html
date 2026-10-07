@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publicar oferta | Agarra la Pala</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" th:href="@{/css/ofertas-empleador.css}">
+</head>
+
+<body class="employer-body">
+  <nav class="navbar navbar-dark fixed-top">
+    <div class="container-fluid navbar-container justify-content-between">
+      <a class="navbar-brand" th:href="@{/home}">Agarra la Pala</a>
+      <div class="employer-nav-links">
+        <a th:href="@{/busquedas-Empleador}"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas</a>
+        <a th:href="@{/home}">Inicio</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container employer-page">
+    <section class="employer-panel" aria-labelledby="crear-oferta-title">
+      <p class="employer-eyebrow"><i class="bi bi-building" aria-hidden="true"></i> Para empresas</p>
+      <h1 id="crear-oferta-title">Publicar una oferta</h1>
+      <p class="employer-intro">Completá los datos del cargo para compartir la búsqueda con candidatos.</p>
+
+      <div th:if="${errores != null}" class="alert alert-danger" role="alert">
+        <p class="mb-2 fw-bold">Revisá estos datos:</p>
+        <ul class="mb-0">
+          <li th:each="error : ${errores}" th:text="${error}"></li>
+        </ul>
+      </div>
+
+      <form th:action="@{/crear-postulacion}" th:object="${datosOferta}" method="post" accept-charset="UTF-8">
+        <div class="mb-3">
+          <label class="form-label" for="empresa">Empresa</label>
+          <input id="empresa" class="form-control" type="text" th:value="${empresa}" readonly>
+          <div class="form-text">La empresa se obtiene de tu cuenta.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="titulo">Título del cargo</label>
+          <input id="titulo" class="form-control" type="text" th:field="*{titulo}" maxlength="150" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="descripcion">Descripción</label>
+          <textarea id="descripcion" class="form-control" th:field="*{descripcion}" rows="5" required></textarea>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="ubicacion">Ubicación o zona</label>
+            <input id="ubicacion" class="form-control" type="text" th:field="*{ubicacion}" maxlength="150" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="modalidad">Modalidad</label>
+            <select id="modalidad" class="form-select" th:field="*{modalidad}" required>
+              <option value="">Seleccioná una modalidad</option>
+              <option value="presencial">Presencial</option>
+              <option value="remoto">Remoto</option>
+              <option value="híbrido">Híbrido</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="horario">Horario</label>
+            <input id="horario" class="form-control" type="text" th:field="*{horario}" maxlength="120"
+              placeholder="Ej.: lunes a viernes, de 9 a 18" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="salario">Salario ofrecido</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input id="salario" class="form-control" type="number" th:field="*{salario}" min="0.01" step="0.01"
+                required>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="skills">Skills requeridas</label>
+          <input id="skills" class="form-control" type="text" th:field="*{skills}"
+            placeholder="Ej.: Java, SQL, comunicación" required>
+          <div class="form-text">Separá las habilidades con comas.</div>
+        </div>
+
+        <p class="publication-note"><i class="bi bi-calendar-check" aria-hidden="true"></i> La fecha de publicación se asigna automáticamente al publicar.</p>
+
+        <div class="employer-actions">
+          <a class="btn btn-outline-light" th:href="@{/busquedas-Empleador}">Cancelar</a>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+
+</html>

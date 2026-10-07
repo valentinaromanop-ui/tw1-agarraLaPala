@@ -1,5 +1,5 @@
 INSERT INTO Usuario(id, email, password, rol, activo) VALUES(null, 'test@unlam.edu.ar', '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', 'ADMIN', true)
-ON DUPLICATE KEY UPDATE password = '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', rol = 'ADMIN', activo = true;
+ON DUPLICATE KEY UPDATE password = IF(password = 'test', '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', password);
 
 INSERT INTO Skill (id, nombre) VALUES (1, 'java'), (2, 'sql'), (3, 'php'), (4, 'python')
 ON DUPLICATE KEY UPDATE id = id;

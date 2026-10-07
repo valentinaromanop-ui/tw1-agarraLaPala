@@ -294,7 +294,7 @@ function iniciarResultados() {
     botonPostularse.type = "button";
     botonPostularse.className = "apply-button";
     botonPostularse.textContent = "Postularme";
-    botonPostularse.dataset.ofertaId = oferta.url || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
+    botonPostularse.dataset.ofertaId = oferta.url || oferta.id || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
     configurarBotonPostulacion(botonPostularse, botonPostularse.dataset.ofertaId);
     tarjeta.append(botonPostularse);
     return tarjeta;

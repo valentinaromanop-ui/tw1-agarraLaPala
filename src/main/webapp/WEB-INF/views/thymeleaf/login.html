@@ -39,7 +39,7 @@
                         disabled>Ingresar</button>
 
                     <p id="registro-exitoso" th:if="${param.registro != null}" class="alert alert-success" role="status">
-                        Registro recibido. La creación de cuentas todavía no está habilitada.
+                        Registro exitoso.
                     </p>
 
                     <p th:if="${error != null}" class="alert alert-danger" th:text="'Error ' + ${error}">
