@@ -57,6 +57,7 @@ public class ControladorLoginTest {
       modelAndView.getModel().get("error").toString(),
       equalToIgnoringCase("Usuario o clave incorrecta")
     );
+    assertThat(datosLoginMock.getPassword(), org.hamcrest.Matchers.nullValue());
     verify(sessionMock, times(0)).setAttribute("ROL", "ADMIN");
   }
 
@@ -165,6 +166,8 @@ public class ControladorLoginTest {
       modelAndView.getModel().get("error").toString(),
       equalToIgnoringCase("Ingresá un correo electrónico válido.")
     );
+    assertThat(datos.getPassword(), org.hamcrest.Matchers.nullValue());
+    assertThat(datos.getConfirmarPassword(), org.hamcrest.Matchers.nullValue());
   }
 
   @Test

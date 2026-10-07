@@ -1,6 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.VacanteDTO;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,9 @@ public class VacanteResultadoBusqueda {
   private final List<String> skills;
   private final String url;
   private final String fechaPublicacion;
+  private final Long id;
+  private final BigDecimal salario;
+  private final String horario;
 
   public VacanteResultadoBusqueda(VacanteDTO vacante) {
     titulo = vacante.getTitulo();
@@ -21,6 +25,9 @@ public class VacanteResultadoBusqueda {
     modalidad = vacante.getModalidad();
     skills = vacante.getSkills();
     url = vacante.getUrl();
+    id = vacante.getId();
+    salario = vacante.getSalario();
+    horario = vacante.getHorario();
     // El formato ISO evita necesitar un módulo JSON adicional para LocalDateTime.
     fechaPublicacion =
       Optional.ofNullable(vacante.getFechaPublicacion()).map(Object::toString).orElse("");
@@ -52,5 +59,17 @@ public class VacanteResultadoBusqueda {
 
   public String getFechaPublicacion() {
     return fechaPublicacion;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public BigDecimal getSalario() {
+    return salario;
+  }
+
+  public String getHorario() {
+    return horario;
   }
 }

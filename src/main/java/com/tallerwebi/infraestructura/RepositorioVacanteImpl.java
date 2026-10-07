@@ -1,8 +1,11 @@
 package com.tallerwebi.infraestructura;
 
 import com.tallerwebi.dominio.RepositorioVacante;
+import com.tallerwebi.dominio.Skill;
 import com.tallerwebi.dominio.Vacante;
+import com.tallerwebi.dominio.VacanteSkill;
 import java.util.List;
+import java.util.Locale;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -18,7 +21,29 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
   }
 
   @Override
-  public void guardar(Vacante vacante) {}
+  public void guardar(Vacante vacante) {
+    sessionFactory.getCurrentSession().persist(vacante);
+    for (VacanteSkill relacion : vacante.getVacanteSkills()) {
+      Skill skill = relacion.getSkill();
+      if (skill.getId() == null) {
+        String nombre = skill.getNombre().trim();
+        Skill existente = sessionFactory
+          .getCurrentSession()
+          .createQuery("from Skill where lower(nombre) = :nombre", Skill.class)
+          .setParameter("nombre", nombre.toLowerCase(Locale.ROOT))
+          .uniqueResult();
+        if (existente == null) {
+          skill.setNombre(nombre);
+          sessionFactory.getCurrentSession().persist(skill);
+        } else {
+          skill = existente;
+          relacion.setSkill(skill);
+        }
+      }
+      relacion.setVacante(vacante);
+      sessionFactory.getCurrentSession().persist(relacion);
+    }
+  }
 
   @Override
   public boolean existePorIdExterno(String idExterno) {
@@ -47,6 +72,33 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
         Vacante.class
       )
       .setParameterList("skills", skills)
+      .getResultList();
+  }
+
+  @Override
+  public List<Vacante> buscarPorEmpleador(Long empleadorId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "from Vacante where empleadorId = :empleadorId order by fechaPublicacion desc",
+        Vacante.class
+      )
+      .setParameter("empleadorId", empleadorId)
+      .getResultList();
+  }
+
+  @Override
+  public List<Vacante> buscarOfertasPublicadasPorEmpleadores() {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "SELECT DISTINCT v FROM Vacante v " +
+        "LEFT JOIN FETCH v.vacanteSkills vs " +
+        "LEFT JOIN FETCH vs.skill " +
+        "WHERE v.empleadorId IS NOT NULL AND v.activa = true " +
+        "ORDER BY v.fechaPublicacion DESC",
+        Vacante.class
+      )
       .getResultList();
   }
 }

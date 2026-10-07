@@ -12,4 +12,8 @@ public interface RepositorioVacante {
   Vacante obtenerPorId(Long id);
 
   List<Vacante> buscarPorSkills(List<String> skills);
+
+  List<Vacante> buscarPorEmpleador(Long empleadorId);
+
+  List<Vacante> buscarOfertasPublicadasPorEmpleadores();
 }
