@@ -107,26 +107,27 @@ public class ServicioVacanteTest {
   @Test
   public void deberiaAplicarTodosLosFiltrosYExcluirDatosAusentes() {
     VacanteDTO coincide = vacante(null, "java");
-    coincide.getCondiciones().setModalidad("remote");
-    coincide.getCondiciones().setSeniority("junior");
-    coincide.getCondiciones().setJornada("full-time");
+    coincide.setModalidad("remote");
+    coincide.setSeniority("junior");
+    coincide.setJornada("full-time");
     VacanteDTO otraJornada = vacante(null, "java");
-    otraJornada.getCondiciones().setModalidad("remote");
-    otraJornada.getCondiciones().setSeniority("junior");
-    otraJornada.getCondiciones().setJornada("part-time");
+    otraJornada.setModalidad("remote");
+    otraJornada.setSeniority("junior");
+    otraJornada.setJornada("part-time");
     VacanteDTO otroNivel = vacante(null, "java");
-    otroNivel.getCondiciones().setModalidad("remote");
-    otroNivel.getCondiciones().setSeniority("senior");
-    otroNivel.getCondiciones().setJornada("full-time");
+    otroNivel.setModalidad("remote");
+    otroNivel.setSeniority("senior");
+    otroNivel.setJornada("full-time");
     VacanteDTO otraModalidad = vacante(null, "java");
-    otraModalidad.getCondiciones().setModalidad("onsite");
-    otraModalidad.getCondiciones().setSeniority("junior");
-    otraModalidad.getCondiciones().setJornada("full-time");
+    otraModalidad.setModalidad("onsite");
+    otraModalidad.setSeniority("junior");
+    otraModalidad.setJornada("full-time");
     VacanteDTO sinDatos = vacante(null, "java");
-    when(primerProviderMock.buscarVacantes(any())).thenReturn(Arrays.asList(coincide, otraJornada, otroNivel, otraModalidad, sinDatos));
-    busqueda.getCondiciones().setModalidad("remote");
-    busqueda.getCondiciones().setSeniority("junior");
-    busqueda.getCondiciones().setJornada("full-time");
+    when(primerProviderMock.buscarVacantes(any()))
+      .thenReturn(Arrays.asList(coincide, otraJornada, otroNivel, otraModalidad, sinDatos));
+    busqueda.setModalidad("remote");
+    busqueda.setSeniority("junior");
+    busqueda.setJornada("full-time");
 
     assertThat(servicioVacante.obtenerVacantesPorSkills(busqueda), equalTo(List.of(coincide)));
   }
@@ -135,9 +136,9 @@ public class ServicioVacanteTest {
   public void quitarFiltrosDeberiaIncluirVacantesSinDatos() {
     VacanteDTO sinDatos = vacante(null, "java");
     when(primerProviderMock.buscarVacantes(any())).thenReturn(List.of(sinDatos));
-    busqueda.getCondiciones().setModalidad("");
-    busqueda.getCondiciones().setSeniority("");
-    busqueda.getCondiciones().setJornada("");
+    busqueda.setModalidad("");
+    busqueda.setSeniority("");
+    busqueda.setJornada("");
 
     assertThat(servicioVacante.obtenerVacantesPorSkills(busqueda), equalTo(List.of(sinDatos)));
   }
@@ -148,17 +149,18 @@ public class ServicioVacanteTest {
     VacanteDTO menor = vacanteConSueldo("900", "USD");
     VacanteDTO otraMoneda = vacanteConSueldo("1000000", "ARS");
     VacanteDTO sinDatos = vacante(null, "java");
-    when(primerProviderMock.buscarVacantes(any())).thenReturn(Arrays.asList(coincide, menor, otraMoneda, sinDatos));
-    busqueda.getCondiciones().setSueldoMinimo(new BigDecimal("1000"));
-    busqueda.getCondiciones().setMoneda("USD");
+    when(primerProviderMock.buscarVacantes(any()))
+      .thenReturn(Arrays.asList(coincide, menor, otraMoneda, sinDatos));
+    busqueda.setSueldoMinimo(new BigDecimal("1000"));
+    busqueda.setMoneda("USD");
 
     assertThat(servicioVacante.obtenerVacantesPorSkills(busqueda), equalTo(List.of(coincide)));
   }
 
   private VacanteDTO vacanteConSueldo(String sueldo, String moneda) {
     VacanteDTO vacante = vacante(null, "java");
-    vacante.getCondiciones().setSueldoMinimo(new BigDecimal(sueldo));
-    vacante.getCondiciones().setMoneda(moneda);
+    vacante.setSalario(new BigDecimal(sueldo));
+    vacante.setMoneda(moneda);
 
     return vacante;
   }

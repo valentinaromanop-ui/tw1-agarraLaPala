@@ -18,13 +18,12 @@ public class VacanteMapper {
     dto.setEmpresa(vacante.getEmpresa());
     dto.setDescripcion(vacante.getDescripcion());
     dto.setUbicacion(vacante.getUbicacion());
-    dto.getCondiciones().setModalidad(vacante.getCondiciones().getModalidad());
-    dto.getCondiciones().setSeniority(vacante.getCondiciones().getSeniority());
-    dto.getCondiciones().setJornada(vacante.getCondiciones().getJornada());
-    dto.getCondiciones().setSueldoMinimo(vacante.getCondiciones().getSueldoMinimo());
-    dto.getCondiciones().setMoneda(vacante.getCondiciones().getMoneda());
-    dto.setFechaPublicacion(vacante.getFechaPublicacion());
+    dto.setModalidad(modalidad(vacante.getModalidad()));
+    dto.setSeniority(vacante.getSeniority());
+    dto.setJornada(vacante.getJornada());
     dto.setSalario(vacante.getSalario());
+    dto.setMoneda(vacante.getMoneda());
+    dto.setFechaPublicacion(vacante.getFechaPublicacion());
     dto.setHorario(vacante.getHorario());
     dto.setFuente("LOCAL");
     List<String> coincidencias = new ArrayList<>();
@@ -47,5 +46,22 @@ public class VacanteMapper {
     }
     dto.setSkills(skills);
     return dto;
+  }
+
+  private String modalidad(String valor) {
+    if (valor == null) {
+      return null;
+    }
+    switch (valor.toLowerCase(Locale.ROOT)) {
+      case "remoto":
+        return "remote";
+      case "presencial":
+        return "onsite";
+      case "híbrido":
+      case "hibrido":
+        return "hybrid";
+      default:
+        return valor;
+    }
   }
 }

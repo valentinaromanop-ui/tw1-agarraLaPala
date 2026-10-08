@@ -22,7 +22,7 @@ public class VacanteResultadoBusqueda {
     titulo = vacante.getTitulo();
     empresa = vacante.getEmpresa();
     ubicacion = vacante.getUbicacion();
-    modalidad = vacante.getCondiciones().getModalidad();
+    modalidad = vacante.getModalidad();
     skills = vacante.getSkills();
     url = vacante.getUrl();
     id = vacante.getId();

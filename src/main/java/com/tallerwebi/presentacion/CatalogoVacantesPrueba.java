@@ -65,7 +65,7 @@ public class CatalogoVacantesPrueba {
       if (
         coincideTexto(vacante, texto) &&
         coincide(vacante.getUbicacion(), zona) &&
-        coincideModalidad(vacante.getCondiciones().getModalidad(), modalidad) &&
+        coincideModalidad(vacante.getModalidad(), modalidad) &&
         coincideSkills(vacante, skills) &&
         coincideFecha(vacante, fecha)
       ) {
@@ -260,7 +260,7 @@ public class CatalogoVacantesPrueba {
     vacante.setEmpresa(empresa);
     vacante.setDescripcion(titulo + " en " + empresa);
     vacante.setUbicacion(ubicacion);
-    vacante.getCondiciones().setModalidad(modalidad);
+    vacante.setModalidad(modalidad);
     vacante.setSkills(skills);
     vacante.setUrl("https://example.com/ofertas/" + id);
     vacante.setFechaPublicacion(LocalDateTime.now().minusHours(horasAtras));

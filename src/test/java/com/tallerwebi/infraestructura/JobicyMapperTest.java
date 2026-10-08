@@ -12,36 +12,38 @@ public class JobicyMapperTest {
 
   @Test
   public void deberiaConservarValoresEnInglesEnMinusculas() throws Exception {
-    String json = "{\"jobLevel\":\"Junior\",\"jobType\":[\"Full-Time\"]," +
+    String json =
+      "{\"jobLevel\":\"Junior\",\"jobType\":[\"Full-Time\"]," +
       "\"salaryMin\":1500,\"salaryCurrency\":\"USD\",\"salaryPeriod\":\"monthly\"}";
 
     VacanteDTO vacante = new JobicyMapper().toDTO(new ObjectMapper().readTree(json));
 
-    assertEquals("remote", vacante.getCondiciones().getModalidad());
-    assertEquals("junior", vacante.getCondiciones().getSeniority());
-    assertEquals("full-time", vacante.getCondiciones().getJornada());
-    assertEquals(new BigDecimal("1500"), vacante.getCondiciones().getSueldoMinimo());
-    assertEquals("USD", vacante.getCondiciones().getMoneda());
+    assertEquals("remote", vacante.getModalidad());
+    assertEquals("junior", vacante.getSeniority());
+    assertEquals("full-time", vacante.getJornada());
+    assertEquals(new BigDecimal("1500"), vacante.getSalario());
+    assertEquals("USD", vacante.getMoneda());
   }
 
   @Test
   public void deberiaLeerNivelIntermedioYJornadaParcial() throws Exception {
-    String json = "{\"jobLevel\":\"Mid-Level\",\"jobType\":[\"Part-Time\"],\"salaryPeriod\":\"yearly\"}";
+    String json =
+      "{\"jobLevel\":\"Mid-Level\",\"jobType\":[\"Part-Time\"],\"salaryPeriod\":\"yearly\"}";
 
     VacanteDTO vacante = new JobicyMapper().toDTO(new ObjectMapper().readTree(json));
 
-    assertEquals("mid-level", vacante.getCondiciones().getSeniority());
-    assertEquals("part-time", vacante.getCondiciones().getJornada());
+    assertEquals("mid-level", vacante.getSeniority());
+    assertEquals("part-time", vacante.getJornada());
   }
 
   @Test
   public void deberiaDejarSinInformarLosCamposAusentes() throws Exception {
     VacanteDTO vacante = new JobicyMapper().toDTO(new ObjectMapper().readTree("{}"));
 
-    assertNull(vacante.getCondiciones().getSeniority());
-    assertNull(vacante.getCondiciones().getJornada());
-    assertNull(vacante.getCondiciones().getSueldoMinimo());
-    assertNull(vacante.getCondiciones().getMoneda());
+    assertNull(vacante.getSeniority());
+    assertNull(vacante.getJornada());
+    assertNull(vacante.getSalario());
+    assertNull(vacante.getMoneda());
   }
 
   @Test
@@ -50,6 +52,6 @@ public class JobicyMapperTest {
 
     VacanteDTO vacante = new JobicyMapper().toDTO(new ObjectMapper().readTree(json));
 
-    assertNull(vacante.getCondiciones().getSueldoMinimo());
+    assertNull(vacante.getSalario());
   }
 }

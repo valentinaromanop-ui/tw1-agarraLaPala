@@ -67,4 +67,18 @@ public class VacanteLocalProviderTest {
 
     assertTrue(resultado.isEmpty());
   }
+
+  @Test
+  public void deberiaUsarElSalarioYLaModalidadDelAlta() {
+    Vacante vacante = new Vacante();
+    vacante.setModalidad("remoto");
+    vacante.setSalario(new java.math.BigDecimal("1500"));
+    vacante.setHorario("Lunes a viernes de 9 a 18");
+
+    VacanteDTO resultado = new VacanteMapper().toDTO(vacante);
+
+    assertThat(resultado.getModalidad(), equalTo("remote"));
+    assertThat(resultado.getSalario(), equalTo(vacante.getSalario()));
+    assertThat(resultado.getHorario(), equalTo(vacante.getHorario()));
+  }
 }

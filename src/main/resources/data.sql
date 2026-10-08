@@ -19,8 +19,8 @@ ON DUPLICATE KEY UPDATE id = id;
 INSERT INTO Vacante (id, titulo, empresa, descripcion, ubicacion, modalidad, fecha_publicacion, activa) VALUES
 (4, 'Java', 'Empresa A', 'Oferta inactiva', 'Argentina', 'remote', '2026-09-29 11:00:00', false)
 ON DUPLICATE KEY UPDATE id = id;
-UPDATE Vacante SET seniority = 'junior', jornada = 'full-time', sueldoMinimo = 1500, moneda = 'USD' WHERE id = 1;
-UPDATE Vacante SET seniority = 'mid-level', jornada = 'part-time', sueldoMinimo = 900000, moneda = 'ARS' WHERE id = 2;
+UPDATE Vacante SET seniority = 'junior', jornada = 'full-time', salario = 1500, moneda = 'USD' WHERE id = 1;
+UPDATE Vacante SET seniority = 'mid-level', jornada = 'part-time', salario = 900000, moneda = 'ARS' WHERE id = 2;
 
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (1, 1) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (1, 2) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;

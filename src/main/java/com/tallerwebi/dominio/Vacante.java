@@ -1,7 +1,6 @@
 package com.tallerwebi.dominio;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -50,11 +49,17 @@ public class Vacante {
   @Column
   private Boolean activa = true;
 
+  @Column
+  private String seniority;
+
+  @Column
+  private String jornada;
+
+  @Column
+  private String moneda;
+
   @OneToMany(mappedBy = "vacante")
   private Set<VacanteSkill> vacanteSkills = new HashSet<>();
-
-  @Embedded
-  private CondicionesLaborales condiciones = new CondicionesLaborales();
 
   public Long getId() {
     return id;
@@ -152,10 +157,27 @@ public class Vacante {
     this.vacanteSkills = vacanteSkills;
   }
 
-  public CondicionesLaborales getCondiciones() {
-    if (condiciones == null) {
-      condiciones = new CondicionesLaborales();
-    }
-    return condiciones;
+  public String getSeniority() {
+    return seniority;
+  }
+
+  public void setSeniority(String seniority) {
+    this.seniority = seniority;
+  }
+
+  public String getJornada() {
+    return jornada;
+  }
+
+  public void setJornada(String jornada) {
+    this.jornada = jornada;
+  }
+
+  public String getMoneda() {
+    return moneda;
+  }
+
+  public void setMoneda(String moneda) {
+    this.moneda = moneda;
   }
 }

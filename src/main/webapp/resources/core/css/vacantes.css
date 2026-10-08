@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
 .recommended-page { min-height: calc(100vh - 6rem); }
 .recommended-skills { color: var(--muted); }
 .recommended-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
@@ -12,7 +14,7 @@
 
 @media (max-width: 576px) {
   .recommended-page { padding-top: 11rem; }
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+}
 
 :root {
   --vacantes-background: #0f121a;

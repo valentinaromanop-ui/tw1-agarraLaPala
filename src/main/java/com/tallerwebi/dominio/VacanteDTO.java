@@ -19,7 +19,9 @@ public class VacanteDTO {
   private String fuente;
   private BigDecimal salario;
   private String horario;
-  private CondicionesLaborales condiciones = new CondicionesLaborales();
+  private String seniority;
+  private String jornada;
+  private String moneda;
 
   public Long getId() {
     return id;
@@ -117,10 +119,27 @@ public class VacanteDTO {
     this.horario = horario;
   }
 
-  public CondicionesLaborales getCondiciones() {
-    if (condiciones == null) {
-      condiciones = new CondicionesLaborales();
-    }
-    return condiciones;
+  public String getSeniority() {
+    return seniority;
+  }
+
+  public void setSeniority(String seniority) {
+    this.seniority = seniority;
+  }
+
+  public String getJornada() {
+    return jornada;
+  }
+
+  public void setJornada(String jornada) {
+    this.jornada = jornada;
+  }
+
+  public String getMoneda() {
+    return moneda;
+  }
+
+  public void setMoneda(String moneda) {
+    this.moneda = moneda;
   }
 }

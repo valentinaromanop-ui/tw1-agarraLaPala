@@ -57,29 +57,29 @@ public class ControladorVacanteTest {
     ModelAndView vista = controladorVacante.mostrarVacantesRecomendadas();
     BusquedaVacanteDTO busqueda = (BusquedaVacanteDTO) vista.getModel().get("busqueda");
 
-    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getModalidad());
-    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getSeniority());
-    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getJornada());
-    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getSueldoMinimo());
-    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getMoneda());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getModalidad());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getSeniority());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getJornada());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getSueldoMinimo());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getMoneda());
     assertThat(busqueda.getSkills(), equalTo(Arrays.asList("Java", "SQL", "PHP")));
   }
 
   @Test
   public void deberiaRespetarFiltrosVaciosSinReponerPreferencias() {
     BusquedaVacanteDTO busqueda = new BusquedaVacanteDTO();
-    busqueda.getCondiciones().setModalidad("");
-    busqueda.getCondiciones().setSeniority("");
-    busqueda.getCondiciones().setJornada("");
+    busqueda.setModalidad("");
+    busqueda.setSeniority("");
+    busqueda.setJornada("");
 
     controladorVacante.filtrarVacantes(
       busqueda,
       new BeanPropertyBindingResult(busqueda, "busqueda")
     );
 
-    assertThat(busqueda.getCondiciones().getModalidad(), equalTo(""));
-    assertThat(busqueda.getCondiciones().getSeniority(), equalTo(""));
-    assertThat(busqueda.getCondiciones().getJornada(), equalTo(""));
+    assertThat(busqueda.getModalidad(), equalTo(""));
+    assertThat(busqueda.getSeniority(), equalTo(""));
+    assertThat(busqueda.getJornada(), equalTo(""));
     assertThat(busqueda.getSkills(), equalTo(Arrays.asList("Java", "SQL", "PHP")));
     verify(servicioVacanteMock).obtenerVacantesPorSkills(busqueda);
   }
@@ -91,20 +91,20 @@ public class ControladorVacanteTest {
       .build()
       .perform(
         get("/vacantes/filtrar")
-          .param("condiciones.modalidad", "hybrid")
-          .param("condiciones.jornada", "part-time")
-          .param("condiciones.seniority", "senior")
-          .param("condiciones.sueldoMinimo", "1500")
-          .param("condiciones.moneda", "USD")
+          .param("modalidad", "hybrid")
+          .param("jornada", "part-time")
+          .param("seniority", "senior")
+          .param("sueldoMinimo", "1500")
+          .param("moneda", "USD")
       )
       .andReturn()
       .getModelAndView();
     BusquedaVacanteDTO busqueda = (BusquedaVacanteDTO) vista.getModel().get("busqueda");
 
-    assertThat(busqueda.getCondiciones().getModalidad(), equalTo("hybrid"));
-    assertThat(busqueda.getCondiciones().getJornada(), equalTo("part-time"));
-    assertThat(busqueda.getCondiciones().getSeniority(), equalTo("senior"));
-    assertThat(busqueda.getCondiciones().getSueldoMinimo(), equalTo(new BigDecimal("1500")));
+    assertThat(busqueda.getModalidad(), equalTo("hybrid"));
+    assertThat(busqueda.getJornada(), equalTo("part-time"));
+    assertThat(busqueda.getSeniority(), equalTo("senior"));
+    assertThat(busqueda.getSueldoMinimo(), equalTo(new BigDecimal("1500")));
     verify(servicioVacanteMock).obtenerVacantesPorSkills(busqueda);
   }
 
@@ -113,7 +113,7 @@ public class ControladorVacanteTest {
     ModelAndView vista = MockMvcBuilders
       .standaloneSetup(controladorVacante)
       .build()
-      .perform(get("/vacantes/filtrar").param("condiciones.sueldoMinimo", "texto"))
+      .perform(get("/vacantes/filtrar").param("sueldoMinimo", "texto"))
       .andReturn()
       .getModelAndView();
 

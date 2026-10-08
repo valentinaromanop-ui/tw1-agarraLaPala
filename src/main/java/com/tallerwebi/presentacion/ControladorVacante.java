@@ -35,11 +35,20 @@ public class ControladorVacante {
   }
 
   @RequestMapping(path = "/vacantes/filtrar", method = RequestMethod.GET)
-  public ModelAndView filtrarVacantes(@ModelAttribute("busqueda") BusquedaVacanteDTO busqueda, BindingResult errores) {
-    if (errores.hasErrors() || (busqueda.getCondiciones().getSueldoMinimo() != null && busqueda.getCondiciones().getSueldoMinimo().signum() < 0)) {
+  public ModelAndView filtrarVacantes(
+    @ModelAttribute("busqueda") BusquedaVacanteDTO busqueda,
+    BindingResult errores
+  ) {
+    if (
+      errores.hasErrors() ||
+      (busqueda.getSueldoMinimo() != null && busqueda.getSueldoMinimo().signum() < 0)
+    ) {
       return mostrarResultados(busqueda, "Ingresá un sueldo mínimo válido, mayor o igual a cero.");
     }
-    if (busqueda.getCondiciones().getSueldoMinimo() != null && (busqueda.getCondiciones().getMoneda() == null || busqueda.getCondiciones().getMoneda().isBlank())) {
+    if (
+      busqueda.getSueldoMinimo() != null &&
+      (busqueda.getMoneda() == null || busqueda.getMoneda().isBlank())
+    ) {
       return mostrarResultados(busqueda, "Seleccioná una moneda para filtrar por sueldo mensual.");
     }
     return mostrarResultados(busqueda, null);

@@ -41,23 +41,23 @@ public class ServicioVacanteImpl implements ServicioVacante {
   }
 
   private boolean cumpleFiltros(VacanteDTO vacante, BusquedaVacanteDTO busqueda) {
-    if (!coincide(busqueda.getCondiciones().getModalidad(), vacante.getCondiciones().getModalidad())) {
+    if (!coincide(busqueda.getModalidad(), vacante.getModalidad())) {
       return false;
     }
-    if (!coincide(busqueda.getCondiciones().getSeniority(), vacante.getCondiciones().getSeniority())) {
+    if (!coincide(busqueda.getSeniority(), vacante.getSeniority())) {
       return false;
     }
-    if (!coincide(busqueda.getCondiciones().getJornada(), vacante.getCondiciones().getJornada())) {
+    if (!coincide(busqueda.getJornada(), vacante.getJornada())) {
       return false;
     }
-    if (busqueda.getCondiciones().getSueldoMinimo() != null) {
-      if (busqueda.getCondiciones().getMoneda() == null || busqueda.getCondiciones().getMoneda().isBlank()) {
+    if (busqueda.getSueldoMinimo() != null) {
+      if (busqueda.getMoneda() == null || busqueda.getMoneda().isBlank()) {
         return false;
       }
-      if (vacante.getCondiciones().getSueldoMinimo() == null || !coincide(busqueda.getCondiciones().getMoneda(), vacante.getCondiciones().getMoneda())) {
+      if (vacante.getSalario() == null || !coincide(busqueda.getMoneda(), vacante.getMoneda())) {
         return false;
       }
-      return (vacante.getCondiciones().getSueldoMinimo().compareTo(busqueda.getCondiciones().getSueldoMinimo()) >= 0);
+      return (vacante.getSalario().compareTo(busqueda.getSueldoMinimo()) >= 0);
     }
     return true;
   }

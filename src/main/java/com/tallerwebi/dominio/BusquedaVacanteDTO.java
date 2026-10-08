@@ -1,11 +1,16 @@
 package com.tallerwebi.dominio;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BusquedaVacanteDTO {
 
-  private CondicionesLaborales condiciones = new CondicionesLaborales();
+  private String modalidad;
+  private String seniority;
+  private String jornada;
+  private BigDecimal sueldoMinimo;
+  private String moneda;
 
   private List<String> skills = new ArrayList<>();
 
@@ -17,7 +22,43 @@ public class BusquedaVacanteDTO {
     this.skills = skills;
   }
 
-  public CondicionesLaborales getCondiciones() {
-    return condiciones;
+  public String getModalidad() {
+    return modalidad;
+  }
+
+  public void setModalidad(String modalidad) {
+    this.modalidad = modalidad;
+  }
+
+  public String getSeniority() {
+    return seniority;
+  }
+
+  public void setSeniority(String seniority) {
+    this.seniority = seniority;
+  }
+
+  public String getJornada() {
+    return jornada;
+  }
+
+  public void setJornada(String jornada) {
+    this.jornada = jornada;
+  }
+
+  public BigDecimal getSueldoMinimo() {
+    return sueldoMinimo;
+  }
+
+  public void setSueldoMinimo(BigDecimal sueldoMinimo) {
+    this.sueldoMinimo = sueldoMinimo;
+  }
+
+  public String getMoneda() {
+    return moneda;
+  }
+
+  public void setMoneda(String moneda) {
+    this.moneda = moneda;
   }
 }

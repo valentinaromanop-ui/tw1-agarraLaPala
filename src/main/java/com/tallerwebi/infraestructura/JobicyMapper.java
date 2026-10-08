@@ -22,15 +22,15 @@ public class JobicyMapper {
     vacante.setEmpresa(texto(jsonNode, "companyName"));
     vacante.setDescripcion(texto(jsonNode, "jobDescription"));
     vacante.setUbicacion(texto(jsonNode, "jobGeo"));
-    vacante.getCondiciones().setModalidad("remote");
+    vacante.setModalidad("remote");
     String nivel = jsonNode.path("jobLevel").asText("");
-    vacante.getCondiciones().setSeniority(nivel.isBlank() ? null : nivel.toLowerCase(java.util.Locale.ROOT));
-    vacante.getCondiciones().setJornada(jornada(jsonNode.path("jobType")));
+    vacante.setSeniority(nivel.isBlank() ? null : nivel.toLowerCase(java.util.Locale.ROOT));
+    vacante.setJornada(jornada(jsonNode.path("jobType")));
     JsonNode sueldo = jsonNode.path("salaryMin");
     if ("monthly".equalsIgnoreCase(jsonNode.path("salaryPeriod").asText()) && sueldo.isNumber()) {
-      vacante.getCondiciones().setSueldoMinimo(sueldo.decimalValue());
+      vacante.setSalario(sueldo.decimalValue());
     }
-    vacante.getCondiciones().setMoneda(jsonNode.path("salaryCurrency").asText(null));
+    vacante.setMoneda(jsonNode.path("salaryCurrency").asText(null));
     vacante.setUrl(urlSegura(jsonNode.path("url").asText("")));
     vacante.setFechaPublicacion(fecha(jsonNode.path("pubDate").asText("")));
     vacante.setFuente("JOBICY");

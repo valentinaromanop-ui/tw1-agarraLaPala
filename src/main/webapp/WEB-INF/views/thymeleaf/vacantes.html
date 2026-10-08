@@ -37,7 +37,7 @@
     <form class="vacancy-filters" method="get" th:action="@{/vacantes/filtrar}" th:object="${busqueda}">
       <div class="vacancy-filter-fields">
         <label for="modalidad">Modalidad
-          <select id="modalidad" th:field="*{condiciones.modalidad}">
+          <select id="modalidad" th:field="*{modalidad}">
             <option value="">Cualquiera</option>
             <option value="remote">Remoto</option>
             <option value="onsite">Presencial</option>
@@ -45,7 +45,7 @@
           </select>
         </label>
         <label for="seniority">Seniority
-          <select id="seniority" th:field="*{condiciones.seniority}">
+          <select id="seniority" th:field="*{seniority}">
             <option value="">Cualquiera</option>
             <option value="internship">Trainee</option>
             <option value="junior">Junior</option>
@@ -54,14 +54,14 @@
           </select>
         </label>
         <label for="jornada">Jornada
-          <select id="jornada" th:field="*{condiciones.jornada}">
+          <select id="jornada" th:field="*{jornada}">
             <option value="">Cualquiera</option>
             <option value="full-time">Tiempo completo</option>
             <option value="part-time">Medio tiempo</option>
           </select>
         </label>
         <label for="moneda">Moneda
-          <select id="moneda" th:field="*{condiciones.moneda}">
+          <select id="moneda" th:field="*{moneda}">
             <option value="">Seleccionar</option>
             <option value="ARS">ARS</option>
             <option value="USD">USD</option>
@@ -69,7 +69,7 @@
           </select>
         </label>
         <label for="sueldoMinimo">Sueldo mínimo mensual
-          <input id="sueldoMinimo" type="number" min="0" step="0.01" th:field="*{condiciones.sueldoMinimo}" placeholder="Sin mínimo">
+          <input id="sueldoMinimo" type="number" min="0" step="0.01" th:field="*{sueldoMinimo}" placeholder="Sin mínimo">
         </label>
       </div>
       <p class="filter-note">Al aplicar filtros, se excluyen las ofertas que no informan esos datos. El sueldo mínimo se compara solo con sueldos mensuales en la moneda seleccionada, sin conversiones.</p>
@@ -93,15 +93,15 @@
             <p th:text="${vacante.empresa}">Empresa</p>
             <div class="offer-meta">
               <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${vacante.ubicacion}">Ubicación</span></span>
-              <span><i class="bi bi-laptop" aria-hidden="true"></i> <span th:text="${vacante.condiciones.modalidad ?: 'Modalidad no informada'}">Modalidad</span></span>
+              <span><i class="bi bi-laptop" aria-hidden="true"></i> <span th:text="${vacante.modalidad ?: 'Modalidad no informada'}">Modalidad</span></span>
           </div>
-          <p th:text="${vacante.condiciones.seniority ?: 'Seniority no informado'}"></p>
-          <p th:text="${vacante.condiciones.jornada ?: 'Jornada no informada'}"></p>
-          <p th:if="${vacante.condiciones.sueldoMinimo != null}">
-            Sueldo mensual desde <span th:text="${vacante.condiciones.sueldoMinimo}"></span>
-            <span th:text="${vacante.condiciones.moneda ?: 'Moneda no informada'}"></span>
+          <p th:text="${vacante.seniority ?: 'Seniority no informado'}"></p>
+          <p th:text="${vacante.jornada ?: 'Jornada no informada'}"></p>
+          <p th:if="${vacante.salario != null}">
+            Sueldo mensual desde <span th:text="${vacante.salario}"></span>
+            <span th:text="${vacante.moneda ?: 'Moneda no informada'}"></span>
           </p>
-          <p th:if="${vacante.condiciones.sueldoMinimo == null}">Sueldo mensual no informado</p>
+          <p th:if="${vacante.salario == null}">Sueldo mensual no informado</p>
           <p class="result-skills">
             Skills coincidentes (<span th:text="${#lists.size(vacante.skills)}"></span>):
             <span th:text="${#strings.listJoin(vacante.skills, ', ')}"></span>
