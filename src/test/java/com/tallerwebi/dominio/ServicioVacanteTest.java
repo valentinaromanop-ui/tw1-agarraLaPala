@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,6 +101,67 @@ public class ServicioVacanteTest {
     VacanteDTO vacante = new VacanteDTO();
     vacante.setFechaPublicacion(fecha);
     vacante.setSkills(Arrays.asList(skills));
+    return vacante;
+  }
+
+  @Test
+  public void deberiaAplicarTodosLosFiltrosYExcluirDatosAusentes() {
+    VacanteDTO coincide = vacante(null, "java");
+    coincide.setModalidad("remote");
+    coincide.setSeniority("junior");
+    coincide.setJornada("full-time");
+    VacanteDTO otraJornada = vacante(null, "java");
+    otraJornada.setModalidad("remote");
+    otraJornada.setSeniority("junior");
+    otraJornada.setJornada("part-time");
+    VacanteDTO otroNivel = vacante(null, "java");
+    otroNivel.setModalidad("remote");
+    otroNivel.setSeniority("senior");
+    otroNivel.setJornada("full-time");
+    VacanteDTO otraModalidad = vacante(null, "java");
+    otraModalidad.setModalidad("onsite");
+    otraModalidad.setSeniority("junior");
+    otraModalidad.setJornada("full-time");
+    VacanteDTO sinDatos = vacante(null, "java");
+    when(primerProviderMock.buscarVacantes(any()))
+      .thenReturn(Arrays.asList(coincide, otraJornada, otroNivel, otraModalidad, sinDatos));
+    busqueda.setModalidad("remote");
+    busqueda.setSeniority("junior");
+    busqueda.setJornada("full-time");
+
+    assertThat(servicioVacante.obtenerVacantesPorSkills(busqueda), equalTo(List.of(coincide)));
+  }
+
+  @Test
+  public void quitarFiltrosDeberiaIncluirVacantesSinDatos() {
+    VacanteDTO sinDatos = vacante(null, "java");
+    when(primerProviderMock.buscarVacantes(any())).thenReturn(List.of(sinDatos));
+    busqueda.setModalidad("");
+    busqueda.setSeniority("");
+    busqueda.setJornada("");
+
+    assertThat(servicioVacante.obtenerVacantesPorSkills(busqueda), equalTo(List.of(sinDatos)));
+  }
+
+  @Test
+  public void deberiaCompararSueldosMensualesSoloConIgualMoneda() {
+    VacanteDTO coincide = vacanteConSueldo("1000", "USD");
+    VacanteDTO menor = vacanteConSueldo("900", "USD");
+    VacanteDTO otraMoneda = vacanteConSueldo("1000000", "ARS");
+    VacanteDTO sinDatos = vacante(null, "java");
+    when(primerProviderMock.buscarVacantes(any()))
+      .thenReturn(Arrays.asList(coincide, menor, otraMoneda, sinDatos));
+    busqueda.setSueldoMinimo(new BigDecimal("1000"));
+    busqueda.setMoneda("USD");
+
+    assertThat(servicioVacante.obtenerVacantesPorSkills(busqueda), equalTo(List.of(coincide)));
+  }
+
+  private VacanteDTO vacanteConSueldo(String sueldo, String moneda) {
+    VacanteDTO vacante = vacante(null, "java");
+    vacante.setSalario(new BigDecimal(sueldo));
+    vacante.setMoneda(moneda);
+
     return vacante;
   }
 }

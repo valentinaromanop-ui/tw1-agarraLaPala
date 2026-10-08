@@ -31,7 +31,39 @@ public class ServicioVacanteImpl implements ServicioVacante {
     for (VacanteProvider provider : providers) {
       vacantes.addAll(provider.buscarVacantes(normalizada));
     }
-    return getVacantesOrdenados(vacantes);
+    List<VacanteDTO> filtradas = new ArrayList<>();
+    for (VacanteDTO vacante : vacantes) {
+      if (cumpleFiltros(vacante, busqueda)) {
+        filtradas.add(vacante);
+      }
+    }
+    return getVacantesOrdenados(filtradas);
+  }
+
+  private boolean cumpleFiltros(VacanteDTO vacante, BusquedaVacanteDTO busqueda) {
+    if (!coincide(busqueda.getModalidad(), vacante.getModalidad())) {
+      return false;
+    }
+    if (!coincide(busqueda.getSeniority(), vacante.getSeniority())) {
+      return false;
+    }
+    if (!coincide(busqueda.getJornada(), vacante.getJornada())) {
+      return false;
+    }
+    if (busqueda.getSueldoMinimo() != null) {
+      if (busqueda.getMoneda() == null || busqueda.getMoneda().isBlank()) {
+        return false;
+      }
+      if (vacante.getSalario() == null || !coincide(busqueda.getMoneda(), vacante.getMoneda())) {
+        return false;
+      }
+      return (vacante.getSalario().compareTo(busqueda.getSueldoMinimo()) >= 0);
+    }
+    return true;
+  }
+
+  private boolean coincide(String filtro, String valor) {
+    return filtro == null || filtro.isBlank() || filtro.equalsIgnoreCase(valor);
   }
 
   private static List<VacanteDTO> getVacantesOrdenados(List<VacanteDTO> vacantes) {

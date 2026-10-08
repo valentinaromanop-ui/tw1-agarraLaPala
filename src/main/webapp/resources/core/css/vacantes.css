@@ -1,5 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+.recommended-page { min-height: calc(100vh - 6rem); }
+.recommended-skills { color: var(--muted); }
+.recommended-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+.recommended-card .offer-info { width: 100%; }
+.recommended-card h2 { margin-bottom: 0.4rem; color: var(--highlight); font-size: 1.2rem; line-height: 1.4; }
+.recommended-card .offer-meta { margin-bottom: 1rem; font-size: 0.8rem; }
+.recommended-card .result-skills { color: var(--nav-accent); font-size: 0.85rem; }
+.recommended-card .publication-date { margin-bottom: 0; font-size: 0.8rem; }
+.recommended-card .result-link { margin-top: auto; }
+.local-source { margin: auto 0 0; color: var(--nav-accent); font-size: 0.8rem; }
+.empty-vacancies { padding: 1.5rem; border: 1px solid var(--border); border-radius: 0.45rem; color: var(--muted); background-color: var(--surface); }
+
+@media (max-width: 576px) {
+  .recommended-page { padding-top: 11rem; }
+}
+
 :root {
   --vacantes-background: #0f121a;
   --vacantes-surface: #1b2030;
@@ -135,6 +151,11 @@ body.vacantes-page {
     transform: none;
   }
 }
+.vacancy-filters { margin-bottom: 2rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: 0.45rem; background: var(--surface); }
+.vacancy-filter-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+.vacancy-filter-fields label { display: grid; gap: 0.4rem; color: var(--muted); font-size: 0.85rem; }
+.vacancy-filter-fields input, .vacancy-filter-fields select { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 0.3rem; color: var(--text); background: var(--background); }
+.filter-note { margin: 1rem 0; color: var(--muted); font-size: 0.8rem; }
 
 .profile-button {
   float: right;
@@ -243,3 +264,12 @@ body.vacantes-page {
 .profile-page .form-check-input:focus {
   box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
 }
+.detalle-oferta { padding: clamp(1rem, 4vw, 2.5rem); border: 1px solid var(--border); border-radius: 0.5rem; background: var(--surface); }
+.detalle-oferta h1 { margin: 0.75rem 0; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.detalle-oferta h2 { font-size: 1.4rem; }
+.detalle-empresa, .detalle-datos dd { color: var(--muted); }
+.detalle-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 2rem 0; }
+.detalle-datos dt { margin-bottom: 0.4rem; }
+.detalle-descripcion { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.8; }
+.detalle-postulacion { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.postulada-label { color: var(--nav-accent); font-weight: 600; }
