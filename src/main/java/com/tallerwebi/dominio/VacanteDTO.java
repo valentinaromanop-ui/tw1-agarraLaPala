@@ -19,6 +19,9 @@ public class VacanteDTO {
   private String fuente;
   private BigDecimal salario;
   private String horario;
+  private String seniority;
+  private String jornada;
+  private String moneda;
 
   public Long getId() {
     return id;
@@ -114,5 +117,29 @@ public class VacanteDTO {
 
   public void setHorario(String horario) {
     this.horario = horario;
+  }
+
+  public String getSeniority() {
+    return seniority;
+  }
+
+  public void setSeniority(String seniority) {
+    this.seniority = seniority;
+  }
+
+  public String getJornada() {
+    return jornada;
+  }
+
+  public void setJornada(String jornada) {
+    this.jornada = jornada;
+  }
+
+  public String getMoneda() {
+    return moneda;
+  }
+
+  public void setMoneda(String moneda) {
+    this.moneda = moneda;
   }
 }

@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobicyMapper {
 
+  public static final String FULL_TIME = "full-time";
+  public static final String PART_TIME = "part-time";
+
   public VacanteDTO toDTO(JsonNode jsonNode) {
     VacanteDTO vacante = new VacanteDTO();
     vacante.setId(jsonNode.path("id").canConvertToLong() ? jsonNode.path("id").longValue() : null);
@@ -19,7 +22,15 @@ public class JobicyMapper {
     vacante.setEmpresa(texto(jsonNode, "companyName"));
     vacante.setDescripcion(texto(jsonNode, "jobDescription"));
     vacante.setUbicacion(texto(jsonNode, "jobGeo"));
-    vacante.setModalidad("REMOTE");
+    vacante.setModalidad("remote");
+    String nivel = jsonNode.path("jobLevel").asText("");
+    vacante.setSeniority(nivel.isBlank() ? null : nivel.toLowerCase(java.util.Locale.ROOT));
+    vacante.setJornada(jornada(jsonNode.path("jobType")));
+    JsonNode sueldo = jsonNode.path("salaryMin");
+    if ("monthly".equalsIgnoreCase(jsonNode.path("salaryPeriod").asText()) && sueldo.isNumber()) {
+      vacante.setSalario(sueldo.decimalValue());
+    }
+    vacante.setMoneda(jsonNode.path("salaryCurrency").asText(null));
     vacante.setUrl(urlSegura(jsonNode.path("url").asText("")));
     vacante.setFechaPublicacion(fecha(jsonNode.path("pubDate").asText("")));
     vacante.setFuente("JOBICY");
@@ -28,6 +39,18 @@ public class JobicyMapper {
 
   private String texto(JsonNode jsonNode, String campo) {
     return Jsoup.parse(jsonNode.path(campo).asText("")).text();
+  }
+
+  private String jornada(JsonNode tipos) {
+    for (JsonNode tipo : tipos) {
+      if (FULL_TIME.equalsIgnoreCase(tipo.asText())) {
+        return FULL_TIME;
+      }
+      if (PART_TIME.equalsIgnoreCase(tipo.asText())) {
+        return PART_TIME;
+      }
+    }
+    return null;
   }
 
   private String urlSegura(String valor) {

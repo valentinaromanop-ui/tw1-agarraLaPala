@@ -42,7 +42,7 @@ public class ControladorPostulacion {
         .body(mensaje("Iniciá sesión como postulante."));
     }
     servicioPostulacion.crearPostulacion(usuarioId, ofertaId);
-    return ResponseEntity.ok(mensaje("Postulación enviada"));
+    return ResponseEntity.ok(mensaje("Postulación registrada"));
   }
 
   @RequestMapping(path = RUTA_POSTULACIONES, method = RequestMethod.GET)

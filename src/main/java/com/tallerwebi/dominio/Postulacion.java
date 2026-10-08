@@ -35,6 +35,18 @@ public class Postulacion {
   @Column(nullable = false)
   private String estado;
 
+  @ManyToOne
+  @JoinColumn(name = "vacante_id")
+  private Vacante vacante;
+
+  public Vacante getVacante() {
+    return vacante;
+  }
+
+  public void setVacante(Vacante vacante) {
+    this.vacante = vacante;
+  }
+
   public Long getId() {
     return id;
   }
