@@ -83,7 +83,7 @@ telefono.addEventListener("input", (event) => {
 });
 
 todosLosDias.addEventListener("click", () => {
-  const dias = document.querySelectorAll('input[id^="dia-"]');
+  const dias = document.querySelectorAll("input[id^=\"dia-\"]");
   const todosSeleccionados = Array.from(dias).every((dia) => dia.checked);
   dias.forEach((dia) => {
     dia.checked = !todosSeleccionados;

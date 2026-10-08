@@ -96,8 +96,8 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end" id="business-dropdown">
               <li><a class="dropdown-item" href="#candidatos"><i class="bi bi-people" aria-hidden="true"></i> Buscar candidatos</a></li>
-              <li><a class="dropdown-item" href="#publicar-oferta"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</a></li>
-              <li><a class="dropdown-item" href="#busquedas-activas"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas</a></li>
+              <li><a class="dropdown-item" th:href="@{/crear-postulacion}"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</a></li>
+              <li><a class="dropdown-item" th:href="@{/busquedas-Empleador}"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas</a></li>
             </ul>
           </li>
         </ul>
@@ -202,7 +202,8 @@
             <p class="eyebrow"><span></span> Oportunidades para vos</p>
             <h2>Ofertas que vale la pena mirar.</h2>
           </div>
-          <span class="offers-count">Mostrando 10 ofertas</span>
+          <span class="offers-count"
+            th:text="|Mostrando ${10 + #lists.size(ofertasEmpleadores)} ofertas|">Mostrando 10 ofertas</span>
         </div>
         <div class="offers-grid">
           <article class="offer-card"><div class="company-logo logo-blue">N</div><div class="offer-info"><h3>Product Designer</h3><p>Estudio Norte</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Product Designer"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button">Postularme</button></article>
@@ -215,6 +216,22 @@
           <article class="offer-card"><div class="company-logo logo-olive">R</div><div class="offer-info"><h3>Asistente Administrativo</h3><p>Río Consultores</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Rosario</span><span><i class="bi bi-clock"></i> Híbrido</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Asistente Administrativo"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button">Postularme</button></article>
           <article class="offer-card"><div class="company-logo logo-blue">P</div><div class="offer-info"><h3>Ejecutivo/a de Ventas</h3><p>Prisma Comercial</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Buenos Aires</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Ejecutivo o Ejecutiva de Ventas"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button">Postularme</button></article>
           <article class="offer-card"><div class="company-logo logo-sage">E</div><div class="offer-info"><h3>Diseñador/a Gráfico</h3><p>Estudio Estela</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Part time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Diseñador o Diseñadora Gráfico"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button">Postularme</button></article>
+          <article class="offer-card" th:each="oferta : ${ofertasEmpleadores}" th:attr="data-oferta-id=${oferta.id}">
+            <div class="company-logo logo-blue" th:text="${#strings.substring(oferta.empresa, 0, 1)}">E</div>
+            <div class="offer-info">
+              <h3 th:text="${oferta.titulo}">Título del cargo</h3>
+              <p th:text="${oferta.empresa}">Empresa</p>
+              <div class="offer-meta">
+                <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span>
+                <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span>
+                <span th:if="${oferta.salario != null}"><i class="bi bi-cash" aria-hidden="true"></i> $<span th:text="${oferta.salario}">Salario</span></span>
+              </div>
+            </div>
+            <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
+              <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+            <button type="button" class="apply-button" th:attr="data-oferta-id=${oferta.id}">Postularme</button>
+          </article>
         </div>
       </div>
     </section>

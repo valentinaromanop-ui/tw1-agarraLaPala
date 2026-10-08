@@ -169,6 +169,7 @@ public class ControladorLogin {
     );
     if (usuarioBuscado != null) {
       HttpSession session = request.getSession();
+      request.changeSessionId();
       session.setAttribute("USUARIO_ID", usuarioBuscado.getId());
       session.setAttribute("EMAIL", usuarioBuscado.getEmail());
       session.setAttribute("ROL", usuarioBuscado.getRol());
@@ -176,12 +177,12 @@ public class ControladorLogin {
     } else {
       Map<String, Object> model = new ModelMap();
       model.put(ATRIBUTO_ERROR, "Usuario o clave incorrecta");
+      datosLogin.setPassword(null);
       model.put("datosLogin", datosLogin);
       return new ModelAndView("login", model);
     }
   }
 
-  @RequestMapping(path = "/home", method = RequestMethod.GET)
   public ModelAndView irAHome() {
     return new ModelAndView("home");
   }
@@ -192,6 +193,8 @@ public class ControladorLogin {
   }
 
   private ModelAndView mostrarErrorRegistroEmpleador(DatosRegistroEmpleador datos, String error) {
+    datos.setPassword(null);
+    datos.setConfirmarPassword(null);
     Map<String, Object> modelo = new ModelMap();
     modelo.put("datosRegistroEmpleador", datos);
     modelo.put(ATRIBUTO_ERROR, error);
@@ -199,6 +202,8 @@ public class ControladorLogin {
   }
 
   private ModelAndView mostrarErrorRegistroCandidato(DatosRegistroCandidato datos, String error) {
+    datos.setPassword(null);
+    datos.setConfirmarPassword(null);
     Map<String, Object> modelo = new ModelMap();
     modelo.put("datosRegistroCandidato", datos);
     modelo.put("habilidadesDisponibles", HABILIDADES_DISPONIBLES);
@@ -217,7 +222,9 @@ public class ControladorLogin {
   private void identificarUsuarioEnSesion(Usuario usuario) {
     ServletRequestAttributes atributos =
       (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    HttpSession session = atributos.getRequest().getSession();
+    HttpServletRequest request = atributos.getRequest();
+    HttpSession session = request.getSession();
+    request.changeSessionId();
     session.setAttribute("USUARIO_ID", usuario.getId());
     session.setAttribute("EMAIL", usuario.getEmail());
     session.setAttribute("ROL", usuario.getRol());

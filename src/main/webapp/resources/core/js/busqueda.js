@@ -93,7 +93,7 @@ function iniciarPostulaciones() {
 }
 
 function iniciarAutocompletado(formulario) {
-  const campo = formulario.querySelector('input[name="texto"]');
+  const campo = formulario.querySelector("input[name=\"texto\"]");
   const lista = formulario.querySelector(".search-suggestions");
   let cargos = [];
   let indiceActivo = -1;
@@ -145,7 +145,7 @@ function iniciarAutocompletado(formulario) {
   }
 
   function seleccionarOpcion(indice) {
-    const opciones = lista.querySelectorAll('[role="option"]');
+    const opciones = lista.querySelectorAll("[role=\"option\"]");
     if (opciones.length === 0) {
       return;
     }
@@ -185,7 +185,7 @@ function iniciarAutocompletado(formulario) {
     } else if (evento.key === "Escape") {
       cerrarLista();
     } else if (evento.key === "Enter") {
-      const activa = lista.querySelector('[aria-selected="true"]');
+      const activa = lista.querySelector("[aria-selected=\"true\"]");
       if (activa && !lista.hidden) {
         evento.preventDefault();
         irABusqueda(activa.textContent);
@@ -235,7 +235,7 @@ function iniciarResultados() {
   const tarjetas = document.querySelector("#tarjetas-vacantes");
   const formularioFiltros = document.querySelector("#filtros-busqueda");
   const botonVerMas = document.querySelector("#ver-mas");
-  const formularioBusqueda = document.querySelector('.search-autocomplete input[name="texto"]');
+  const formularioBusqueda = document.querySelector(".search-autocomplete input[name=\"texto\"]");
   let ofertas = [];
   let cantidadVisible = 6;
 
@@ -294,7 +294,7 @@ function iniciarResultados() {
     botonPostularse.type = "button";
     botonPostularse.className = "apply-button";
     botonPostularse.textContent = "Postularme";
-    botonPostularse.dataset.ofertaId = oferta.url || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
+    botonPostularse.dataset.ofertaId = oferta.url || oferta.id || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
     configurarBotonPostulacion(botonPostularse, botonPostularse.dataset.ofertaId);
     tarjeta.append(botonPostularse);
     return tarjeta;
@@ -335,7 +335,7 @@ function iniciarResultados() {
         estado.textContent = `${ofertas.length} ofertas encontradas`;
         mostrarOfertas();
       }
-    } catch (error) {
+    } catch {
       estado.textContent = "No pudimos cargar las ofertas. Intentá nuevamente.";
     } finally {
       resultados.setAttribute("aria-busy", "false");

@@ -20,6 +20,8 @@ public class VacanteMapper {
     dto.setUbicacion(vacante.getUbicacion());
     dto.setModalidad(vacante.getModalidad());
     dto.setFechaPublicacion(vacante.getFechaPublicacion());
+    dto.setSalario(vacante.getSalario());
+    dto.setHorario(vacante.getHorario());
     dto.setFuente("LOCAL");
     List<String> coincidencias = new ArrayList<>();
 
@@ -30,6 +32,16 @@ public class VacanteMapper {
       }
     }
     dto.setSkills(coincidencias);
+    return dto;
+  }
+
+  public VacanteDTO toDTO(Vacante vacante) {
+    VacanteDTO dto = toDTO(vacante, List.of());
+    List<String> skills = new ArrayList<>();
+    for (VacanteSkill relacion : vacante.getVacanteSkills()) {
+      skills.add(relacion.getSkill().getNombre());
+    }
+    dto.setSkills(skills);
     return dto;
   }
 }
