@@ -6,12 +6,10 @@ on:
   push:
     branches: ["main"]
 jobs:
-  Explore-GitHub-Actions:
+  java-tests:
+    name: Pruebas Java
     runs-on: ubuntu-latest
     steps:
-      - run: echo "🎉 Esta tarea (job) fue lanzado automaticamente por el evento ${{ github.event_name }}"
-      - run: echo "🐧 Esta tarea esta corriendo en un servidor ${{ runner.os }} por GitHub!"
-      - run: echo "🔎 El nombre de la rama es ${{ github.ref }} y tu repositorio es ${{ github.repository }}."
       - name: Descargando el codigo
         uses: actions/checkout@v4
       - name: Configurar JDK 25
@@ -20,21 +18,27 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
           cache: 'maven'
-      - run: echo "💡 El repositorio ${{ github.repository }} ha sido clonado."
-      - run: echo "🖥️ El workflow esta listo para testear el codigo"
       - name: Corriendo las pruebas
-        run: |
-          mvn clean test
-      - run: echo "🍏 El estado de la tarea es ${{ job.status }}."
+        run: mvn --batch-mode clean test
+
+  javascript-checks:
+    name: Lint y pruebas JavaScript
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/main/webapp/resources/core/js
+    steps:
+      - name: Descargando el codigo
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/main/webapp/resources/core/js/package-lock.json
       - name: Instalar paquetes de node
-        run: |
-          cd src/main/webapp/resources/core/js
-          npm install
+        run: npm ci
       - name: Ejecutar linter de javascript (ESLint)
-        run: |
-          cd src/main/webapp/resources/core/js
-          npm run lint
+        run: npm run lint
       - name: Ejecutar pruebas de javascript
-        run: |
-          cd src/main/webapp/resources/core/js
-          npm run test
+        run: npm test
