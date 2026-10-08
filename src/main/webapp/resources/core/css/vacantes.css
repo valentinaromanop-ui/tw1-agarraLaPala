@@ -235,3 +235,12 @@ body.vacantes-page {
 .profile-page .form-check-input:focus {
   box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
 }
+.detalle-oferta { padding: clamp(1rem, 4vw, 2.5rem); border: 1px solid var(--border); border-radius: 0.5rem; background: var(--surface); }
+.detalle-oferta h1 { margin: 0.75rem 0; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.detalle-oferta h2 { font-size: 1.4rem; }
+.detalle-empresa, .detalle-datos dd { color: var(--muted); }
+.detalle-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 2rem 0; }
+.detalle-datos dt { margin-bottom: 0.4rem; }
+.detalle-descripcion { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.8; }
+.detalle-postulacion { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.postulada-label { color: var(--nav-accent); font-weight: 600; }

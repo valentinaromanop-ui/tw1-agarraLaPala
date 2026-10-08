@@ -79,6 +79,7 @@
       </div>
     </form>
 
+    <p th:if="${mensaje != null}" th:text="${mensaje}" class="alert alert-success" role="status"></p>
     <p th:if="${error != null}" th:text="${error}" class="alert alert-danger" role="alert"></p>
 
     <div th:if="${vacantes != null}">
@@ -113,11 +114,11 @@
             <span th:if="${vacante.fechaPublicacion == null}">Sin fecha informada</span>
           </p>
           </div>
-          <a th:if="${vacante.url != null}" th:href="${vacante.url}"
-            class="result-link" target="_blank" rel="noopener noreferrer">
-            Ver oferta en <span th:text="${vacante.fuente}">Jobicy</span>
-            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          <a th:href="@{/vacantes/detalle(fuente=${vacante.fuente},id=${vacante.id})}"
+            class="result-link">
+            Ver detalle
           </a>
+          <span class="postulada-label" th:if="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)}">Ya te postulaste</span>
           <p th:if="${vacante.fuente == 'LOCAL'}" class="local-source">Oferta de nuestra plataforma</p>
         </article>
       </div>

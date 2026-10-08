@@ -37,7 +37,11 @@ public class ControladorVacanteTest {
   @BeforeEach
   public void init() {
     servicioVacanteMock = mock(ServicioVacante.class);
-    controladorVacante = new ControladorVacante(servicioVacanteMock);
+    controladorVacante =
+      new ControladorVacante(
+        servicioVacanteMock,
+        mock(com.tallerwebi.dominio.ServicioPostulacion.class)
+      );
   }
 
   @Test
@@ -45,7 +49,9 @@ public class ControladorVacanteTest {
     List<VacanteDTO> vacantes = Collections.singletonList(new VacanteDTO());
     when(servicioVacanteMock.obtenerVacantesPorSkills(any())).thenReturn(vacantes);
 
-    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas();
+    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas(
+      new org.springframework.mock.web.MockHttpSession()
+    );
 
     assertThat(modelAndView.getViewName(), equalToIgnoringCase("vacantes"));
     assertThat(modelAndView.getModel().get("vacantes"), equalTo(vacantes));
@@ -54,7 +60,9 @@ public class ControladorVacanteTest {
 
   @Test
   public void deberiaBuscarInicialmenteSoloPorSkills() {
-    ModelAndView vista = controladorVacante.mostrarVacantesRecomendadas();
+    ModelAndView vista = controladorVacante.mostrarVacantesRecomendadas(
+      new org.springframework.mock.web.MockHttpSession()
+    );
     BusquedaVacanteDTO busqueda = (BusquedaVacanteDTO) vista.getModel().get("busqueda");
 
     org.junit.jupiter.api.Assertions.assertNull(busqueda.getModalidad());
@@ -74,7 +82,8 @@ public class ControladorVacanteTest {
 
     controladorVacante.filtrarVacantes(
       busqueda,
-      new BeanPropertyBindingResult(busqueda, "busqueda")
+      new BeanPropertyBindingResult(busqueda, "busqueda"),
+      new org.springframework.mock.web.MockHttpSession()
     );
 
     assertThat(busqueda.getModalidad(), equalTo(""));
@@ -162,7 +171,9 @@ public class ControladorVacanteTest {
     List<VacanteDTO> vacantes = Collections.emptyList();
     when(servicioVacanteMock.obtenerVacantesPorSkills(any())).thenReturn(vacantes);
 
-    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas();
+    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas(
+      new org.springframework.mock.web.MockHttpSession()
+    );
 
     assertThat(modelAndView.getViewName(), equalToIgnoringCase("vacantes"));
     assertThat(modelAndView.getModel().get("vacantes"), equalTo(vacantes));
@@ -173,7 +184,9 @@ public class ControladorVacanteTest {
     when(servicioVacanteMock.obtenerVacantesPorSkills(any()))
       .thenThrow(new BusquedaVacanteInvalida());
 
-    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas();
+    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas(
+      new org.springframework.mock.web.MockHttpSession()
+    );
 
     assertThat(modelAndView.getViewName(), equalToIgnoringCase("vacantes"));
     assertThat(
@@ -187,7 +200,9 @@ public class ControladorVacanteTest {
     when(servicioVacanteMock.obtenerVacantesPorSkills(any()))
       .thenThrow(new FuenteVacanteNoDisponible("Jobicy", new IllegalStateException()));
 
-    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas();
+    ModelAndView modelAndView = controladorVacante.mostrarVacantesRecomendadas(
+      new org.springframework.mock.web.MockHttpSession()
+    );
 
     assertThat(modelAndView.getViewName(), equalToIgnoringCase("vacantes"));
     assertThat(

@@ -5,15 +5,21 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "fuente", "id_externo" }))
 @SuppressWarnings("PMD.TooManyFields")
 public class Vacante {
+
+  private String fuente = "LOCAL";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +31,7 @@ public class Vacante {
   @Column
   private String empresa;
 
-  @Column(length = 500)
+  @Lob
   private String descripcion;
 
   @Column
@@ -57,6 +63,12 @@ public class Vacante {
 
   @Column
   private String moneda;
+
+  @Column(name = "id_externo")
+  private Long idExterno;
+
+  @Column(length = 1000)
+  private String url;
 
   @OneToMany(mappedBy = "vacante")
   private Set<VacanteSkill> vacanteSkills = new HashSet<>();
@@ -179,5 +191,28 @@ public class Vacante {
 
   public void setMoneda(String moneda) {
     this.moneda = moneda;
+  }
+  public String getFuente() {
+    return fuente;
+  }
+
+  public void setFuente(String fuente) {
+    this.fuente = fuente;
+  }
+
+  public Long getIdExterno() {
+    return idExterno;
+  }
+
+  public void setIdExterno(Long idExterno) {
+    this.idExterno = idExterno;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
   }
 }

@@ -57,7 +57,17 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
 
   @Override
   public Vacante obtenerPorId(Long id) {
-    return null;
+    return sessionFactory.getCurrentSession().get(Vacante.class, id);
+  }
+
+  @Override
+  public Vacante buscarPorFuenteEIdExterno(String fuente, Long idExterno) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery("from Vacante where fuente = :fuente and idExterno = :idExterno", Vacante.class)
+      .setParameter("fuente", fuente)
+      .setParameter("idExterno", idExterno)
+      .uniqueResult();
   }
 
   @Override
@@ -68,7 +78,7 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
         "SELECT DISTINCT v FROM Vacante v " +
         "JOIN VacanteSkill vs ON v.id = vs.vacante.id " +
         "JOIN Skill s ON vs.skill.id = s.id " +
-        "WHERE v.activa = true AND LOWER(s.nombre) IN (:skills)",
+        "WHERE v.activa = true AND (v.fuente = 'LOCAL' OR v.fuente IS NULL) AND LOWER(s.nombre) IN (:skills)",
         Vacante.class
       )
       .setParameterList("skills", skills)

@@ -14,11 +14,13 @@
     <p>Consultá las ofertas a las que te postulaste y su estado.</p>
 
     <div th:if="${#lists.isEmpty(postulaciones)}" class="profile-section">
-      <p>No tenés postulaciones enviadas.</p>
+      <p>No tenés postulaciones registradas.</p>
     </div>
     <div th:unless="${#lists.isEmpty(postulaciones)}">
       <article class="profile-section" th:each="postulacion : ${postulaciones}">
-        <h2 class="h5" th:text="${postulacion.ofertaId}">Oferta</h2>
+        <h2 class="h5" th:text="${postulacion.vacante != null ? postulacion.vacante.titulo : postulacion.ofertaId}">Oferta</h2>
+        <a th:if="${postulacion.vacante != null}"
+           th:href="@{/vacantes/detalle(fuente=${postulacion.vacante.fuente ?: 'LOCAL'},id=${postulacion.vacante.idExterno ?: postulacion.vacante.id})}">Ver detalle</a>
         <p>
           Estado: <strong th:text="${postulacion.estado}">Enviada</strong>
         </p>
