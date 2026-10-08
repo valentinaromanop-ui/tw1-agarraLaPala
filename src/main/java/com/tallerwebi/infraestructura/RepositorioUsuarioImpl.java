@@ -3,6 +3,7 @@ package com.tallerwebi.infraestructura;
 import com.tallerwebi.dominio.RepositorioUsuario;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.excepcion.UsuarioNoEncontrado;
+import jakarta.persistence.LockModeType;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,6 +48,13 @@ public class RepositorioUsuarioImpl implements RepositorioUsuario {
   @Override
   public Usuario buscarPorId(Long id) {
     return sessionFactory.getCurrentSession().get(Usuario.class, id);
+  }
+
+  @Override
+  public Usuario buscarPorIdParaActualizar(Long id) {
+    return sessionFactory
+      .getCurrentSession()
+      .find(Usuario.class, id, LockModeType.PESSIMISTIC_WRITE);
   }
 
   @Override

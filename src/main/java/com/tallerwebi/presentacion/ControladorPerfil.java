@@ -1,7 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.PerfilPostulante;
-import com.tallerwebi.dominio.PostulanteSkill;
+import com.tallerwebi.dominio.ServicioCurriculumGenerado;
 import com.tallerwebi.dominio.ServicioPerfil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -35,10 +35,15 @@ public class ControladorPerfil {
   );
 
   private final ServicioPerfil servicioPerfil;
+  private final ServicioCurriculumGenerado servicioCurriculum;
 
   @Autowired
-  public ControladorPerfil(ServicioPerfil servicioPerfil) {
+  public ControladorPerfil(
+    ServicioPerfil servicioPerfil,
+    ServicioCurriculumGenerado servicioCurriculum
+  ) {
     this.servicioPerfil = servicioPerfil;
+    this.servicioCurriculum = servicioCurriculum;
   }
 
   @RequestMapping(path = RUTA_PERFIL, method = RequestMethod.GET)
@@ -50,17 +55,26 @@ public class ControladorPerfil {
     PerfilPostulante perfil = servicioPerfil.obtenerPerfil(usuarioId);
     if (perfil == null) {
       perfil = new PerfilPostulante();
-    } else {
-      for (PostulanteSkill postulanteSkill : perfil.getPostulanteSkills()) {
-        perfil.getSkillIds().add(postulanteSkill.getSkill().getId());
-      }
     }
     Map<String, Object> modelo = new HashMap<>();
     modelo.put(ATRIBUTO_PERFIL, perfil);
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
+    modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
     if (request.getParameter("guardado") != null) {
-      modelo.put("mensaje", "Perfil guardado");
+      modelo.put(
+        "mensaje",
+        "Perfil guardado correctamente. Tus selecciones quedaron asociadas a tu cuenta."
+      );
+    }
+    if (request.getParameter("cvSubido") != null) {
+      modelo.put("mensaje", "CV original guardado en tu perfil.");
+    }
+    if (request.getParameter("cvGenerado") != null) {
+      modelo.put(
+        "mensaje",
+        "Tu versión ATS está guardada en PDF y podés verla o descargarla desde acá."
+      );
     }
     return new ModelAndView(VISTA_PERFIL, modelo);
   }
@@ -75,17 +89,26 @@ public class ControladorPerfil {
       return new ModelAndView("redirect:/login");
     }
     if (!telefonoValido(datos.getTelefono())) {
-      return mostrarPerfilConError(datos, "El teléfono debe contener únicamente números.");
+      return mostrarPerfilConError(
+        usuarioId,
+        datos,
+        "El teléfono debe contener únicamente números."
+      );
     }
     servicioPerfil.guardarPerfil(usuarioId, datos);
     return new ModelAndView("redirect:" + RUTA_PERFIL + "?guardado=true");
   }
 
-  private ModelAndView mostrarPerfilConError(PerfilPostulante perfil, String error) {
+  private ModelAndView mostrarPerfilConError(
+    Long usuarioId,
+    PerfilPostulante perfil,
+    String error
+  ) {
     Map<String, Object> modelo = new HashMap<>();
     modelo.put(ATRIBUTO_PERFIL, perfil);
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
+    modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
     modelo.put("error", error);
     return new ModelAndView(VISTA_PERFIL, modelo);
   }

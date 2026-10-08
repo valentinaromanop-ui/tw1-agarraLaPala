@@ -3,6 +3,7 @@ package com.tallerwebi.dominio;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,12 +30,24 @@ public class ServicioPerfilImpl implements ServicioPerfil {
   @Override
   public PerfilPostulante obtenerPerfil(Long usuarioId) {
     PerfilPostulante perfil = repositorioPerfil.buscarPorUsuarioId(usuarioId);
-    if (perfil != null) {
+    if (perfil == null) {
+      perfil = new PerfilPostulante();
+    } else {
       Hibernate.initialize(perfil.getDisponibilidadHoraria());
       Hibernate.initialize(perfil.getDiasSemana());
       Hibernate.initialize(perfil.getModalidades());
       Hibernate.initialize(perfil.getPostulanteSkills());
+      for (PostulanteSkill postulanteSkill : perfil.getPostulanteSkills()) {
+        if (
+          postulanteSkill.getSkill() != null &&
+          postulanteSkill.getSkill().getId() != null &&
+          !perfil.getSkillIds().contains(postulanteSkill.getSkill().getId())
+        ) {
+          perfil.getSkillIds().add(postulanteSkill.getSkill().getId());
+        }
+      }
     }
+    cargarHabilidadesRegistradas(usuarioId, perfil);
     return perfil;
   }
 
@@ -91,5 +104,38 @@ public class ServicioPerfilImpl implements ServicioPerfil {
       }
     }
     return nombres;
+  }
+
+  private void cargarHabilidadesRegistradas(Long usuarioId, PerfilPostulante perfil) {
+    Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
+    if (usuario == null || usuario.getHabilidades().isEmpty()) {
+      return;
+    }
+    for (Skill skill : repositorioSkill.buscarTodos()) {
+      if (
+        estaRegistrada(skill, usuario.getHabilidades()) &&
+        !perfil.getSkillIds().contains(skill.getId())
+      ) {
+        perfil.getSkillIds().add(skill.getId());
+      }
+    }
+  }
+
+  private boolean estaRegistrada(Skill skill, List<String> habilidadesUsuario) {
+    if (skill.getId() == null || skill.getNombre() == null) {
+      return false;
+    }
+    for (String habilidadUsuario : habilidadesUsuario) {
+      for (String nombre : habilidadUsuario.split("[,/;]")) {
+        if (normalizar(nombre).equals(normalizar(skill.getNombre()))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private String normalizar(String valor) {
+    return valor.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
   }
 }

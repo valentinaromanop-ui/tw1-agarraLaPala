@@ -10,6 +10,9 @@ import java.util.zip.ZipInputStream;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.extractor.WordExtractor;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Service;
@@ -78,10 +81,19 @@ public class ServicioCVImpl implements ServicioCV {
   }
 
   @Override
-  public String extraerTexto(byte[] contenido) throws Exception {
+  public String extraerTexto(byte[] contenido) throws IOException {
     if (empiezaCon(contenido, PDF_SIGNATURE)) {
       try (PDDocument pdf = Loader.loadPDF(contenido)) {
         return limpiarTexto(new PDFTextStripper().getText(pdf));
+      }
+    }
+    if (empiezaCon(contenido, DOC_SIGNATURE)) {
+      try (
+        POIFSFileSystem sistema = new POIFSFileSystem(new ByteArrayInputStream(contenido));
+        HWPFDocument documento = new HWPFDocument(sistema);
+        WordExtractor extractor = new WordExtractor(documento)
+      ) {
+        return limpiarTexto(extractor.getText());
       }
     }
     try (

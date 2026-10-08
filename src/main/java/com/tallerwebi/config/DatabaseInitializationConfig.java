@@ -19,6 +19,7 @@ public class DatabaseInitializationConfig {
   @DependsOn("sessionFactory")
   public DataSourceInitializer dataSourceInitializer() {
     ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+    populator.addScript(new ClassPathResource("schema-update.sql"));
     populator.addScript(new ClassPathResource("data.sql"));
 
     DataSourceInitializer initializer = new DataSourceInitializer();

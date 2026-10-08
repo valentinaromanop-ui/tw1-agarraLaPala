@@ -152,6 +152,35 @@ body.vacantes-page {
   background-color: var(--vacantes-surface);
 }
 
+.profile-page .cv-ats-content {
+  max-height: 32rem;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 0.35rem;
+  color: var(--vacantes-text);
+  background-color: var(--vacantes-background);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.profile-page .cv-document-card {
+  padding: 1rem;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 0.5rem;
+  background-color: var(--vacantes-background);
+}
+
+.profile-page .cv-document-preview {
+  display: block;
+  width: 100%;
+  height: 32rem;
+  margin: 1rem 0;
+  border: 1px solid var(--vacantes-border);
+  border-radius: 0.35rem;
+  background: white;
+}
+
 .profile-page .form-label,
 .profile-page .form-check-label,
 .profile-page legend {

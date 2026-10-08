@@ -157,10 +157,11 @@
             <i class="bi bi-paperclip" aria-hidden="true"></i>
             <label for="cv-file">Cargá tu CV para comenzar (Válido solo en formato pdf, doc y docx)</label>
 <!--            <input id="cv-file" name="cv-file" type="file" accept=".pdf,.doc,.docx">-->
-            <form th:action="@{/cv}" method="post" enctype="multipart/form-data">
-              <input id="cv-file" name="cv" type="file" accept=".pdf,.doc,.docx">
+            <form th:action="@{/cv/subir}" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
+              <input id="cv-file" name="archivo" type="file" accept=".pdf,.doc,.docx" required>
               <button type="submit">Enviar CV</button>
             </form>
+            <p th:if="${errorCV}" th:text="${errorCV}" class="alert alert-danger" role="alert"></p>
             <p th:if="${mensaje}" th:text="${mensaje}"></p>
             <p th:if="${cvProcesado}" th:text="${cvProcesado}"></p>
             <p th:if="${error}" th:text="${error}"></p>
@@ -194,7 +195,7 @@
             <div class="step-item"><span>02</span><p>Recibís sugerencias</p></div>
             <div class="step-item"><span>03</span><p>Postulás mejor</p></div>
           </div>
-          <label for="cv-file" class="btn outline-action">Mejorá tu CV <i class="bi bi-arrow-up-right" aria-hidden="true"></i></label>
+          <a th:href="@{/perfil}" class="btn outline-action">Mejorá tu CV <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
         </div>
       </div>
     </section>

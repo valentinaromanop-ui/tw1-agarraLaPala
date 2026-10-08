@@ -1,7 +1,6 @@
 package com.tallerwebi.integracion;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,15 +15,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.ModelAndView;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class })
-public class ControladorIntegCVTest {
+class ControladorIntegCVTest {
 
   @Autowired
   private WebApplicationContext wac;
@@ -32,48 +30,33 @@ public class ControladorIntegCVTest {
   private MockMvc mockMvc;
 
   @BeforeEach
-  public void init() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+  void init() {
+    mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
   }
 
   @Test
-  public void alSubirUnCVSeMuestraLaPaginaDeHome() throws Exception {
-    // preparacion
+  void generarCvSinSesionRedirigeAlLogin() throws Exception {
     MockMultipartFile archivo = new MockMultipartFile(
-      "cv",
+      "archivo",
       "miCV.pdf",
       "application/pdf",
       "%PDF-1.7".getBytes()
     );
 
-    // ejecucion
-    MvcResult result =
-      this.mockMvc.perform(multipart("/cv").file(archivo)).andExpect(status().isOk()).andReturn();
-
-    // validacion
-    ModelAndView modelAndView = result.getModelAndView();
-    assert modelAndView != null;
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("home"));
+    mockMvc.perform(multipart("/cv/generar").file(archivo)).andExpect(status().is3xxRedirection());
   }
 
   @Test
-  public void rechazaUnArchivoPDFConContenidoQueNoEsPDF() throws Exception {
-    MockMultipartFile archivo = new MockMultipartFile(
-      "cv",
-      "imagen.pdf",
-      "application/pdf",
-      "esto no es un PDF".getBytes()
-    );
+  void descargarCvSinSesionEsRechazado() throws Exception {
+    mockMvc.perform(get("/cv/descargar")).andExpect(status().isUnauthorized());
+  }
 
-    MvcResult result =
-      this.mockMvc.perform(multipart("/cv").file(archivo)).andExpect(status().isOk()).andReturn();
+  @Test
+  void perfilMuestraLaSeccionDelCvParaUnPostulante() throws Exception {
+    MockHttpServletRequestBuilder solicitud = get("/perfil")
+      .sessionAttr("ROL", "CANDIDATO")
+      .sessionAttr("USUARIO_ID", 1L);
 
-    ModelAndView modelAndView = result.getModelAndView();
-    assert modelAndView != null;
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("home"));
-    assertThat(
-      modelAndView.getModel().get("error").toString(),
-      equalToIgnoringCase("Formato de archivo no válido")
-    );
+    mockMvc.perform(solicitud).andExpect(status().isOk());
   }
 }

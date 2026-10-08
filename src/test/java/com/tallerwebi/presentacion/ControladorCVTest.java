@@ -1,169 +1,188 @@
 package com.tallerwebi.presentacion;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.tallerwebi.dominio.ServicioCV;
-import com.tallerwebi.dominio.ServicioIA;
-import com.tallerwebi.dominio.ServicioPerfil;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+import com.tallerwebi.dominio.ArchivoCvInvalidoException;
+import com.tallerwebi.dominio.CurriculumGenerado;
+import com.tallerwebi.dominio.ServicioCurriculumGenerado;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
-public class ControladorCVTest {
+class ControladorCVTest {
 
   private ControladorCV controladorCV;
-  private ServicioCV servicioCVMOck;
-  private ServicioPerfil servicioPerfilMock;
-  private ServicioIA servicioIAMock;
-  private MockHttpServletRequest request;
+  private ServicioCurriculumGenerado servicioCurriculum;
+  private MockHttpSession session;
 
   @BeforeEach
-  public void init() {
-    servicioCVMOck = mock(ServicioCV.class);
-    servicioPerfilMock = mock(ServicioPerfil.class);
-    servicioIAMock = mock(ServicioIA.class);
-    controladorCV = new ControladorCV(servicioCVMOck, servicioPerfilMock, servicioIAMock);
-    request = new MockHttpServletRequest();
+  void init() {
+    servicioCurriculum = mock(ServicioCurriculumGenerado.class);
+    controladorCV = new ControladorCV(servicioCurriculum);
+    session = new MockHttpSession();
+    session.setAttribute("USUARIO_ID", 1L);
+    session.setAttribute("ROL", "CANDIDATO");
   }
 
   @Test
-  public void SubirCVConFormatoValidoDeberiaVolverAHomeConMensajeDeExito() throws Exception {
-    when(servicioCVMOck.esArchivoValido(eq("miCV.pdf"), any(byte[].class))).thenReturn(true);
-    MockMultipartFile archivo = new MockMultipartFile(
+  void subirOriginalLoGuardaSinGenerarAtsTodavia() throws Exception {
+    MockMultipartFile archivo = archivo();
+
+    ModelAndView respuesta = controladorCV.subirOriginal(
+      archivo,
+      null,
+      session,
+      new RedirectAttributesModelMap()
+    );
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/perfil?cvSubido=true"));
+    verify(servicioCurriculum).subirOriginal(1L, "miCV.pdf", archivo.getBytes());
+  }
+
+  @Test
+  void requiereSesionDePostulante() throws Exception {
+    MockHttpSession sesionSinUsuario = new MockHttpSession();
+    RedirectAttributesModelMap atributos = new RedirectAttributesModelMap();
+
+    ModelAndView respuesta = controladorCV.subirOriginal(
+      archivo(),
+      null,
+      sesionSinUsuario,
+      atributos
+    );
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/home"));
+    assertThat(
+      String.valueOf(atributos.getFlashAttributes().get("errorCV")),
+      containsString("No pude verificar tu sesión")
+    );
+  }
+
+  @Test
+  void noRedirigeAlLoginSiLaSesionPerteneceAUnaCuentaNoPostulante() throws Exception {
+    MockHttpSession sesionEmpresa = new MockHttpSession();
+    sesionEmpresa.setAttribute("USUARIO_ID", 1L);
+    sesionEmpresa.setAttribute("ROL", "EMPLEADOR");
+    RedirectAttributesModelMap atributos = new RedirectAttributesModelMap();
+
+    ModelAndView respuesta = controladorCV.subirOriginal(archivo(), null, sesionEmpresa, atributos);
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/home"));
+    assertThat(
+      atributos.getFlashAttributes().get("errorCV"),
+      equalTo("La generación de CV está disponible para cuentas postulantes.")
+    );
+  }
+
+  @Test
+  void muestraUnErrorYRedirigeSiElArchivoEsInvalido() throws Exception {
+    when(servicioCurriculum.subirOriginal(1L, "miCV.pdf", new byte[] { 1 }))
+      .thenThrow(new ArchivoCvInvalidoException());
+    RedirectAttributesModelMap atributos = new RedirectAttributesModelMap();
+
+    ModelAndView respuesta = controladorCV.subirOriginal(archivo(), null, session, atributos);
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/home"));
+    assertThat(
+      atributos.getFlashAttributes().get("errorCV"),
+      equalTo("El archivo no es un documento PDF, DOC o DOCX válido.")
+    );
+  }
+
+  @Test
+  void aceptaElNombreDeCampoAnteriorDelFormulario() throws Exception {
+    MockMultipartFile cvAnterior = new MockMultipartFile(
       "cv",
       "miCV.pdf",
       "application/pdf",
-      "contenido".getBytes()
+      new byte[] { 1 }
     );
-    ModelAndView modelAndView = controladorCV.subirCV(archivo, request);
-    MatcherAssert.assertThat(modelAndView.getViewName(), Matchers.equalToIgnoringCase("home"));
-    MatcherAssert.assertThat(
-      modelAndView.getModel().get("mensaje").toString(),
-      Matchers.equalToIgnoringCase("Archivo subido correctamente")
+
+    ModelAndView respuesta = controladorCV.subirOriginal(
+      null,
+      cvAnterior,
+      session,
+      new RedirectAttributesModelMap()
     );
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/perfil?cvSubido=true"));
+    verify(servicioCurriculum).subirOriginal(1L, "miCV.pdf", cvAnterior.getBytes());
   }
 
   @Test
-  public void SubirCVConFormatoInvalidoDeberiaDevolverMensajeDeError() throws Exception {
-    when(servicioCVMOck.esArchivoValido(eq("archivo.exe"), any(byte[].class))).thenReturn(false);
-    MockMultipartFile archivo = new MockMultipartFile(
-      "cv",
-      "archivo.exe",
-      "application/pdf",
-      "contenido".getBytes()
-    );
-    ModelAndView modelAndView = controladorCV.subirCV(archivo, request);
-    MatcherAssert.assertThat(modelAndView.getViewName(), Matchers.equalToIgnoringCase("home"));
-    MatcherAssert.assertThat(
-      modelAndView.getModel().get("error").toString(),
-      Matchers.equalToIgnoringCase("Formato de archivo no válido")
-    );
+  void generarAtsUsaElOriginalGuardadoYRedirigeAlPerfil() {
+    ModelAndView respuesta = controladorCV.generarAts(session, new RedirectAttributesModelMap());
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/perfil?cvGenerado=true"));
+    verify(servicioCurriculum).generarAts(1L);
   }
 
   @Test
-  public void subirCVValidoDeberiaMostrarElCVGeneradoPorLaIA() throws Exception {
-    when(servicioCVMOck.esArchivoValido(eq("miCV.pdf"), any(byte[].class))).thenReturn(true);
-    when(servicioCVMOck.extraerTexto(any(byte[].class))).thenReturn("texto del cv");
-    when(servicioIAMock.generarCvAts("texto del cv", "Sin habilidades adicionales"))
-      .thenReturn("CV ATS");
-    MockMultipartFile archivo = new MockMultipartFile(
-      "cv",
-      "miCV.pdf",
-      "application/pdf",
-      "x".getBytes()
-    );
+  void descargaYVisualizacionDevuelvenElPdfAtsSinLimite() {
+    CurriculumGenerado cv = new CurriculumGenerado();
+    cv.setArchivoAtsPdf(new byte[] { 37, 80, 68, 70, 45 });
+    cv.setNombreArchivoOriginal("cv-original.pdf");
+    cv.setArchivoOriginal(new byte[] { 37, 80, 68, 70, 45 });
+    when(servicioCurriculum.obtener(1L)).thenReturn(cv);
 
-    ModelAndView modelAndView = controladorCV.subirCV(archivo, request);
+    var respuesta = controladorCV.descargar(session);
 
-    MatcherAssert.assertThat(
-      modelAndView.getModel().get("cvProcesado"),
-      Matchers.equalTo("CV ATS")
+    assertThat(respuesta.getStatusCode().value(), equalTo(200));
+    assertThat(respuesta.getHeaders().getContentType(), equalTo(MediaType.APPLICATION_PDF));
+    assertThat(
+      respuesta.getHeaders().getFirst("Content-Disposition"),
+      containsString("attachment")
     );
+    assertThat(respuesta.getBody()[0], is((byte) 37));
+    var visualizacion = controladorCV.verAts(session);
+    assertThat(
+      visualizacion.getHeaders().getFirst("Content-Disposition"),
+      containsString("inline")
+    );
+    assertThat(visualizacion.getBody()[0], is((byte) 37));
+    verify(servicioCurriculum, org.mockito.Mockito.times(2)).obtener(1L);
   }
 
   @Test
-  public void subirCVSiLaIAFallaDeberiaMostrarMensajeDeError() throws Exception {
-    when(servicioCVMOck.esArchivoValido(eq("miCV.pdf"), any(byte[].class))).thenReturn(true);
-    when(servicioCVMOck.extraerTexto(any(byte[].class))).thenReturn("texto");
-    when(servicioIAMock.generarCvAts(any(), any())).thenThrow(new IllegalStateException("falla"));
-    MockMultipartFile archivo = new MockMultipartFile(
-      "cv",
-      "miCV.pdf",
-      "application/pdf",
-      "x".getBytes()
-    );
+  void muestraYPermiteDescargarElPdfOriginalSubido() {
+    CurriculumGenerado cv = new CurriculumGenerado();
+    cv.setNombreArchivoOriginal("original.pdf");
+    cv.setArchivoOriginal(new byte[] { 37, 80, 68, 70, 45 });
+    when(servicioCurriculum.obtener(1L)).thenReturn(cv);
 
-    ModelAndView modelAndView = controladorCV.subirCV(archivo, request);
+    var visualizacion = controladorCV.verOriginal(session);
+    var descarga = controladorCV.descargarOriginal(session);
 
-    MatcherAssert.assertThat(
-      modelAndView.getModel().get("error").toString(),
-      Matchers.containsString("No se pudo generar el CV")
+    assertThat(visualizacion.getHeaders().getContentType(), equalTo(MediaType.APPLICATION_PDF));
+    assertThat(
+      visualizacion.getHeaders().getFirst("Content-Disposition"),
+      containsString("inline")
     );
+    assertThat(descarga.getHeaders().getFirst("Content-Disposition"), containsString("attachment"));
+    assertThat(descarga.getBody()[0], is((byte) 37));
   }
 
   @Test
-  public void deberiaDevolverCVConSkillsCargadasEnPerfil() throws Exception {
-    when(servicioCVMOck.esArchivoValido(eq("miCV.pdf"), any(byte[].class))).thenReturn(true);
-    when(servicioCVMOck.extraerTexto(any(byte[].class))).thenReturn("texto del cv");
-    when(servicioIAMock.generarCvAts("texto del cv", "Java, SQL")).thenReturn("CV ATS con skills");
-    request.getSession().setAttribute("USUARIO_ID", 1L);
-    when(servicioPerfilMock.obtenerPerfil(1L))
-      .thenReturn(
-        new com.tallerwebi.dominio.PerfilPostulante() {
-          {
-            getPostulanteSkills()
-              .add(
-                new com.tallerwebi.dominio.PostulanteSkill() {
-                  {
-                    setSkill(
-                      new com.tallerwebi.dominio.Skill() {
-                        {
-                          setNombre("Java");
-                        }
-                      }
-                    );
-                  }
-                }
-              );
-            getPostulanteSkills()
-              .add(
-                new com.tallerwebi.dominio.PostulanteSkill() {
-                  {
-                    setSkill(
-                      new com.tallerwebi.dominio.Skill() {
-                        {
-                          setNombre("SQL");
-                        }
-                      }
-                    );
-                  }
-                }
-              );
-          }
-        }
-      );
+  void descargarRequiereSesionDePostulante() throws Exception {
+    HttpSession sinSesion = null;
 
-    MockMultipartFile archivo = new MockMultipartFile(
-      "cv",
-      "miCV.pdf",
-      "application/pdf",
-      "x".getBytes()
-    );
+    var respuesta = controladorCV.descargar(sinSesion);
 
-    ModelAndView modelAndView = controladorCV.subirCV(archivo, request);
+    assertThat(respuesta.getStatusCode().value(), equalTo(401));
+  }
 
-    MatcherAssert.assertThat(
-      modelAndView.getModel().get("cvProcesado"),
-      Matchers.equalTo("CV ATS con skills")
-    );
+  private MockMultipartFile archivo() {
+    return new MockMultipartFile("archivo", "miCV.pdf", "application/pdf", new byte[] { 1 });
   }
 }

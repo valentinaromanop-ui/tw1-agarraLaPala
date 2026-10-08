@@ -3,9 +3,7 @@ package com.tallerwebi;
 import com.tallerwebi.config.DatabaseInitializationConfig;
 import com.tallerwebi.config.HibernateConfig;
 import com.tallerwebi.config.SpringWebConfig;
-import jakarta.servlet.Filter;
-import jakarta.servlet.MultipartConfigElement;
-import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.*;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
@@ -30,9 +28,9 @@ public class MyServletInitializer extends AbstractAnnotationConfigDispatcherServ
   @Override
   protected Class<?>[] getServletConfigClasses() {
     return new Class<?>[] {
-            SpringWebConfig.class,
-            HibernateConfig.class,
-            DatabaseInitializationConfig.class,
+      SpringWebConfig.class,
+      HibernateConfig.class,
+      DatabaseInitializationConfig.class,
     };
   }
 
@@ -52,7 +50,7 @@ public class MyServletInitializer extends AbstractAnnotationConfigDispatcherServ
   @Override
   protected void customizeRegistration(ServletRegistration.Dynamic registration) {
     registration.setMultipartConfig(
-            new MultipartConfigElement(System.getProperty("java.io.tmpdir"), 20971520, 41943040, 20971520)
+      new MultipartConfigElement(System.getProperty("java.io.tmpdir"), 20971520, 41943040, 20971520)
     );
   }
 }

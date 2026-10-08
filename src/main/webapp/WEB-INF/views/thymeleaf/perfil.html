@@ -14,6 +14,57 @@
     <p>Completá tus datos para recibir oportunidades más relevantes.</p>
     <p th:if="${mensaje != null}" th:text="${mensaje}" class="alert alert-success" role="status"></p>
     <p th:if="${error != null}" th:text="${error}" class="alert alert-danger" role="alert"></p>
+    <p th:if="${errorCV != null}" th:text="${errorCV}" class="alert alert-danger" role="alert"></p>
+
+    <section class="profile-section" aria-labelledby="cv-generado-titulo">
+      <h2 class="h5" id="cv-generado-titulo">Mis documentos CV</h2>
+      <div th:if="${curriculumGenerado == null}">
+        <p>Todavía no subiste tu CV. El original se guarda aquí y después podés pedir la versión ATS.</p>
+        <form th:action="@{/cv/subir}" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
+          <label class="form-label" for="cv-perfil">Seleccioná tu CV original (PDF, DOC o DOCX)</label>
+          <input class="form-control mb-3" id="cv-perfil" name="archivo" type="file" accept=".pdf,.doc,.docx" required>
+          <button class="btn btn-outline-primary" type="submit">Guardar CV original</button>
+        </form>
+      </div>
+      <div th:if="${curriculumGenerado != null}">
+        <div class="cv-document-card">
+          <h3 class="h5">CV original</h3>
+          <p class="text-muted" th:text="${curriculumGenerado.nombreArchivoOriginal}">archivo.pdf</p>
+          <iframe
+            th:if="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
+            class="cv-document-preview"
+            th:src="@{/cv/original/ver}"
+            title="Vista previa del CV original"
+          ></iframe>
+          <details
+            th:unless="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
+            class="mb-3"
+          >
+            <summary>Vista previa del contenido del documento original</summary>
+            <pre class="cv-ats-content" th:text="${curriculumGenerado.textoOriginal}"></pre>
+          </details>
+          <a class="btn btn-outline-primary" th:href="@{/cv/original/descargar}">Descargar original</a>
+        </div>
+
+        <div class="cv-document-card mt-4">
+          <h3 class="h5">CV optimizado para ATS</h3>
+          <div th:if="${curriculumGenerado.archivoAtsPdf == null}">
+            <p>El original ya está guardado. Generá una única versión ATS con IA; después podrás visualizarla y descargarla todas las veces que quieras.</p>
+            <form th:action="@{/cv/ats/generar}" method="post">
+              <button class="btn btn-primary" type="submit">Mejorar mi CV con IA</button>
+            </form>
+          </div>
+          <div th:if="${curriculumGenerado.archivoAtsPdf != null}">
+            <iframe
+              class="cv-document-preview"
+              th:src="@{/cv/ats/ver}"
+              title="Vista previa del CV optimizado para ATS"
+            ></iframe>
+            <a class="btn btn-primary" th:href="@{/cv/ats/descargar}">Descargar CV ATS</a>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <form th:action="@{/perfil/guardar}" th:object="${perfil}" method="post" accept-charset="UTF-8">
       <section class="profile-section">
@@ -26,6 +77,7 @@
 
       <section class="profile-section">
         <h2 class="h5">Habilidades de programación</h2>
+        <p class="text-muted">Guardá el perfil para conservar tus selecciones. Después podés volver y editarlas.</p>
         <input class="form-control mb-3" id="buscador-skills" type="search" placeholder="Buscar skills">
         <div id="skills-container">
           <div class="skill-option" th:each="skill : ${skills}">
