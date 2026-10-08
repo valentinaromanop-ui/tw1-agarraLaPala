@@ -11,10 +11,10 @@ public class VacanteDTO {
   private String descripcion;
   private List<String> skills;
   private String ubicacion;
-  private String modalidad;
   private String url;
   private LocalDateTime fechaPublicacion;
   private String fuente;
+  private CondicionesLaborales condiciones = new CondicionesLaborales();
 
   public Long getId() {
     return id;
@@ -64,14 +64,6 @@ public class VacanteDTO {
     this.ubicacion = ubicacion;
   }
 
-  public String getModalidad() {
-    return modalidad;
-  }
-
-  public void setModalidad(String modalidad) {
-    this.modalidad = modalidad;
-  }
-
   public String getUrl() {
     return url;
   }
@@ -94,5 +86,12 @@ public class VacanteDTO {
 
   public void setFuente(String fuente) {
     this.fuente = fuente;
+  }
+
+  public CondicionesLaborales getCondiciones() {
+    if (condiciones == null) {
+      condiciones = new CondicionesLaborales();
+    }
+    return condiciones;
   }
 }

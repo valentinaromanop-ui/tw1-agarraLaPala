@@ -9,6 +9,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -27,10 +29,32 @@ public class ControladorVacante {
   @RequestMapping(path = "/vacantes/recomendadas", method = RequestMethod.GET)
   public ModelAndView mostrarVacantesRecomendadas() {
     // Datos de prueba hasta integrar los datos del perfil del usuario.
-    Map<String, Object> modelo = new ModelMap();
     BusquedaVacanteDTO busqueda = new BusquedaVacanteDTO();
+
+    return mostrarResultados(busqueda, null);
+  }
+
+  @RequestMapping(path = "/vacantes/filtrar", method = RequestMethod.GET)
+  public ModelAndView filtrarVacantes(@ModelAttribute("busqueda") BusquedaVacanteDTO busqueda, BindingResult errores) {
+    if (errores.hasErrors() || (busqueda.getCondiciones().getSueldoMinimo() != null && busqueda.getCondiciones().getSueldoMinimo().signum() < 0)) {
+      return mostrarResultados(busqueda, "Ingresá un sueldo mínimo válido, mayor o igual a cero.");
+    }
+    if (busqueda.getCondiciones().getSueldoMinimo() != null && (busqueda.getCondiciones().getMoneda() == null || busqueda.getCondiciones().getMoneda().isBlank())) {
+      return mostrarResultados(busqueda, "Seleccioná una moneda para filtrar por sueldo mensual.");
+    }
+    return mostrarResultados(busqueda, null);
+  }
+
+  private ModelAndView mostrarResultados(BusquedaVacanteDTO busqueda, String error) {
+    Map<String, Object> modelo = new ModelMap();
+    // Las skills pertenecen al perfil, no a los filtros enviados por el formulario.
     busqueda.setSkills(Arrays.asList("Java", "SQL", "PHP"));
     modelo.put("skills", busqueda.getSkills());
+    modelo.put("busqueda", busqueda);
+    if (error != null) {
+      modelo.put("error", error);
+      return new ModelAndView(VISTA_VACANTES, modelo);
+    }
     try {
       modelo.put("vacantes", servicioVacante.obtenerVacantesPorSkills(busqueda));
     } catch (BusquedaVacanteInvalida | FuenteVacanteNoDisponible excepcion) {

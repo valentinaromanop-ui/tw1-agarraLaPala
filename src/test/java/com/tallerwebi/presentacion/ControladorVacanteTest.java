@@ -3,21 +3,31 @@ package com.tallerwebi.presentacion;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import com.tallerwebi.dominio.BusquedaVacanteDTO;
 import com.tallerwebi.dominio.ServicioVacante;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
 import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.servlet.ModelAndView;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+import org.thymeleaf.templateresolver.FileTemplateResolver;
 
 public class ControladorVacanteTest {
 
@@ -40,6 +50,111 @@ public class ControladorVacanteTest {
     assertThat(modelAndView.getViewName(), equalToIgnoringCase("vacantes"));
     assertThat(modelAndView.getModel().get("vacantes"), equalTo(vacantes));
     verify(servicioVacanteMock, times(1)).obtenerVacantesPorSkills(any());
+  }
+
+  @Test
+  public void deberiaBuscarInicialmenteSoloPorSkills() {
+    ModelAndView vista = controladorVacante.mostrarVacantesRecomendadas();
+    BusquedaVacanteDTO busqueda = (BusquedaVacanteDTO) vista.getModel().get("busqueda");
+
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getModalidad());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getSeniority());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getJornada());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getSueldoMinimo());
+    org.junit.jupiter.api.Assertions.assertNull(busqueda.getCondiciones().getMoneda());
+    assertThat(busqueda.getSkills(), equalTo(Arrays.asList("Java", "SQL", "PHP")));
+  }
+
+  @Test
+  public void deberiaRespetarFiltrosVaciosSinReponerPreferencias() {
+    BusquedaVacanteDTO busqueda = new BusquedaVacanteDTO();
+    busqueda.getCondiciones().setModalidad("");
+    busqueda.getCondiciones().setSeniority("");
+    busqueda.getCondiciones().setJornada("");
+
+    controladorVacante.filtrarVacantes(
+      busqueda,
+      new BeanPropertyBindingResult(busqueda, "busqueda")
+    );
+
+    assertThat(busqueda.getCondiciones().getModalidad(), equalTo(""));
+    assertThat(busqueda.getCondiciones().getSeniority(), equalTo(""));
+    assertThat(busqueda.getCondiciones().getJornada(), equalTo(""));
+    assertThat(busqueda.getSkills(), equalTo(Arrays.asList("Java", "SQL", "PHP")));
+    verify(servicioVacanteMock).obtenerVacantesPorSkills(busqueda);
+  }
+
+  @Test
+  public void deberiaRecibirFiltrosDelFormulario() throws Exception {
+    ModelAndView vista = MockMvcBuilders
+      .standaloneSetup(controladorVacante)
+      .build()
+      .perform(
+        get("/vacantes/filtrar")
+          .param("condiciones.modalidad", "hybrid")
+          .param("condiciones.jornada", "part-time")
+          .param("condiciones.seniority", "senior")
+          .param("condiciones.sueldoMinimo", "1500")
+          .param("condiciones.moneda", "USD")
+      )
+      .andReturn()
+      .getModelAndView();
+    BusquedaVacanteDTO busqueda = (BusquedaVacanteDTO) vista.getModel().get("busqueda");
+
+    assertThat(busqueda.getCondiciones().getModalidad(), equalTo("hybrid"));
+    assertThat(busqueda.getCondiciones().getJornada(), equalTo("part-time"));
+    assertThat(busqueda.getCondiciones().getSeniority(), equalTo("senior"));
+    assertThat(busqueda.getCondiciones().getSueldoMinimo(), equalTo(new BigDecimal("1500")));
+    verify(servicioVacanteMock).obtenerVacantesPorSkills(busqueda);
+  }
+
+  @Test
+  public void sueldoInvalidoDeberiaMostrarErrorSinBuscar() throws Exception {
+    ModelAndView vista = MockMvcBuilders
+      .standaloneSetup(controladorVacante)
+      .build()
+      .perform(get("/vacantes/filtrar").param("condiciones.sueldoMinimo", "texto"))
+      .andReturn()
+      .getModelAndView();
+
+    assertThat(
+      vista.getModel().get("error"),
+      equalTo("Ingresá un sueldo mínimo válido, mayor o igual a cero.")
+    );
+    verify(servicioVacanteMock, times(0)).obtenerVacantesPorSkills(any());
+  }
+
+  @Test
+  public void deberiaRenderizarLosFiltrosYLasVacantesConThymeleaf() throws Exception {
+    FileTemplateResolver templates = new FileTemplateResolver();
+    templates.setPrefix("src/main/webapp/WEB-INF/views/thymeleaf/");
+    templates.setSuffix(".html");
+    templates.setCharacterEncoding("UTF-8");
+    SpringTemplateEngine engine = new SpringTemplateEngine();
+    engine.setTemplateResolver(templates);
+    ThymeleafViewResolver vistas = new ThymeleafViewResolver();
+    vistas.setTemplateEngine(engine);
+    vistas.setCharacterEncoding("UTF-8");
+    VacanteDTO vacante = new VacanteDTO();
+    vacante.setTitulo("Desarrollador Java");
+    vacante.setSkills(List.of("java"));
+    when(servicioVacanteMock.obtenerVacantesPorSkills(any())).thenReturn(List.of(vacante));
+
+    String html = MockMvcBuilders
+      .standaloneSetup(controladorVacante)
+      .setViewResolvers(vistas)
+      .build()
+      .perform(get("/vacantes/recomendadas"))
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    assertTrue(html.contains("Desarrollador Java"));
+    assertTrue(html.contains("Sueldo mensual no informado"));
+    assertThat(
+      org.jsoup.Jsoup.parse(html).select("#jornada option[value=full-time]").text(),
+      equalTo("Tiempo completo")
+    );
   }
 
   @Test

@@ -5,6 +5,7 @@ import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.VacanteSkill;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,7 +18,11 @@ public class VacanteMapper {
     dto.setEmpresa(vacante.getEmpresa());
     dto.setDescripcion(vacante.getDescripcion());
     dto.setUbicacion(vacante.getUbicacion());
-    dto.setModalidad(vacante.getModalidad());
+    dto.getCondiciones().setModalidad(vacante.getCondiciones().getModalidad());
+    dto.getCondiciones().setSeniority(vacante.getCondiciones().getSeniority());
+    dto.getCondiciones().setJornada(vacante.getCondiciones().getJornada());
+    dto.getCondiciones().setSueldoMinimo(vacante.getCondiciones().getSueldoMinimo());
+    dto.getCondiciones().setMoneda(vacante.getCondiciones().getMoneda());
     dto.setFechaPublicacion(vacante.getFechaPublicacion());
     dto.setFuente("LOCAL");
     List<String> coincidencias = new ArrayList<>();

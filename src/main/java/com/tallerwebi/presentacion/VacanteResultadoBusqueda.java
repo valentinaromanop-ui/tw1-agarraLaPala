@@ -18,7 +18,7 @@ public class VacanteResultadoBusqueda {
     titulo = vacante.getTitulo();
     empresa = vacante.getEmpresa();
     ubicacion = vacante.getUbicacion();
-    modalidad = vacante.getModalidad();
+    modalidad = vacante.getCondiciones().getModalidad();
     skills = vacante.getSkills();
     url = vacante.getUrl();
     // El formato ISO evita necesitar un módulo JSON adicional para LocalDateTime.

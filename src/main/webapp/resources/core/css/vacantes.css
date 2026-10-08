@@ -1,0 +1,20 @@
+.recommended-page { min-height: calc(100vh - 6rem); }
+.recommended-skills { color: var(--muted); }
+.recommended-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+.recommended-card .offer-info { width: 100%; }
+.recommended-card h2 { margin-bottom: 0.4rem; color: var(--highlight); font-size: 1.2rem; line-height: 1.4; }
+.recommended-card .offer-meta { margin-bottom: 1rem; font-size: 0.8rem; }
+.recommended-card .result-skills { color: var(--nav-accent); font-size: 0.85rem; }
+.recommended-card .publication-date { margin-bottom: 0; font-size: 0.8rem; }
+.recommended-card .result-link { margin-top: auto; }
+.local-source { margin: auto 0 0; color: var(--nav-accent); font-size: 0.8rem; }
+.empty-vacancies { padding: 1.5rem; border: 1px solid var(--border); border-radius: 0.45rem; color: var(--muted); background-color: var(--surface); }
+
+@media (max-width: 576px) {
+  .recommended-page { padding-top: 11rem; }
+}
+.vacancy-filters { margin-bottom: 2rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: 0.45rem; background: var(--surface); }
+.vacancy-filter-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+.vacancy-filter-fields label { display: grid; gap: 0.4rem; color: var(--muted); font-size: 0.85rem; }
+.vacancy-filter-fields input, .vacancy-filter-fields select { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 0.3rem; color: var(--text); background: var(--background); }
+.filter-note { margin: 1rem 0; color: var(--muted); font-size: 0.8rem; }

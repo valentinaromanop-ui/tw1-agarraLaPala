@@ -5,6 +5,8 @@ import java.util.List;
 
 public class BusquedaVacanteDTO {
 
+  private CondicionesLaborales condiciones = new CondicionesLaborales();
+
   private List<String> skills = new ArrayList<>();
 
   public List<String> getSkills() {
@@ -13,5 +15,9 @@ public class BusquedaVacanteDTO {
 
   public void setSkills(List<String> skills) {
     this.skills = skills;
+  }
+
+  public CondicionesLaborales getCondiciones() {
+    return condiciones;
   }
 }

@@ -1,6 +1,7 @@
 package com.tallerwebi.dominio;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,9 +30,6 @@ public class Vacante {
   @Column
   private String ubicacion;
 
-  @Column
-  private String modalidad;
-
   @Column(name = "fecha_publicacion")
   private LocalDateTime fechaPublicacion;
 
@@ -40,6 +38,9 @@ public class Vacante {
 
   @OneToMany(mappedBy = "vacante")
   private Set<VacanteSkill> vacanteSkills = new HashSet<>();
+
+  @Embedded
+  private CondicionesLaborales condiciones = new CondicionesLaborales();
 
   public Long getId() {
     return id;
@@ -81,14 +82,6 @@ public class Vacante {
     this.ubicacion = ubicacion;
   }
 
-  public String getModalidad() {
-    return modalidad;
-  }
-
-  public void setModalidad(String modalidad) {
-    this.modalidad = modalidad;
-  }
-
   public LocalDateTime getFechaPublicacion() {
     return fechaPublicacion;
   }
@@ -111,5 +104,12 @@ public class Vacante {
 
   public void setVacanteSkills(Set<VacanteSkill> vacanteSkills) {
     this.vacanteSkills = vacanteSkills;
+  }
+
+  public CondicionesLaborales getCondiciones() {
+    if (condiciones == null) {
+      condiciones = new CondicionesLaborales();
+    }
+    return condiciones;
   }
 }
