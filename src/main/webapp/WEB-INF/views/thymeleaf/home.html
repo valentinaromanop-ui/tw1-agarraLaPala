@@ -155,12 +155,16 @@
           </div>
           <div class="cv-upload">
             <i class="bi bi-paperclip" aria-hidden="true"></i>
-            <label for="cv-file">Cargá tu CV para comenzar</label>
+            <label for="cv-file">Cargá tu CV para comenzar (Válido solo en formato pdf, doc y docx)</label>
 <!--            <input id="cv-file" name="cv-file" type="file" accept=".pdf,.doc,.docx">-->
             <form th:action="@{/cv}" method="post" enctype="multipart/form-data">
               <input id="cv-file" name="cv" type="file" accept=".pdf,.doc,.docx">
               <button type="submit">Enviar CV</button>
             </form>
+            <p th:if="${mensaje}" th:text="${mensaje}"></p>
+            <p th:if="${cvProcesado}" th:text="${cvProcesado}"></p>
+            <p th:if="${error}" th:text="${error}"></p>
+
           </div>
         </div>
         <div class="hero-visual" aria-hidden="true">
