@@ -56,6 +56,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+            <version>6.5.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>${hsqldb.version}</version>
@@ -84,6 +90,13 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>2.9.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -198,8 +211,6 @@
                 <configuration>
                     <!-- Ubicación del archivo de configuración personalizado (basado en Google Style pero compatible con Prettier) -->
                     <configLocation>${project.basedir}/checkstyle-base.xml</configLocation>
-                    <!-- Version del runtime de Checkstyle (soporta Java 25 / JEP 512) -->
-                    <checkstyleVersion>${checkstyle.runtime.version}</checkstyleVersion>
                     <!-- Mostrar los errores de reglas directamente en la consola -->
                     <consoleOutput>true</consoleOutput>
                     <!-- Detener el build si se encuentra algun error de las reglas de estilo -->
@@ -209,6 +220,13 @@
                     <!-- Directorio donde se generan los reportes visuales (HTML) -->
                     <outputDirectory>${project.basedir}/.calidad-de-codigo/checkstyle</outputDirectory>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.runtime.version}</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <!-- Identificador único para esta ejecución del plugin -->

@@ -21,9 +21,18 @@ public class CatalogoVacantesPrueba {
   private final List<VacanteDTO> vacantes = crearVacantesPrueba();
 
   public List<String> obtenerTitulos(String consulta) {
+    return obtenerTitulos(consulta, List.of());
+  }
+
+  public List<String> obtenerTitulos(String consulta, List<String> titulosAdicionales) {
     Set<String> titulos = new TreeSet<>(new ComparadorTituloVacante());
     String consultaNormalizada = normalizar(consulta);
     for (String cargo : CARGOS_PRUEBA) {
+      if (normalizar(cargo).contains(consultaNormalizada)) {
+        titulos.add(cargo);
+      }
+    }
+    for (String cargo : titulosAdicionales) {
       if (normalizar(cargo).contains(consultaNormalizada)) {
         titulos.add(cargo);
       }
@@ -38,12 +47,25 @@ public class CatalogoVacantesPrueba {
     String skills,
     String fecha
   ) {
+    return buscar(texto, zona, modalidad, skills, fecha, List.of());
+  }
+
+  public List<VacanteDTO> buscar(
+    String texto,
+    String zona,
+    String modalidad,
+    String skills,
+    String fecha,
+    List<VacanteDTO> ofertasAdicionales
+  ) {
     List<VacanteDTO> resultado = new ArrayList<>();
-    for (VacanteDTO vacante : vacantes) {
+    List<VacanteDTO> todasLasVacantes = new ArrayList<>(vacantes);
+    todasLasVacantes.addAll(ofertasAdicionales);
+    for (VacanteDTO vacante : todasLasVacantes) {
       if (
         coincideTexto(vacante, texto) &&
         coincide(vacante.getUbicacion(), zona) &&
-        coincide(vacante.getCondiciones().getModalidad(), modalidad) &&
+        coincideModalidad(vacante.getCondiciones().getModalidad(), modalidad) &&
         coincideSkills(vacante, skills) &&
         coincideFecha(vacante, fecha)
       ) {
@@ -68,6 +90,22 @@ public class CatalogoVacantesPrueba {
     return valorFiltro.isEmpty() || normalizar(valorVacante).contains(valorFiltro);
   }
 
+  private boolean coincideModalidad(String modalidadVacante, String filtro) {
+    String modalidad = normalizar(modalidadVacante);
+    String modalidadFiltrada = normalizar(filtro);
+    if (modalidad.startsWith("hibrid")) {
+      modalidad = "hibrida";
+    } else if (modalidad.startsWith("remot")) {
+      modalidad = "remota";
+    }
+    if (modalidadFiltrada.startsWith("hibrid")) {
+      modalidadFiltrada = "hibrida";
+    } else if (modalidadFiltrada.startsWith("remot")) {
+      modalidadFiltrada = "remota";
+    }
+    return modalidadFiltrada.isEmpty() || modalidad.equals(modalidadFiltrada);
+  }
+
   private boolean coincideSkills(VacanteDTO vacante, String skills) {
     if (skills == null || skills.trim().isEmpty()) {
       return true;
@@ -75,7 +113,7 @@ public class CatalogoVacantesPrueba {
     for (String skill : skills.split(",")) {
       String skillNormalizada = normalizar(skill);
       for (String skillVacante : vacante.getSkills()) {
-        if (normalizar(skillVacante).contains(skillNormalizada)) {
+        if (normalizar(skillVacante).equals(skillNormalizada)) {
           return true;
         }
       }

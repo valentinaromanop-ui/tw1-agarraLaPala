@@ -5,12 +5,14 @@ import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.excepcion.UsuarioNoEncontrado;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 @Repository("repositorioUsuario")
 public class RepositorioUsuarioImpl implements RepositorioUsuario {
 
   private SessionFactory sessionFactory;
+  private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Autowired
   public RepositorioUsuarioImpl(SessionFactory sessionFactory) {
@@ -19,12 +21,13 @@ public class RepositorioUsuarioImpl implements RepositorioUsuario {
 
   @Override
   public Usuario buscarUsuario(String email, String password) {
-    return sessionFactory
-      .getCurrentSession()
-      .createQuery("from Usuario where email = :email and password = :password", Usuario.class)
-      .setParameter("email", email)
-      .setParameter("password", password)
-      .uniqueResult();
+    if (email == null || password == null) {
+      return null;
+    }
+    Usuario usuario = buscar(email);
+    return usuario != null && passwordEncoder.matches(password, usuario.getPassword())
+      ? usuario
+      : null;
   }
 
   @Override
@@ -39,6 +42,11 @@ public class RepositorioUsuarioImpl implements RepositorioUsuario {
       .createQuery("from Usuario where email = :email", Usuario.class)
       .setParameter("email", email)
       .uniqueResult();
+  }
+
+  @Override
+  public Usuario buscarPorId(Long id) {
+    return sessionFactory.getCurrentSession().get(Usuario.class, id);
   }
 
   @Override

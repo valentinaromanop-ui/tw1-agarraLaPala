@@ -1,8 +1,10 @@
 package com.tallerwebi.dominio;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@SuppressWarnings("PMD.TooManyFields")
 public class VacanteDTO {
 
   private Long id;
@@ -11,9 +13,12 @@ public class VacanteDTO {
   private String descripcion;
   private List<String> skills;
   private String ubicacion;
+  private String modalidad;
   private String url;
   private LocalDateTime fechaPublicacion;
   private String fuente;
+  private BigDecimal salario;
+  private String horario;
   private CondicionesLaborales condiciones = new CondicionesLaborales();
 
   public Long getId() {
@@ -64,6 +69,14 @@ public class VacanteDTO {
     this.ubicacion = ubicacion;
   }
 
+  public String getModalidad() {
+    return modalidad;
+  }
+
+  public void setModalidad(String modalidad) {
+    this.modalidad = modalidad;
+  }
+
   public String getUrl() {
     return url;
   }
@@ -86,6 +99,22 @@ public class VacanteDTO {
 
   public void setFuente(String fuente) {
     this.fuente = fuente;
+  }
+
+  public BigDecimal getSalario() {
+    return salario;
+  }
+
+  public void setSalario(BigDecimal salario) {
+    this.salario = salario;
+  }
+
+  public String getHorario() {
+    return horario;
+  }
+
+  public void setHorario(String horario) {
+    this.horario = horario;
   }
 
   public CondicionesLaborales getCondiciones() {

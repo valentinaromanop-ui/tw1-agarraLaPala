@@ -8,6 +8,7 @@ import static org.mockito.Mockito.*;
 import com.tallerwebi.dominio.excepcion.UsuarioExistente;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class ServicioLoginTest {
 
@@ -22,18 +23,16 @@ public class ServicioLoginTest {
 
   @Test
   public void consultarUsuarioDeberiaLlamarAlRepositorio() {
-    // preparacion
     String email = "test@test.com";
     String password = "password";
     Usuario usuarioEsperado = new Usuario();
-    when(this.repositorioUsuarioMock.buscarUsuario(email, password)).thenReturn(usuarioEsperado);
+    usuarioEsperado.setPassword(new BCryptPasswordEncoder().encode(password));
+    when(this.repositorioUsuarioMock.buscar(email)).thenReturn(usuarioEsperado);
 
-    // ejecucion
     Usuario usuarioObtenido = this.servicioLogin.consultarUsuario(email, password);
 
-    // validacion
     assertThat(usuarioObtenido, equalTo(usuarioEsperado));
-    verify(this.repositorioUsuarioMock, times(1)).buscarUsuario(email, password);
+    verify(this.repositorioUsuarioMock, times(1)).buscar(email);
   }
 
   @Test
@@ -42,13 +41,12 @@ public class ServicioLoginTest {
     Usuario usuario = new Usuario();
     usuario.setEmail("nuevo@test.com");
     usuario.setPassword("123");
-    when(this.repositorioUsuarioMock.buscarUsuario(usuario.getEmail(), usuario.getPassword()))
-      .thenReturn(null);
+    when(this.repositorioUsuarioMock.buscar(usuario.getEmail())).thenReturn(null);
 
-    // ejecucion
     this.servicioLogin.registrar(usuario);
 
-    // validacion
+    assertThat(usuario.getPassword().startsWith("$2a$"), equalTo(true));
+    assertThat(new BCryptPasswordEncoder().matches("123", usuario.getPassword()), equalTo(true));
     verify(this.repositorioUsuarioMock, times(1)).guardar(usuario);
   }
 
@@ -58,11 +56,18 @@ public class ServicioLoginTest {
     Usuario usuario = new Usuario();
     usuario.setEmail("existe@test.com");
     usuario.setPassword("123");
-    when(this.repositorioUsuarioMock.buscarUsuario(usuario.getEmail(), usuario.getPassword()))
-      .thenReturn(new Usuario());
+    when(this.repositorioUsuarioMock.buscar(usuario.getEmail())).thenReturn(new Usuario());
 
-    // ejecucion y validacion
     assertThrows(UsuarioExistente.class, () -> this.servicioLogin.registrar(usuario));
     verify(this.repositorioUsuarioMock, times(0)).guardar(usuario);
+  }
+
+  @Test
+  public void consultarUsuarioConContrasenaIncorrectaDeberiaDevolverNull() {
+    Usuario usuario = new Usuario();
+    usuario.setPassword(new BCryptPasswordEncoder().encode("correcta"));
+    when(this.repositorioUsuarioMock.buscar("test@test.com")).thenReturn(usuario);
+
+    assertThat(this.servicioLogin.consultarUsuario("test@test.com", "incorrecta"), equalTo(null));
   }
 }

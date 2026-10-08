@@ -1,9 +1,13 @@
 package com.tallerwebi.presentacion;
 
+import com.tallerwebi.dominio.ServicioOfertaEmpleador;
+import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteDTO;
+import com.tallerwebi.infraestructura.VacanteMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,9 +20,22 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorBusquedaVacantes {
 
   private final CatalogoVacantesPrueba catalogo;
+  private final ServicioOfertaEmpleador servicioOfertaEmpleador;
+  private final VacanteMapper vacanteMapper;
 
   public ControladorBusquedaVacantes(CatalogoVacantesPrueba catalogo) {
+    this(catalogo, null, new VacanteMapper());
+  }
+
+  @Autowired
+  public ControladorBusquedaVacantes(
+    CatalogoVacantesPrueba catalogo,
+    ServicioOfertaEmpleador servicioOfertaEmpleador,
+    VacanteMapper vacanteMapper
+  ) {
     this.catalogo = catalogo;
+    this.servicioOfertaEmpleador = servicioOfertaEmpleador;
+    this.vacanteMapper = vacanteMapper;
   }
 
   @RequestMapping(path = "/buscar", method = RequestMethod.GET)
@@ -35,7 +52,13 @@ public class ControladorBusquedaVacantes {
   public List<String> sugerencias(
     @RequestParam(name = "q", required = false, defaultValue = "") String consulta
   ) {
-    return catalogo.obtenerTitulos(consulta);
+    List<String> titulosPublicados = new ArrayList<>();
+    if (servicioOfertaEmpleador != null) {
+      for (Vacante vacante : servicioOfertaEmpleador.listarOfertasPublicadas()) {
+        titulosPublicados.add(vacante.getTitulo());
+      }
+    }
+    return catalogo.obtenerTitulos(consulta, titulosPublicados);
   }
 
   @RequestMapping(path = "/vacantes", method = RequestMethod.GET)
@@ -48,7 +71,20 @@ public class ControladorBusquedaVacantes {
     @RequestParam(name = "fecha", required = false, defaultValue = "") String fecha
   ) {
     List<VacanteResultadoBusqueda> resultados = new ArrayList<>();
-    for (VacanteDTO vacante : catalogo.buscar(texto, zona, modalidad, skills, fecha)) {
+    List<VacanteDTO> ofertasPublicadas = new ArrayList<>();
+    if (servicioOfertaEmpleador != null) {
+      for (Vacante vacante : servicioOfertaEmpleador.listarOfertasPublicadas()) {
+        ofertasPublicadas.add(vacanteMapper.toDTO(vacante));
+      }
+    }
+    for (VacanteDTO vacante : catalogo.buscar(
+      texto,
+      zona,
+      modalidad,
+      skills,
+      fecha,
+      ofertasPublicadas
+    )) {
       resultados.add(new VacanteResultadoBusqueda(vacante));
     }
     return resultados;

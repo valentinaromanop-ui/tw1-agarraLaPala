@@ -10,28 +10,37 @@ import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.excepcion.UsuarioExistente;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
 public class ControladorLoginTest {
 
   private ControladorLogin controladorLogin;
-  private Usuario usuarioMock;
   private DatosLogin datosLoginMock;
   private HttpServletRequest requestMock;
   private HttpSession sessionMock;
   private ServicioLogin servicioLoginMock;
+  private MockHttpServletRequest registrationRequest;
 
   @BeforeEach
   public void init() {
     datosLoginMock = new DatosLogin("dami@unlam.com", "123");
-    usuarioMock = mock(Usuario.class);
-    when(usuarioMock.getEmail()).thenReturn("dami@unlam.com");
     requestMock = mock(HttpServletRequest.class);
     sessionMock = mock(HttpSession.class);
     servicioLoginMock = mock(ServicioLogin.class);
     controladorLogin = new ControladorLogin(servicioLoginMock);
+    registrationRequest = new MockHttpServletRequest();
+    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(registrationRequest));
+  }
+
+  @AfterEach
+  public void limpiarRequestContext() {
+    RequestContextHolder.resetRequestAttributes();
   }
 
   @Test
@@ -48,6 +57,7 @@ public class ControladorLoginTest {
       modelAndView.getModel().get("error").toString(),
       equalToIgnoringCase("Usuario o clave incorrecta")
     );
+    assertThat(datosLoginMock.getPassword(), org.hamcrest.Matchers.nullValue());
     verify(sessionMock, times(0)).setAttribute("ROL", "ADMIN");
   }
 
@@ -70,51 +80,7 @@ public class ControladorLoginTest {
   }
 
   @Test
-  public void registrameSiUsuarioNoExisteDeberiaCrearUsuarioYVolverAlLogin()
-    throws UsuarioExistente {
-    // ejecucion
-    ModelAndView modelAndView = controladorLogin.registrarme(usuarioMock);
-
-    // validacion
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/login"));
-    verify(servicioLoginMock, times(1)).registrar(usuarioMock);
-  }
-
-  @Test
-  public void registrarmeSiUsuarioExisteDeberiaVolverAFormularioYMostrarError()
-    throws UsuarioExistente {
-    // preparacion
-    doThrow(UsuarioExistente.class).when(servicioLoginMock).registrar(usuarioMock);
-
-    // ejecucion
-    ModelAndView modelAndView = controladorLogin.registrarme(usuarioMock);
-
-    // validacion
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("nuevo-usuario"));
-    assertThat(
-      modelAndView.getModel().get("error").toString(),
-      equalToIgnoringCase("El usuario ya existe")
-    );
-  }
-
-  @Test
-  public void errorEnRegistrarmeDeberiaVolverAFormularioYMostrarError() throws UsuarioExistente {
-    // preparacion
-    doThrow(RuntimeException.class).when(servicioLoginMock).registrar(usuarioMock);
-
-    // ejecucion
-    ModelAndView modelAndView = controladorLogin.registrarme(usuarioMock);
-
-    // validacion
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("nuevo-usuario"));
-    assertThat(
-      modelAndView.getModel().get("error").toString(),
-      equalToIgnoringCase("Error al registrar el nuevo usuario")
-    );
-  }
-
-  @Test
-  public void irALoginDeberiaRetornarVistaLoginConDatosLogin() {
+  public void irALoginDeberiaRetornarFormularioUnico() {
     // ejecucion
     ModelAndView modelAndView = controladorLogin.irALogin();
 
@@ -124,13 +90,193 @@ public class ControladorLoginTest {
   }
 
   @Test
-  public void nuevoUsuarioDeberiaRetornarVistaNuevoUsuarioConUsuarioVacio() {
-    // ejecucion
-    ModelAndView modelAndView = controladorLogin.nuevoUsuario();
+  public void irARegistroDeberiaRetornarSelectorDeTipoDeCuenta() {
+    ModelAndView modelAndView = controladorLogin.irARegistro();
 
-    // validacion
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("nuevo-usuario"));
-    assertThat(modelAndView.getModel().get("usuario"), instanceOf(Usuario.class));
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro"));
+  }
+
+  @Test
+  public void irARegistroEmpleadorDeberiaRetornarFormularioConDatosVacios() {
+    ModelAndView modelAndView = controladorLogin.irARegistroEmpleador();
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-empleador"));
+    assertThat(
+      modelAndView.getModel().get("datosRegistroEmpleador"),
+      instanceOf(DatosRegistroEmpleador.class)
+    );
+  }
+
+  @Test
+  public void irARegistroCandidatoDeberiaRetornarFormularioYHabilidades() {
+    ModelAndView modelAndView = controladorLogin.irARegistroCandidato();
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-candidato"));
+    assertThat(
+      modelAndView.getModel().get("datosRegistroCandidato"),
+      instanceOf(DatosRegistroCandidato.class)
+    );
+    assertThat(
+      modelAndView.getModel().get("habilidadesDisponibles"),
+      instanceOf(java.util.List.class)
+    );
+  }
+
+  @Test
+  public void registroEmpleadorConDatosValidosDeberiaRedirigirAlLogin() throws Exception {
+    DatosRegistroEmpleador datos = new DatosRegistroEmpleador();
+    datos.setEmpresa("Empresa SA");
+    datos.setLegajo("12345");
+    datos.setEmail("contacto@empresa.com");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("secreto");
+
+    ModelAndView modelAndView = controladorLogin.registrarEmpleador(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/vacantes/recomendadas"));
+    verify(servicioLoginMock)
+      .registrar(
+        argThat(usuario ->
+          usuario.getEmail().equals("contacto@empresa.com") &&
+          usuario.getPassword().equals("secreto") &&
+          usuario.getRol().equals("EMPLEADOR") &&
+          usuario.getEmpresa().equals("Empresa SA") &&
+          usuario.getLegajo().equals("12345")
+        )
+      );
+    assertThat(
+      registrationRequest.getSession().getAttribute("ROL").toString(),
+      equalToIgnoringCase("EMPLEADOR")
+    );
+  }
+
+  @Test
+  public void registroEmpleadorConCorreoInvalidoDeberiaMostrarError() {
+    DatosRegistroEmpleador datos = new DatosRegistroEmpleador();
+    datos.setEmpresa("Empresa SA");
+    datos.setLegajo("12345");
+    datos.setEmail("correo-invalido");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("secreto");
+
+    ModelAndView modelAndView = controladorLogin.registrarEmpleador(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-empleador"));
+    assertThat(
+      modelAndView.getModel().get("error").toString(),
+      equalToIgnoringCase("Ingresá un correo electrónico válido.")
+    );
+    assertThat(datos.getPassword(), org.hamcrest.Matchers.nullValue());
+    assertThat(datos.getConfirmarPassword(), org.hamcrest.Matchers.nullValue());
+  }
+
+  @Test
+  public void registroEmpleadorConCorreoExistenteDeberiaMostrarError() throws Exception {
+    DatosRegistroEmpleador datos = new DatosRegistroEmpleador();
+    datos.setEmpresa("Empresa SA");
+    datos.setLegajo("12345");
+    datos.setEmail("contacto@empresa.com");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("secreto");
+    doThrow(new UsuarioExistente()).when(servicioLoginMock).registrar(any(Usuario.class));
+
+    ModelAndView modelAndView = controladorLogin.registrarEmpleador(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-empleador"));
+    assertThat(
+      modelAndView.getModel().get("error").toString(),
+      equalToIgnoringCase("Ya existe una cuenta registrada con ese correo.")
+    );
+  }
+
+  @Test
+  public void registroEmpleadorConContrasenasDistintasDeberiaMostrarError() {
+    DatosRegistroEmpleador datos = new DatosRegistroEmpleador();
+    datos.setEmpresa("Empresa SA");
+    datos.setLegajo("12345");
+    datos.setEmail("contacto@empresa.com");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("otro-secreto");
+
+    ModelAndView modelAndView = controladorLogin.registrarEmpleador(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-empleador"));
+    assertThat(
+      modelAndView.getModel().get("error").toString(),
+      equalToIgnoringCase("Las contraseñas no coinciden.")
+    );
+  }
+
+  @Test
+  public void registroCandidatoConDatosValidosDeberiaRedirigirAlLogin() throws Exception {
+    DatosRegistroCandidato datos = new DatosRegistroCandidato();
+    datos.setEmail("persona@example.com");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("secreto");
+    datos.setHabilidades(java.util.List.of("Java", "SQL"));
+
+    ModelAndView modelAndView = controladorLogin.registrarCandidato(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/vacantes/recomendadas"));
+    verify(servicioLoginMock)
+      .registrar(
+        argThat(usuario ->
+          usuario.getRol().equals("CANDIDATO") &&
+          usuario.getHabilidades().equals(java.util.List.of("Java", "SQL"))
+        )
+      );
+    assertThat(
+      registrationRequest.getSession().getAttribute("ROL").toString(),
+      equalToIgnoringCase("CANDIDATO")
+    );
+  }
+
+  @Test
+  public void registroCandidatoConCamposVaciosDeberiaMostrarError() {
+    ModelAndView modelAndView = controladorLogin.registrarCandidato(new DatosRegistroCandidato());
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-candidato"));
+    assertThat(
+      modelAndView.getModel().get("error").toString(),
+      equalToIgnoringCase("Completá todos los campos.")
+    );
+  }
+
+  @Test
+  public void registroCandidatoConCorreoExistenteDeberiaMostrarError() throws Exception {
+    DatosRegistroCandidato datos = new DatosRegistroCandidato();
+    datos.setEmail("persona@example.com");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("secreto");
+    doThrow(new UsuarioExistente()).when(servicioLoginMock).registrar(any(Usuario.class));
+
+    ModelAndView modelAndView = controladorLogin.registrarCandidato(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-candidato"));
+    assertThat(
+      modelAndView.getModel().get("error").toString(),
+      equalToIgnoringCase("Ya existe una cuenta registrada con ese correo.")
+    );
+    assertThat(
+      modelAndView.getModel().get("habilidadesDisponibles"),
+      instanceOf(java.util.List.class)
+    );
+  }
+
+  @Test
+  public void registroCandidatoConContrasenasDistintasDeberiaMostrarError() {
+    DatosRegistroCandidato datos = new DatosRegistroCandidato();
+    datos.setEmail("persona@example.com");
+    datos.setPassword("secreto");
+    datos.setConfirmarPassword("otro-secreto");
+
+    ModelAndView modelAndView = controladorLogin.registrarCandidato(datos);
+
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("registro-candidato"));
+    assertThat(
+      modelAndView.getModel().get("error").toString(),
+      equalToIgnoringCase("Las contraseñas no coinciden.")
+    );
   }
 
   @Test

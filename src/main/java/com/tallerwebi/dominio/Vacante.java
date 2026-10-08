@@ -7,11 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@SuppressWarnings("PMD.TooManyFields")
 public class Vacante {
 
   @Id
@@ -29,6 +31,18 @@ public class Vacante {
 
   @Column
   private String ubicacion;
+
+  @Column
+  private String modalidad;
+
+  @Column(precision = 12, scale = 2)
+  private BigDecimal salario;
+
+  @Column
+  private String horario;
+
+  @Column(name = "empleador_id")
+  private Long empleadorId;
 
   @Column(name = "fecha_publicacion")
   private LocalDateTime fechaPublicacion;
@@ -80,6 +94,38 @@ public class Vacante {
 
   public void setUbicacion(String ubicacion) {
     this.ubicacion = ubicacion;
+  }
+
+  public String getModalidad() {
+    return modalidad;
+  }
+
+  public void setModalidad(String modalidad) {
+    this.modalidad = modalidad;
+  }
+
+  public BigDecimal getSalario() {
+    return salario;
+  }
+
+  public void setSalario(BigDecimal salario) {
+    this.salario = salario;
+  }
+
+  public String getHorario() {
+    return horario;
+  }
+
+  public void setHorario(String horario) {
+    this.horario = horario;
+  }
+
+  public Long getEmpleadorId() {
+    return empleadorId;
+  }
+
+  public void setEmpleadorId(Long empleadorId) {
+    this.empleadorId = empleadorId;
   }
 
   public LocalDateTime getFechaPublicacion() {

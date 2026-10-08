@@ -1,6 +1,7 @@
 package com.tallerwebi.infraestructura;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -12,11 +13,13 @@ import com.tallerwebi.dominio.excepcion.UsuarioNoEncontrado;
 import com.tallerwebi.infraestructura.config.HibernateInfraestructuraTestConfig;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -53,15 +56,48 @@ public class RepositorioUsuarioTest {
   @Test
   @Transactional
   @Rollback
+  public void deberiaPersistirLasHabilidadesDelCandidato() {
+    Usuario usuario = this.dadoQueTengoUnUsuario("candidato@test.com", "hash", "CANDIDATO");
+    usuario.setHabilidades(List.of("Java", "SQL"));
+
+    this.cuandoGuardoUnUsuario(usuario);
+    this.sessionFactory.getCurrentSession().flush();
+    this.sessionFactory.getCurrentSession().clear();
+
+    Usuario obtenido = this.cuandoObtengoUnUsuarioPorEmail("candidato@test.com");
+    assertThat(obtenido.getHabilidades(), containsInAnyOrder("Java", "SQL"));
+  }
+
+  @Test
+  @Transactional
+  @Rollback
   public void deberiaEncontrarUnUsuarioExistenteCuandoBuscoPorEmailYPassword() {
     String email = "test@test.com";
     String password = "123";
-    Usuario usuario = this.dadoQueTengoUnUsuario(email, password, "USER");
+    Usuario usuario =
+      this.dadoQueTengoUnUsuario(email, new BCryptPasswordEncoder().encode(password), "USER");
     this.dadoQueExisteElUsuario(usuario);
 
     Usuario obtenido = this.cuandoBuscoUnUsuario(email, password);
 
     this.entoncesElUsuarioObtenidoEsCorrecto(obtenido, usuario);
+  }
+
+  @Test
+  @Transactional
+  @Rollback
+  public void noDeberiaEncontrarUsuarioConContrasenaIncorrecta() {
+    Usuario usuario =
+      this.dadoQueTengoUnUsuario(
+          "test@test.com",
+          new BCryptPasswordEncoder().encode("correcta"),
+          "USER"
+        );
+    this.dadoQueExisteElUsuario(usuario);
+
+    Usuario obtenido = this.cuandoBuscoUnUsuario("test@test.com", "incorrecta");
+
+    this.entoncesElUsuarioObtenidoEsNull(obtenido);
   }
 
   @Test

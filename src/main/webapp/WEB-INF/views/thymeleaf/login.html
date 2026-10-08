@@ -30,16 +30,22 @@
                     <h3 class="form-signin-heading">Taller Web I</h3>
                     <hr class="colorgraph"><br>
 
-                    <input th:field="*{email}" id="email" type="email" class="form-control" required />
-                    <input th:field="*{password}" type="password" id="password" class="form-control" required />
+                    <label class="visually-hidden" for="email">Correo electrónico</label>
+                    <input th:field="*{email}" id="email" type="email" class="form-control" autocomplete="email" required />
+                    <label class="visually-hidden" for="password">Contraseña</label>
+                    <input th:field="*{password}" type="password" id="password" class="form-control" autocomplete="current-password" required />
 
                     <button id="btn-login" class="btn btn-lg btn-primary btn-block" Type="Submit"
-                        disabled>Login</button>
+                        disabled>Ingresar</button>
+
+                    <p id="registro-exitoso" th:if="${param.registro != null}" class="alert alert-success" role="status">
+                        Registro exitoso.
+                    </p>
 
                     <p th:if="${error != null}" class="alert alert-danger" th:text="'Error ' + ${error}">
                     </p>
                 </form>
-                <a id="btn-register" href="nuevo-usuario">Registrarme</a>
+                <a id="btn-register" th:href="@{/registro}">¿No tenés cuenta? Registrate</a>
             </div>
         </div>
     </main>
