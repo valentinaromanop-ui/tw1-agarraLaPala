@@ -100,7 +100,10 @@ class ControladorPerfilPostulacionIntegracionTest {
     PerfilPostulante perfil = (PerfilPostulante) modelAndView.getModel().get("perfil");
     assertEquals("Buenos Aires", perfil.getUbicacion());
     assertThat(perfil.getSkillIds(), contains(java.getId()));
-    assertThat(modelAndView.getModel().get("mensaje"), is("Perfil guardado"));
+    assertThat(
+      modelAndView.getModel().get("mensaje"),
+      is("Perfil guardado correctamente. Tus selecciones quedaron asociadas a tu cuenta.")
+    );
 
     mockMvc
       .perform(

@@ -192,6 +192,7 @@ public class Vacante {
   public void setMoneda(String moneda) {
     this.moneda = moneda;
   }
+
   public String getFuente() {
     return fuente;
   }
