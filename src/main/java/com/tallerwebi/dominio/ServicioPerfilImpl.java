@@ -93,6 +93,12 @@ public class ServicioPerfilImpl implements ServicioPerfil {
     }
   }
 
+  @Override
+  public List<String> obtenerHabilidades(Long usuarioId) {
+    PerfilPostulante perfil = obtenerPerfil(usuarioId);
+    return obtenerNombresSkills(perfil.getSkillIds());
+  }
+
   private List<String> obtenerNombresSkills(List<Long> skillIds) {
     List<String> nombres = new ArrayList<>();
     if (skillIds == null) {
