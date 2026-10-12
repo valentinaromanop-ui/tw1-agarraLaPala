@@ -6,4 +6,5 @@ public interface ServicioPerfil {
   PerfilPostulante obtenerPerfil(Long usuarioId);
   List<Skill> obtenerSkills();
   void guardarPerfil(Long usuarioId, PerfilPostulante datos);
+  List<String> obtenerHabilidades(Long usuarioId);
 }

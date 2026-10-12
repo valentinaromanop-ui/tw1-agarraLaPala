@@ -1,12 +1,12 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
+import com.tallerwebi.dominio.ServicioPerfil;
 import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.ServicioVacante;
 import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
 import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
 import jakarta.servlet.http.HttpSession;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +23,19 @@ public class ControladorVacante {
 
   private ServicioVacante servicioVacante;
   private final ServicioPostulacion servicioPostulacion;
+  private final ServicioPerfil servicioPerfil;
+  private static final String BUSQUEDA = "busqueda";
   private static final String VISTA_VACANTES = "vacantes";
 
   @Autowired
   public ControladorVacante(
     ServicioVacante servicioVacante,
-    ServicioPostulacion servicioPostulacion
+    ServicioPostulacion servicioPostulacion,
+    ServicioPerfil servicioPerfil
   ) {
     this.servicioVacante = servicioVacante;
     this.servicioPostulacion = servicioPostulacion;
+    this.servicioPerfil = servicioPerfil;
   }
 
   @ModelAttribute("postuladas")
@@ -41,7 +45,6 @@ public class ControladorVacante {
 
   @RequestMapping(path = "/vacantes/recomendadas", method = RequestMethod.GET)
   public ModelAndView mostrarVacantesRecomendadas(HttpSession session) {
-    // Datos de prueba hasta integrar los datos del perfil del usuario.
     BusquedaVacanteDTO busqueda = new BusquedaVacanteDTO();
 
     return mostrarResultados(busqueda, null, session);
@@ -49,7 +52,7 @@ public class ControladorVacante {
 
   @RequestMapping(path = "/vacantes/filtrar", method = RequestMethod.GET)
   public ModelAndView filtrarVacantes(
-    @ModelAttribute("busqueda") BusquedaVacanteDTO busqueda,
+    @ModelAttribute(BUSQUEDA) BusquedaVacanteDTO busqueda,
     BindingResult errores,
     HttpSession session
   ) {
@@ -81,11 +84,20 @@ public class ControladorVacante {
     String error,
     HttpSession session
   ) {
+    Long usuarioId = (Long) session.getAttribute("USUARIO_ID");
+    if (usuarioId == null) {
+      return new ModelAndView("redirect:/login");
+    }
     Map<String, Object> modelo = new ModelMap();
-    // Las skills pertenecen al perfil, no a los filtros enviados por el formulario.
-    busqueda.setSkills(Arrays.asList("Java", "SQL", "PHP"));
+    busqueda.setSkills(servicioPerfil.obtenerHabilidades(usuarioId));
     modelo.put("skills", busqueda.getSkills());
-    modelo.put("busqueda", busqueda);
+    modelo.put(BUSQUEDA, busqueda);
+    if (busqueda.getSkills().isEmpty()) {
+      session.removeAttribute(VISTA_VACANTES);
+      session.removeAttribute(BUSQUEDA);
+      modelo.put("error", "Completá las habilidades de tu perfil para ver vacantes recomendadas.");
+      return new ModelAndView(VISTA_VACANTES, modelo);
+    }
     if (error != null) {
       modelo.put("error", error);
       return new ModelAndView(VISTA_VACANTES, modelo);
@@ -93,7 +105,7 @@ public class ControladorVacante {
     try {
       modelo.put(VISTA_VACANTES, servicioVacante.obtenerVacantesPorSkills(busqueda));
       session.setAttribute(VISTA_VACANTES, modelo.get(VISTA_VACANTES));
-      session.setAttribute("busqueda", busqueda);
+      session.setAttribute(BUSQUEDA, busqueda);
     } catch (BusquedaVacanteInvalida | FuenteVacanteNoDisponible excepcion) {
       modelo.put("error", excepcion.getMessage());
       return new ModelAndView(VISTA_VACANTES, modelo);
