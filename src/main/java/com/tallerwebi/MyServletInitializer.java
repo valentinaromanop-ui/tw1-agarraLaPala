@@ -1,5 +1,6 @@
 package com.tallerwebi;
 
+import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.config.DatabaseInitializationConfig;
 import com.tallerwebi.config.HibernateConfig;
 import com.tallerwebi.config.SpringWebConfig;
@@ -30,6 +31,7 @@ public class MyServletInitializer extends AbstractAnnotationConfigDispatcherServ
     return new Class<?>[] {
       SpringWebConfig.class,
       HibernateConfig.class,
+      CorreoConfig.class,
       DatabaseInitializationConfig.class,
     };
   }

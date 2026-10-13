@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.tallerwebi.dominio.ServicioLogin;
 import com.tallerwebi.dominio.Usuario;
+import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
 import com.tallerwebi.presentacion.DatosLogin;
@@ -31,7 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class }) //SpringWebTestConfig configura la parte web, y HibernateTestConfig usa una base de datos en memoria (HSQLDB),
+@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class, CorreoConfig.class }) //SpringWebTestConfig configura la parte web, y HibernateTestConfig usa una base de datos en memoria (HSQLDB),
 public class ControladorLoginTest {
 
   @Autowired
