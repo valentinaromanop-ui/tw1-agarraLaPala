@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial de pagos</title>
+  <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+</head>
+<body class="vacantes-page">
+  <main class="container py-4">
+    <a th:href="@{/perfil}">Volver al perfil</a>
+    <h1>Historial de pagos</h1>
+    <section class="payment-history-card">
+      <p th:if="${#lists.isEmpty(pagos)}" class="empty-payment-history">Todavía no hiciste pagos. Cuando actives Premium, tus pagos aparecerán acá.</p>
+      <div th:if="${!#lists.isEmpty(pagos)}" class="payment-history-table-wrapper">
+        <table class="payment-history-table">
+          <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th><th>Tarjeta</th></tr></thead>
+          <tbody>
+            <tr th:each="pago : ${pagos}">
+              <td th:text="${#temporals.format(pago.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+              <td>Plan Premium</td>
+              <td class="payment-amount" th:text="${pago.moneda + ' ' + pago.monto}"></td>
+              <td><span class="payment-status-approved" th:text="${pago.estado}"></span></td>
+              <td th:text="${pago.ultimosCuatro == null ? '-' : '**** ' + pago.ultimosCuatro}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -14,6 +14,7 @@
 
   <!-- custom style -->
   <link rel="stylesheet" th:href="@{/css/home.css}" />
+  <link rel="stylesheet" th:href="@{/css/vacantes.css}" />
 
 </head>
 
@@ -102,7 +103,9 @@
           </li>
         </ul>
         <a th:href="@{/perfil}" aria-label="Mi perfil">
-          <img th:src="@{/img/UserLogo.png}" alt="Perfil de usuario" id="Logo-user">
+          <span class="avatar-wrapper">
+            <img th:src="@{/img/UserLogo.png}" alt="Perfil de usuario" id="Logo-user" th:classappend="${premiumHasta != null} ? ' premium-avatar' : ''">
+          </span>
         </a>
         <!--        <div class="filters" aria-label="Filtros de ofertas">-->
 <!--          <div class="dropdown">-->
@@ -198,6 +201,17 @@
           <a th:href="@{/perfil}" class="btn outline-action">Mejorá tu CV <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
         </div>
       </div>
+    </section>
+
+    <section class="premium-home-promo">
+      <div>
+        <p class="eyebrow"><span></span> Plan Premium</p>
+        <h2>Impulsá tu búsqueda laboral.</h2>
+        <p>Accedé a una experiencia destacada para encontrar tu próxima oportunidad.</p>
+      </div>
+      <a class="premium-button" th:href="@{/premium/pagar}">
+        <i class="bi bi-star-fill" aria-hidden="true"></i> Hacete Premium
+      </a>
     </section>
 
     <section id="ofertas" class="offers-section">

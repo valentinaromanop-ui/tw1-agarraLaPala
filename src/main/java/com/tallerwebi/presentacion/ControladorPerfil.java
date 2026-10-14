@@ -2,6 +2,7 @@ package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.PerfilPostulante;
 import com.tallerwebi.dominio.ServicioCurriculumGenerado;
+import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPerfil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -36,14 +37,24 @@ public class ControladorPerfil {
 
   private final ServicioPerfil servicioPerfil;
   private final ServicioCurriculumGenerado servicioCurriculum;
+  private final ServicioPago servicioPago;
 
   @Autowired
   public ControladorPerfil(
     ServicioPerfil servicioPerfil,
-    ServicioCurriculumGenerado servicioCurriculum
+    ServicioCurriculumGenerado servicioCurriculum,
+    ServicioPago servicioPago
   ) {
     this.servicioPerfil = servicioPerfil;
     this.servicioCurriculum = servicioCurriculum;
+    this.servicioPago = servicioPago;
+  }
+
+  public ControladorPerfil(
+    ServicioPerfil servicioPerfil,
+    ServicioCurriculumGenerado servicioCurriculum
+  ) {
+    this(servicioPerfil, servicioCurriculum, null);
   }
 
   @RequestMapping(path = RUTA_PERFIL, method = RequestMethod.GET)
@@ -61,6 +72,10 @@ public class ControladorPerfil {
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
     modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
+    modelo.put(
+      "premiumHasta",
+      servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
+    );
     if (request.getParameter("guardado") != null) {
       modelo.put(
         "mensaje",

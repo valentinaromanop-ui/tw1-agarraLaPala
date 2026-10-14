@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pago Premium</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+</head>
+<body class="vacantes-page">
+  <main class="container py-4">
+    <a th:href="@{/perfil}">Volver al perfil</a>
+    <h1>Plan Premium</h1>
+    <div class="premium-plan-grid">
+      <section class="premium-plan-card">
+        <p class="eyebrow"><span></span> Tu plan</p>
+        <h2>USD 5 <small>/ 30 días</small></h2>
+        <p th:if="${premiumHasta != null}" class="premium-active-message">
+          Premium activo hasta <strong th:text="${#temporals.format(premiumHasta, 'dd/MM/yyyy')}"></strong>
+        </p>
+        <ul class="premium-benefits">
+          <li><i class="bi bi-clock-history" aria-hidden="true"></i> Destacate: las empresas ven tu perfil primero. <small class="premium-badge">Próximamente</small></li>
+          <li><i class="bi bi-award" aria-hidden="true"></i> Insignia Premium visible en tu perfil y tus postulaciones.</li>
+          <li><i class="bi bi-bell" aria-hidden="true"></i> Alertas de ofertas nuevas según tu perfil. <small class="premium-badge">Próximamente</small></li>
+        </ul>
+      </section>
+      <section class="premium-plan-card">
+        <h2 class="h4">Datos de pago</h2>
+        <p class="alert alert-warning">Pago de prueba: no ingreses datos reales</p>
+        <p th:if="${error != null}" th:text="${error}" class="alert alert-danger"></p>
+        <form th:action="@{/premium/pagar}" th:object="${datosPago}" method="post" class="premium-payment-form">
+          <label class="form-label">Titular<input class="form-control" th:field="*{titular}" required></label>
+          <label class="form-label">Número de tarjeta<input class="form-control" th:field="*{numero}" inputmode="numeric" maxlength="16" required></label>
+          <div class="premium-payment-row">
+            <label class="form-label">Vencimiento<input class="form-control" th:field="*{vencimiento}" placeholder="MM/AA" required></label>
+            <label class="form-label">CVV<input class="form-control" th:field="*{cvv}" inputmode="numeric" maxlength="3" required></label>
+          </div>
+          <button class="premium-button" type="submit">
+            <i class="bi bi-star-fill" aria-hidden="true"></i>
+            <span th:if="${premiumHasta == null}">Pagar USD 5</span>
+            <span th:if="${premiumHasta != null}">Extender 30 días</span>
+          </button>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

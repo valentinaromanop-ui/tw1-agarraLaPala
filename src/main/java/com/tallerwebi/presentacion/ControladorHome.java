@@ -1,6 +1,8 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
+import com.tallerwebi.dominio.ServicioPago;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,16 +15,27 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorHome {
 
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
+  private final ServicioPago servicioPago;
 
   @Autowired
-  public ControladorHome(ServicioOfertaEmpleador servicioOfertaEmpleador) {
+  public ControladorHome(
+    ServicioOfertaEmpleador servicioOfertaEmpleador,
+    ServicioPago servicioPago
+  ) {
     this.servicioOfertaEmpleador = servicioOfertaEmpleador;
+    this.servicioPago = servicioPago;
   }
 
   @RequestMapping(path = "/home", method = RequestMethod.GET)
-  public ModelAndView mostrarHome() {
+  public ModelAndView mostrarHome(HttpServletRequest request) {
     Map<String, Object> modelo = new ModelMap();
     modelo.put("ofertasEmpleadores", servicioOfertaEmpleador.listarOfertasPublicadas());
+    Object usuarioId = request.getSession(false) == null
+      ? null
+      : request.getSession(false).getAttribute("USUARIO_ID");
+    if (usuarioId instanceof Number) {
+      modelo.put("premiumHasta", servicioPago.fechaFinPremium(((Number) usuarioId).longValue()));
+    }
     return new ModelAndView("home", modelo);
   }
 }
