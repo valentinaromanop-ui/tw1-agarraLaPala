@@ -22,6 +22,34 @@ body {
   background-color: var(--background);
 }
 
+.premium-home-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid rgb(245 200 75 / 35%);
+  border-radius: 0.5rem;
+  background: linear-gradient(110deg, rgb(245 200 75 / 12%), rgb(27 32 48 / 92%));
+}
+
+.premium-home-promo h2 {
+  margin-bottom: 0.45rem;
+}
+
+.premium-home-promo p:not(.eyebrow) {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+@media (max-width: 575.98px) {
+  .premium-home-promo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 h1, h2, h3, .navbar-brand, .footer-brand { font-family: 'Space Grotesk', sans-serif; }
 h1, h2, h3, p { margin-top: 0; }
 
