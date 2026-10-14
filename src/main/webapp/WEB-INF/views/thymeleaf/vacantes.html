@@ -118,9 +118,15 @@
             class="result-link">
             Ver detalle
           </a>
-          <button type="button" class="apply-button" th:attr="data-oferta-id=${vacante.fuente + ':' + vacante.id},data-titulo=${vacante.titulo},data-empresa=${vacante.empresa},data-ubicacion=${vacante.ubicacion},data-modalidad=${vacante.modalidad},data-url=${vacante.url}"
+          <button type="button" class="apply-button" th:classappend="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id) ? ' postulado' : ''}"
+            th:data-oferta-id="${vacante.fuente + ':' + vacante.id}"
+            th:data-titulo="${vacante.titulo}"
+            th:data-empresa="${vacante.empresa}"
+            th:data-ubicacion="${vacante.ubicacion}"
+            th:data-modalidad="${vacante.modalidad}"
+            th:data-url="${vacante.url}"
             th:disabled="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)}"
-            th:text="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id) ? 'Postulado' : 'Postularme'}">Postularme</button>
+            th:text="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id) ? '✓ Postulado' : 'Postularme'}">Postularme</button>
           <p th:if="${vacante.fuente == 'LOCAL'}" class="local-source">Oferta de nuestra plataforma</p>
         </article>
       </div>

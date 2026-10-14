@@ -279,6 +279,9 @@ width: 4rem;
 .apply-button { padding: 0.45rem 0.65rem; border: 1px solid var(--accent); border-radius: 0.35rem; color: var(--text); background: transparent; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
 .apply-button:hover, .apply-button:focus { color: var(--text); background-color: var(--accent); }
 .apply-button:disabled { cursor: wait; opacity: 0.7; }
+.apply-button.postulado,
+.apply-button.postulado:disabled { border-color: #70d18a; color: #70d18a; cursor: default; opacity: 1; }
+.all-offers-button { display: inline-block; margin-top: 1rem; text-decoration: none; }
 
 .site-footer { padding: 2rem 0; border-top: 1px solid var(--border); background-color: #000000; }
 .footer-content { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding-inline: 1.75rem; }

@@ -23,6 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorPostulacion {
 
   private static final String RUTA_POSTULACIONES = "/postulaciones";
+  private static final String POSTULACION_DUPLICADA = "Ya te postulaste a esta oferta";
 
   private final ServicioPostulacion servicioPostulacion;
 
@@ -77,6 +78,9 @@ public class ControladorPostulacion {
       servicioPostulacion.registrarPostulacion(usuarioId, postulacion);
       return respuesta(HttpStatus.OK, true, "Postulación registrada");
     } catch (IllegalArgumentException excepcion) {
+      if (POSTULACION_DUPLICADA.equals(excepcion.getMessage())) {
+        return respuesta(HttpStatus.OK, true, excepcion.getMessage());
+      }
       return respuesta(HttpStatus.CONFLICT, false, excepcion.getMessage());
     } catch (Exception excepcion) {
       return respuesta(

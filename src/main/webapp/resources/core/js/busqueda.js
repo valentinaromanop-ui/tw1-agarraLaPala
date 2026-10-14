@@ -62,6 +62,10 @@ function obtenerOfertaIdDeTarjeta(tarjeta) {
   return `${titulo} | ${empresa}`;
 }
 
+function normalizarOfertaId(ofertaId) {
+  return String(ofertaId || "").trim().toUpperCase();
+}
+
 function rutaAplicacion(ruta) {
   const script = document.querySelector('script[src*="/js/busqueda.js"]');
   if (!script) {
@@ -94,15 +98,20 @@ async function enviarPostulacion(boton, ofertaId) {
     } catch {
       throw new Error("No se pudo procesar la respuesta del servidor");
     }
-    if (!respuesta.ok) {
+    if (!respuesta.ok && respuesta.status !== 409) {
       throw new Error(resultado.mensaje || "No se pudo enviar la postulación");
     }
-    boton.textContent = "Postulado";
-    boton.classList.add("postulado");
+    marcarComoPostulado(boton);
   } catch (error) {
     boton.disabled = false;
     boton.textContent = error.message || "No se pudo enviar la postulación";
   }
+}
+
+function marcarComoPostulado(boton) {
+  boton.textContent = "✓ Postulado";
+  boton.disabled = true;
+  boton.classList.add("postulado");
 }
 
 function configurarBotonPostulacion(boton, ofertaId) {
@@ -113,15 +122,24 @@ let postulacionesRegistradas = [];
 
 function actualizarBotonesPostulados() {
   document.querySelectorAll(".apply-button").forEach((boton) => {
-    if (postulacionesRegistradas.includes(boton.dataset.ofertaId)) {
-      boton.textContent = "Postulado";
-      boton.disabled = true;
+    if (
+      postulacionesRegistradas
+        .map(normalizarOfertaId)
+        .includes(normalizarOfertaId(boton.dataset.ofertaId))
+    ) {
+      marcarComoPostulado(boton);
     }
   });
 }
 
 function iniciarPostulaciones() {
   document.querySelectorAll(".apply-button").forEach((boton) => {
+    if (boton.classList.contains("home-offer-redirect")) {
+      boton.addEventListener("click", () => {
+        window.location.href = rutaAplicacion("/vacantes/recomendadas");
+      });
+      return;
+    }
     const tarjeta = boton.closest(".offer-card");
     configurarBotonPostulacion(
       boton,
@@ -131,7 +149,7 @@ function iniciarPostulaciones() {
   fetch(rutaAplicacion("/postulaciones/ids"))
     .then((respuesta) => (respuesta.ok ? respuesta.json() : []))
     .then((ids) => {
-      postulacionesRegistradas = ids;
+      postulacionesRegistradas = Array.isArray(ids) ? ids : [];
       actualizarBotonesPostulados();
     })
     .catch(() => {});

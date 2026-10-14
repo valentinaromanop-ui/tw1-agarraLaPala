@@ -103,7 +103,9 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     List<String> ofertas = new java.util.ArrayList<>();
     if (usuarioId != null) {
       for (Postulacion postulacion : repositorioPostulacion.buscarPorUsuarioId(usuarioId)) {
-        ofertas.add(postulacion.getOfertaId());
+        if (postulacion.getOfertaId() != null) {
+          ofertas.add(postulacion.getOfertaId().trim());
+        }
       }
     }
     return ofertas;
