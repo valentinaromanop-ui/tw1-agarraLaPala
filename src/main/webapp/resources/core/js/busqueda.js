@@ -67,7 +67,7 @@ function normalizarOfertaId(ofertaId) {
 }
 
 function rutaAplicacion(ruta) {
-  const script = document.querySelector('script[src*="/js/busqueda.js"]');
+  const script = document.querySelector("script[src*="/js/busqueda.js"]");
   if (!script) {
     return ruta;
   }
