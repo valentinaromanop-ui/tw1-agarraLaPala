@@ -118,7 +118,15 @@
             class="result-link">
             Ver detalle
           </a>
-          <span class="postulada-label" th:if="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)}">Ya te postulaste</span>
+          <button type="button" class="apply-button" th:classappend="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id) ? ' postulado' : ''}"
+            th:data-oferta-id="${vacante.fuente + ':' + vacante.id}"
+            th:data-titulo="${vacante.titulo}"
+            th:data-empresa="${vacante.empresa}"
+            th:data-ubicacion="${vacante.ubicacion}"
+            th:data-modalidad="${vacante.modalidad}"
+            th:data-url="${vacante.url}"
+            th:disabled="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)}"
+            th:text="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id) ? '✓ Postulado' : 'Postularme'}">Postularme</button>
           <p th:if="${vacante.fuente == 'LOCAL'}" class="local-source">Oferta de nuestra plataforma</p>
         </article>
       </div>
@@ -137,6 +145,7 @@
       </div>
     </div>
   </footer>
+  <script type="module" th:src="@{/js/busqueda.js}"></script>
 </body>
 
 </html>

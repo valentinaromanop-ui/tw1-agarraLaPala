@@ -62,34 +62,97 @@ function obtenerOfertaIdDeTarjeta(tarjeta) {
   return `${titulo} | ${empresa}`;
 }
 
+function normalizarOfertaId(ofertaId) {
+  return String(ofertaId || "").trim().toUpperCase();
+}
+
+function rutaAplicacion(ruta) {
+  const script = document.querySelector("script[src*=\"/js/busqueda.js\"]");
+  if (!script) {
+    return ruta;
+  }
+  const url = new URL(script.src, window.location.href);
+  const indice = url.pathname.indexOf("/js/busqueda.js");
+  const contexto = indice >= 0 ? url.pathname.slice(0, indice) : "";
+  return `${contexto}${ruta}`;
+}
+
 async function enviarPostulacion(boton, ofertaId) {
   boton.disabled = true;
   try {
-    const respuesta = await fetch("/postularse", {
+    const respuesta = await fetch(rutaAplicacion("/postulaciones"), {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ ofertaId }),
+      body: new URLSearchParams({
+        idOferta: ofertaId,
+        titulo: boton.dataset.titulo || "Oferta sin título",
+        empresa: boton.dataset.empresa || "Empresa no informada",
+        ubicacion: boton.dataset.ubicacion || "Ubicación no informada",
+        modalidad: boton.dataset.modalidad || "Modalidad no informada",
+        url: boton.dataset.url || "",
+      }),
     });
-    const resultado = await respuesta.json();
-    if (!respuesta.ok) {
+    let resultado;
+    try {
+      resultado = await respuesta.json();
+    } catch {
+      throw new Error("No se pudo procesar la respuesta del servidor");
+    }
+    if (!respuesta.ok && respuesta.status !== 409) {
       throw new Error(resultado.mensaje || "No se pudo enviar la postulación");
     }
-    boton.textContent = resultado.mensaje;
+    marcarComoPostulado(boton);
   } catch (error) {
     boton.disabled = false;
-    boton.textContent = error.message;
+    boton.textContent = error.message || "No se pudo enviar la postulación";
   }
+}
+
+function marcarComoPostulado(boton) {
+  boton.textContent = "✓ Postulado";
+  boton.disabled = true;
+  boton.classList.add("postulado");
 }
 
 function configurarBotonPostulacion(boton, ofertaId) {
   boton.addEventListener("click", () => enviarPostulacion(boton, ofertaId));
 }
 
+let postulacionesRegistradas = [];
+
+function actualizarBotonesPostulados() {
+  document.querySelectorAll(".apply-button").forEach((boton) => {
+    if (
+      postulacionesRegistradas
+        .map(normalizarOfertaId)
+        .includes(normalizarOfertaId(boton.dataset.ofertaId))
+    ) {
+      marcarComoPostulado(boton);
+    }
+  });
+}
+
 function iniciarPostulaciones() {
   document.querySelectorAll(".apply-button").forEach((boton) => {
+    if (boton.classList.contains("home-offer-redirect")) {
+      boton.addEventListener("click", () => {
+        window.location.href = rutaAplicacion("/vacantes/recomendadas");
+      });
+      return;
+    }
     const tarjeta = boton.closest(".offer-card");
-    configurarBotonPostulacion(boton, boton.dataset.ofertaId || obtenerOfertaIdDeTarjeta(tarjeta));
+    configurarBotonPostulacion(
+      boton,
+      boton.dataset.ofertaId || obtenerOfertaIdDeTarjeta(tarjeta)
+    );
   });
+  fetch(rutaAplicacion("/postulaciones/ids"))
+    .then((respuesta) => (respuesta.ok ? respuesta.json() : []))
+    .then((ids) => {
+      postulacionesRegistradas = Array.isArray(ids) ? ids : [];
+      actualizarBotonesPostulados();
+    })
+    .catch(() => {});
 }
 
 function iniciarAutocompletado(formulario) {
@@ -294,8 +357,16 @@ function iniciarResultados() {
     botonPostularse.type = "button";
     botonPostularse.className = "apply-button";
     botonPostularse.textContent = "Postularme";
-    botonPostularse.dataset.ofertaId = oferta.url || oferta.id || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
+    botonPostularse.dataset.ofertaId = oferta.fuente && oferta.id
+      ? `${oferta.fuente}:${oferta.id}`
+      : oferta.url || oferta.id || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
+    botonPostularse.dataset.titulo = oferta.titulo || "Oferta sin título";
+    botonPostularse.dataset.empresa = oferta.empresa || "Empresa no informada";
+    botonPostularse.dataset.ubicacion = oferta.ubicacion || "Ubicación no informada";
+    botonPostularse.dataset.modalidad = oferta.modalidad || "Modalidad no informada";
+    botonPostularse.dataset.url = oferta.url || "";
     configurarBotonPostulacion(botonPostularse, botonPostularse.dataset.ofertaId);
+    actualizarBotonesPostulados();
     tarjeta.append(botonPostularse);
     return tarjeta;
   }

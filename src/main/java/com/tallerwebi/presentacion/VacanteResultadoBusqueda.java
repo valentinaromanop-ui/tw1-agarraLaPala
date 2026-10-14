@@ -15,6 +15,7 @@ public class VacanteResultadoBusqueda {
   private final String url;
   private final String fechaPublicacion;
   private final Long id;
+  private final String fuente;
   private final BigDecimal salario;
   private final String horario;
 
@@ -26,6 +27,7 @@ public class VacanteResultadoBusqueda {
     skills = vacante.getSkills();
     url = vacante.getUrl();
     id = vacante.getId();
+    fuente = vacante.getFuente();
     salario = vacante.getSalario();
     horario = vacante.getHorario();
     // El formato ISO evita necesitar un módulo JSON adicional para LocalDateTime.
@@ -63,6 +65,10 @@ public class VacanteResultadoBusqueda {
 
   public Long getId() {
     return id;
+  }
+
+  public String getFuente() {
+    return fuente;
   }
 
   public BigDecimal getSalario() {

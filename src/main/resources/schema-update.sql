@@ -22,3 +22,18 @@ DEALLOCATE PREPARE migracion_pdf_ats;
 
 ALTER TABLE curriculum_generado
   MODIFY COLUMN archivoAtsPdf LONGBLOB NULL;
+
+SET @copiar_id_oferta = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Postulacion'
+      AND column_name = 'oferta_id'
+  ) > 0,
+  'UPDATE Postulacion SET id_oferta = oferta_id WHERE id_oferta IS NULL',
+  'SELECT 1'
+);
+PREPARE migracion_id_oferta FROM @copiar_id_oferta;
+EXECUTE migracion_id_oferta;
+DEALLOCATE PREPARE migracion_id_oferta;

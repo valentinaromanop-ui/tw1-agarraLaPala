@@ -28,7 +28,7 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "from Postulacion where usuario.id = :usuarioId and ofertaId = :ofertaId",
+        "from Postulacion where usuario.id = :usuarioId and idOferta = :ofertaId",
         Postulacion.class
       )
       .setParameter("usuarioId", usuarioId)

@@ -25,7 +25,7 @@ public class RepositorioDetalleVacanteTest {
   @Test
   @Transactional
   @Rollback
-  public void deberiaConservarLaDescripcionYLaRelacionConLaPostulacion() {
+  public void deberiaConservarLosDatosDeLaOfertaEnLaPostulacion() {
     RepositorioVacante repositorio = new RepositorioVacanteImpl(sessionFactory);
     Vacante vacante = new Vacante();
     vacante.setFuente("JOBICY");
@@ -39,8 +39,9 @@ public class RepositorioDetalleVacanteTest {
     sessionFactory.getCurrentSession().persist(usuario);
     Postulacion postulacion = new Postulacion();
     postulacion.setUsuario(usuario);
-    postulacion.setVacante(vacante);
-    postulacion.setOfertaId("JOBICY:123");
+    postulacion.setIdOferta("JOBICY:123");
+    postulacion.setTitulo("Oferta externa");
+    postulacion.setEmpresa("Empresa externa");
     postulacion.setFechaPostulacion(LocalDateTime.now());
     postulacion.setEstado("Registrada");
     new RepositorioPostulacionImpl(sessionFactory).guardar(postulacion);
@@ -50,7 +51,8 @@ public class RepositorioDetalleVacanteTest {
     Postulacion obtenida = new RepositorioPostulacionImpl(sessionFactory)
       .buscarPorUsuarioYOferta(usuario.getId(), "JOBICY:123");
 
-    assertEquals(vacante.getDescripcion(), obtenida.getVacante().getDescripcion());
+    assertEquals("Oferta externa", obtenida.getTitulo());
+    assertEquals("Empresa externa", obtenida.getEmpresa());
     assertEquals(vacante.getId(), repositorio.buscarPorFuenteEIdExterno("JOBICY", 123L).getId());
   }
 
