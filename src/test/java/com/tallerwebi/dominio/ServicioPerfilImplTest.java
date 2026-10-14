@@ -75,7 +75,9 @@ class ServicioPerfilImplTest {
   void obtenerHabilidadesCombinaRegistroYPerfilSinRepetir() {
     RepositorioUsuario repositorioUsuario = mock(RepositorioUsuario.class);
     RepositorioSkill repositorioSkill = mock(RepositorioSkill.class);
-    RepositorioPerfilPostulante repositorioPerfilPostulante = mock(RepositorioPerfilPostulante.class);
+    RepositorioPerfilPostulante repositorioPerfilPostulante = mock(
+      RepositorioPerfilPostulante.class
+    );
 
     Usuario usuario = new Usuario();
     usuario.setHabilidades(List.of("Java", "Docker"));
@@ -90,7 +92,11 @@ class ServicioPerfilImplTest {
     when(repositorioPerfilPostulante.buscarPorUsuarioId(5L)).thenReturn(perfil);
     when(repositorioSkill.buscarTodos()).thenReturn(List.of(java, docker, skill(3L, "PHP")));
 
-    ServicioPerfilImpl servicio = new ServicioPerfilImpl(repositorioUsuario, repositorioSkill, repositorioPerfilPostulante);
+    ServicioPerfilImpl servicio = new ServicioPerfilImpl(
+      repositorioUsuario,
+      repositorioSkill,
+      repositorioPerfilPostulante
+    );
 
     List<String> resultado = servicio.obtenerHabilidades(5L);
 

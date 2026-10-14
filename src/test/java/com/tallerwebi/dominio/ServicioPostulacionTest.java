@@ -36,7 +36,7 @@ public class ServicioPostulacionTest {
     Postulacion resultado = servicio.registrarEnVacante(1L, oferta);
 
     assertEquals("JOBICY:10", resultado.getOfertaId());
-    assertEquals("Registrada", resultado.getEstado());
+    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
     assertEquals(oferta.getDescripcion(), resultado.getVacante().getDescripcion());
     assertEquals(oferta.getId(), resultado.getVacante().getIdExterno());
     verify(vacantes).guardar(resultado.getVacante());
@@ -72,6 +72,29 @@ public class ServicioPostulacionTest {
 
     assertSame(existente, servicio.registrarEnVacante(1L, oferta));
     verify(postulaciones, never()).guardar(any());
+  }
+
+  @Test
+  public void deberiaGuardarUnSnapshotYRechazarLaDuplicada() {
+    Postulacion entrada = new Postulacion();
+    entrada.setIdOferta("JOBICY:10");
+    entrada.setTitulo("Desarrollador Java");
+    entrada.setEmpresa("Empresa A");
+
+    Postulacion resultado = servicio.registrarPostulacion(1L, entrada);
+
+    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
+    assertEquals("Empresa A", resultado.getEmpresa());
+    when(postulaciones.buscarPorUsuarioYOferta(1L, "JOBICY:10")).thenReturn(resultado);
+
+    Postulacion duplicada = new Postulacion();
+    duplicada.setIdOferta("JOBICY:10");
+    IllegalArgumentException excepcion = assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.registrarPostulacion(1L, duplicada)
+    );
+    assertEquals("Ya te postulaste a esta oferta", excepcion.getMessage());
+    verify(postulaciones).guardar(entrada);
   }
 
   @Test

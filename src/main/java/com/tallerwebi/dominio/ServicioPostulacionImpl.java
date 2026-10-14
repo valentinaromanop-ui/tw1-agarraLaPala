@@ -12,8 +12,6 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   private static final String FUENTE_LOCAL = "LOCAL";
 
-  private static final String ESTADO_REGISTRADA = "Registrada";
-
   private final RepositorioUsuario repositorioUsuario;
   private final RepositorioPostulacion repositorioPostulacion;
   private final RepositorioVacante repositorioVacante;
@@ -44,9 +42,46 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     }
     Postulacion postulacion = new Postulacion();
     postulacion.setUsuario(repositorioUsuario.buscarPorId(usuarioId));
-    postulacion.setOfertaId(identificador);
+    postulacion.setIdOferta(identificador);
+    return guardarPostulacion(usuarioId, postulacion, false);
+  }
+
+  @Override
+  public Postulacion registrarPostulacion(Long usuarioId, Postulacion postulacion) {
+    return guardarPostulacion(usuarioId, postulacion, true);
+  }
+
+  @SuppressWarnings("PMD.CyclomaticComplexity")
+  private Postulacion guardarPostulacion(
+    Long usuarioId,
+    Postulacion postulacion,
+    boolean rechazarDuplicada
+  ) {
+    Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
+    if (
+      usuario == null ||
+      !("CANDIDATO".equalsIgnoreCase(usuario.getRol()) ||
+        "POSTULANTE".equalsIgnoreCase(usuario.getRol()))
+    ) {
+      throw new IllegalArgumentException("Iniciá sesión como postulante.");
+    }
+    if (postulacion.getIdOferta() == null || postulacion.getIdOferta().trim().isEmpty()) {
+      throw new IllegalArgumentException("La oferta es obligatoria.");
+    }
+    Postulacion existente = repositorioPostulacion.buscarPorUsuarioYOferta(
+      usuarioId,
+      postulacion.getIdOferta().trim()
+    );
+    if (existente != null) {
+      if (rechazarDuplicada) {
+        throw new IllegalArgumentException("Ya te postulaste a esta oferta");
+      }
+      return existente;
+    }
+    postulacion.setUsuario(usuario);
+    postulacion.setIdOferta(postulacion.getIdOferta().trim());
     postulacion.setFechaPostulacion(LocalDateTime.now());
-    postulacion.setEstado(ESTADO_REGISTRADA);
+    postulacion.setEstado(EstadoPostulacion.ENVIADA);
     return repositorioPostulacion.guardar(postulacion);
   }
 
@@ -91,11 +126,18 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     Vacante vacante = obtenerOfertaParaPostularse(oferta);
     Postulacion postulacion = new Postulacion();
     postulacion.setUsuario(usuario);
+    postulacion.setIdOferta(clave);
     postulacion.setVacante(vacante);
-    postulacion.setOfertaId(clave);
-    postulacion.setEstado(ESTADO_REGISTRADA);
-    postulacion.setFechaPostulacion(LocalDateTime.now());
-    return repositorioPostulacion.guardar(postulacion);
+    copiarDatos(oferta, postulacion);
+    return guardarPostulacion(usuarioId, postulacion, false);
+  }
+
+  private void copiarDatos(VacanteDTO oferta, Postulacion postulacion) {
+    postulacion.setTitulo(oferta.getTitulo());
+    postulacion.setEmpresa(oferta.getEmpresa());
+    postulacion.setUbicacion(oferta.getUbicacion());
+    postulacion.setModalidad(oferta.getModalidad());
+    postulacion.setUrl(oferta.getUrl());
   }
 
   private Vacante obtenerOfertaParaPostularse(VacanteDTO oferta) {

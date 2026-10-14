@@ -18,11 +18,13 @@
     </div>
     <div th:unless="${#lists.isEmpty(postulaciones)}">
       <article class="profile-section" th:each="postulacion : ${postulaciones}">
-        <h2 class="h5" th:text="${postulacion.vacante != null ? postulacion.vacante.titulo : postulacion.ofertaId}">Oferta</h2>
-        <a th:if="${postulacion.vacante != null}"
-           th:href="@{/vacantes/detalle(fuente=${postulacion.vacante.fuente ?: 'LOCAL'},id=${postulacion.vacante.idExterno ?: postulacion.vacante.id})}">Ver detalle</a>
-        <p>
-          Estado: <strong th:text="${postulacion.estado}">Enviada</strong>
+        <h2 class="h5" th:text="${postulacion.titulo ?: postulacion.ofertaId}">Oferta</h2>
+        <p th:text="${postulacion.empresa ?: 'Empresa no informada'}">Empresa</p>
+        <p th:text="${postulacion.ubicacion ?: 'Ubicación no informada'}">Ubicación</p>
+        <p th:text="${postulacion.modalidad ?: 'Modalidad no informada'}">Modalidad</p>
+        <p>Estado:
+          <strong class="estado-postulacion" th:classappend="${' estado-' + #strings.toLowerCase(postulacion.estado.name())}"
+            th:text="${postulacion.estado}">ENVIADA</strong>
         </p>
         <p>
           Fecha de postulación:

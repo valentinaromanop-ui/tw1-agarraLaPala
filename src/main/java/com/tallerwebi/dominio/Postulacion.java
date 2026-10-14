@@ -2,20 +2,24 @@ package com.tallerwebi.dominio;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(
   name = "Postulacion",
-  uniqueConstraints = @UniqueConstraint(columnNames = { "usuario_id", "oferta_id" })
+  uniqueConstraints = @UniqueConstraint(columnNames = { "usuario_id", "id_oferta" })
 )
+@SuppressWarnings("PMD.TooManyFields")
 public class Postulacion {
 
   @Id
@@ -26,17 +30,27 @@ public class Postulacion {
   @JoinColumn(name = "usuario_id", nullable = false)
   private Usuario usuario;
 
-  @Column(name = "oferta_id", nullable = false, length = 1000)
-  private String ofertaId;
+  @Column(name = "id_oferta", nullable = false, length = 1000)
+  private String idOferta;
+
+  @Column
+  private String titulo;
+
+  private String empresa;
+  private String ubicacion;
+  private String modalidad;
+
+  @Column(length = 1000)
+  private String url;
 
   @Column(name = "fecha_postulacion", nullable = false)
   private LocalDateTime fechaPostulacion;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private String estado;
+  private EstadoPostulacion estado = EstadoPostulacion.ENVIADA;
 
-  @ManyToOne
-  @JoinColumn(name = "vacante_id")
+  @Transient
   private Vacante vacante;
 
   public Vacante getVacante() {
@@ -64,11 +78,59 @@ public class Postulacion {
   }
 
   public String getOfertaId() {
-    return ofertaId;
+    return idOferta;
   }
 
   public void setOfertaId(String ofertaId) {
-    this.ofertaId = ofertaId;
+    this.idOferta = ofertaId;
+  }
+
+  public String getIdOferta() {
+    return idOferta;
+  }
+
+  public void setIdOferta(String idOferta) {
+    this.idOferta = idOferta;
+  }
+
+  public String getTitulo() {
+    return titulo;
+  }
+
+  public void setTitulo(String titulo) {
+    this.titulo = titulo;
+  }
+
+  public String getEmpresa() {
+    return empresa;
+  }
+
+  public void setEmpresa(String empresa) {
+    this.empresa = empresa;
+  }
+
+  public String getUbicacion() {
+    return ubicacion;
+  }
+
+  public void setUbicacion(String ubicacion) {
+    this.ubicacion = ubicacion;
+  }
+
+  public String getModalidad() {
+    return modalidad;
+  }
+
+  public void setModalidad(String modalidad) {
+    this.modalidad = modalidad;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
   }
 
   public LocalDateTime getFechaPostulacion() {
@@ -79,11 +141,18 @@ public class Postulacion {
     this.fechaPostulacion = fechaPostulacion;
   }
 
-  public String getEstado() {
+  public EstadoPostulacion getEstado() {
     return estado;
   }
 
-  public void setEstado(String estado) {
+  public void setEstado(EstadoPostulacion estado) {
     this.estado = estado;
+  }
+
+  public void setEstado(String estado) {
+    this.estado =
+      "Registrada".equalsIgnoreCase(estado)
+        ? EstadoPostulacion.ENVIADA
+        : EstadoPostulacion.valueOf(estado);
   }
 }

@@ -264,6 +264,13 @@ body.vacantes-page {
 .profile-page .form-check-input:focus {
   box-shadow: 0 0 0 0.2rem rgb(118 186 255 / 20%);
 }
+
+.estado-postulacion { padding: 0.2rem 0.5rem; border-radius: 0.3rem; }
+.estado-enviada { color: #b9d8ff; background-color: rgb(70 130 220 / 25%); }
+.estado-en_revision { color: #ffe19a; background-color: rgb(190 145 25 / 25%); }
+.estado-entrevista { color: #d5bbff; background-color: rgb(130 75 200 / 25%); }
+.estado-aceptada { color: #a8f0c4; background-color: rgb(35 150 85 / 25%); }
+.estado-rechazada { color: #ffb1b1; background-color: rgb(180 55 65 / 25%); }
 .detalle-oferta { padding: clamp(1rem, 4vw, 2.5rem); border: 1px solid var(--border); border-radius: 0.5rem; background: var(--surface); }
 .detalle-oferta h1 { margin: 0.75rem 0; font-size: clamp(1.8rem, 4vw, 2.6rem); }
 .detalle-oferta h2 { font-size: 1.4rem; }
