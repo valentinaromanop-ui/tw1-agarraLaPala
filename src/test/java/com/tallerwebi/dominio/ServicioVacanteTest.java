@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
+import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -46,6 +47,19 @@ public class ServicioVacanteTest {
 
     assertThat(resultado, equalTo(Arrays.asList(primera, segunda)));
     verify(primerProviderMock, times(1)).buscarVacantes(any());
+    verify(segundoProviderMock, times(1)).buscarVacantes(any());
+  }
+
+  @Test
+  public void siUnaFuenteFallaDeberiaConservarLosResultadosDeLasDemas() {
+    VacanteDTO local = vacante(null, "java");
+    when(primerProviderMock.buscarVacantes(any()))
+      .thenThrow(new FuenteVacanteNoDisponible("Jobicy", new IllegalStateException("timeout")));
+    when(segundoProviderMock.buscarVacantes(any())).thenReturn(List.of(local));
+
+    List<VacanteDTO> resultado = servicioVacante.obtenerVacantesPorSkills(busqueda);
+
+    assertThat(resultado, equalTo(List.of(local)));
     verify(segundoProviderMock, times(1)).buscarVacantes(any());
   }
 

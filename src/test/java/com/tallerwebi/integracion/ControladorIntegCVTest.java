@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,9 @@ import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class })
+@ContextConfiguration(
+  classes = { SpringWebTestConfig.class, HibernateTestConfig.class, CorreoConfig.class }
+)
 class ControladorIntegCVTest {
 
   @Autowired

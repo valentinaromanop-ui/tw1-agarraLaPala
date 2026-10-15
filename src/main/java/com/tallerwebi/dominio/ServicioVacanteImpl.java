@@ -1,14 +1,19 @@
 package com.tallerwebi.dominio;
 
 import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
+import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ServicioVacanteImpl implements ServicioVacante {
+
+  private static final Logger LOGGER = Logger.getLogger(ServicioVacanteImpl.class.getName());
 
   private final List<VacanteProvider> providers;
 
@@ -27,10 +32,7 @@ public class ServicioVacanteImpl implements ServicioVacante {
     }
     BusquedaVacanteDTO normalizada = new BusquedaVacanteDTO();
     normalizada.setSkills(skills);
-    List<VacanteDTO> vacantes = new ArrayList<>();
-    for (VacanteProvider provider : providers) {
-      vacantes.addAll(provider.buscarVacantes(normalizada));
-    }
+    List<VacanteDTO> vacantes = obtenerVacantesDeProviders(normalizada);
     List<VacanteDTO> filtradas = new ArrayList<>();
     for (VacanteDTO vacante : vacantes) {
       if (cumpleFiltros(vacante, busqueda)) {
@@ -38,6 +40,22 @@ public class ServicioVacanteImpl implements ServicioVacante {
       }
     }
     return getVacantesOrdenados(filtradas);
+  }
+
+  private List<VacanteDTO> obtenerVacantesDeProviders(BusquedaVacanteDTO busqueda) {
+    List<VacanteDTO> vacantes = new ArrayList<>();
+    for (VacanteProvider provider : providers) {
+      try {
+        vacantes.addAll(provider.buscarVacantes(busqueda));
+      } catch (FuenteVacanteNoDisponible excepcion) {
+        LOGGER.log(
+          Level.WARNING,
+          "No se pudo consultar una fuente de vacantes; se continuará con las demás.",
+          excepcion
+        );
+      }
+    }
+    return vacantes;
   }
 
   private boolean cumpleFiltros(VacanteDTO vacante, BusquedaVacanteDTO busqueda) {
