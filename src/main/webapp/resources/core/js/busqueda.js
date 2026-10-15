@@ -347,7 +347,7 @@ function iniciarResultados() {
     botonGuardar.dataset.guardado = "false";
     botonGuardar.setAttribute("aria-label", "Guardar empleo");
     botonGuardar.setAttribute("aria-pressed", "false");
-    botonGuardar.innerHTML = '<i class="bi bi-bookmark" aria-hidden="true"></i>';
+    botonGuardar.innerHTML = "<i class=\"bi bi-bookmark\" aria-hidden=\"true\"></i>";
     tarjeta.append(botonGuardar);
     const informacion = document.createElement("div");
     informacion.className = "offer-info";
