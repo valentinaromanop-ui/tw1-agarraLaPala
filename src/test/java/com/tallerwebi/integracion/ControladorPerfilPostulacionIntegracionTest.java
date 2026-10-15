@@ -2,12 +2,14 @@ package com.tallerwebi.integracion;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tallerwebi.config.CorreoConfig;
@@ -168,6 +170,27 @@ class ControladorPerfilPostulacionIntegracionTest {
     ModelAndView modelAndView = resultado.getModelAndView();
     assertNotNull(modelAndView);
     assertThat((java.util.List<?>) modelAndView.getModel().get("postulaciones"), hasSize(2));
+  }
+
+  @Test
+  void debeRegistrarPostulacionDesdeOfertasYMarcarlaComoPostulada() throws Exception {
+    MockHttpSession session = crearSesionPostulante();
+    String ofertaId = "JOBICY:987654321";
+
+    mockMvc
+      .perform(
+        post("/postulaciones")
+          .session(session)
+          .param("idOferta", ofertaId)
+          .param("titulo", "Oferta de prueba")
+          .param("empresa", "Empresa de prueba")
+      )
+      .andExpect(status().isOk());
+
+    mockMvc
+      .perform(get("/postulaciones/ids").session(session))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$", hasItem(ofertaId)));
   }
 
   @Test
