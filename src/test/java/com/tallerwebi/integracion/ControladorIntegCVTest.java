@@ -5,8 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tallerwebi.config.CorreoConfig;
+import com.tallerwebi.dominio.ServicioLogin;
+import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +32,9 @@ class ControladorIntegCVTest {
 
   @Autowired
   private WebApplicationContext wac;
+
+  @Autowired
+  private ServicioLogin servicioLogin;
 
   private MockMvc mockMvc;
 
@@ -56,10 +62,26 @@ class ControladorIntegCVTest {
 
   @Test
   void perfilMuestraLaSeccionDelCvParaUnPostulante() throws Exception {
+    Usuario postulante = new Usuario();
+    postulante.setEmail("perfil-" + UUID.randomUUID() + "@correo.com");
+    postulante.setPassword("secreto");
+    postulante.setRol("CANDIDATO");
+    servicioLogin.registrar(postulante);
+
     MockHttpServletRequestBuilder solicitud = get("/perfil")
       .sessionAttr("ROL", "CANDIDATO")
-      .sessionAttr("USUARIO_ID", 1L);
+      .sessionAttr("USUARIO_ID", postulante.getId());
 
     mockMvc.perform(solicitud).andExpect(status().isOk());
+  }
+
+  @Test
+  void perfilConUsuarioInexistenteRedirigeAlLogin() throws Exception {
+    mockMvc
+      .perform(get("/perfil").sessionAttr("ROL", "CANDIDATO").sessionAttr("USUARIO_ID", -1L))
+      .andExpect(status().is3xxRedirection())
+      .andExpect(
+        org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl("/login")
+      );
   }
 }
