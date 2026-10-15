@@ -13,12 +13,13 @@
 </head>
 
 <body class="employer-body">
-  <nav class="navbar navbar-dark fixed-top">
-    <div class="container-fluid navbar-container justify-content-between">
+  <nav th:replace="~{fragments/navbar :: appNavbar('searches', false)}">
+    <div class="container navbar-container justify-content-between">
       <a class="navbar-brand" th:href="@{/home}">Agarra la Pala</a>
       <div class="employer-nav-links">
         <a th:href="@{/busquedas-Empleador}"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas</a>
         <a th:href="@{/home}">Inicio</a>
+        <div th:replace="~{fragments/navbar :: sessionActions(@{/empleador/perfil}, 'Perfil de empresa')}"></div>
       </div>
     </div>
   </nav>
@@ -90,6 +91,13 @@
           <input id="skills" class="form-control" type="text" th:field="*{skills}"
             placeholder="Ej.: Java, SQL, comunicación" required>
           <div class="form-text">Separá las habilidades con comas.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="limitePostulaciones">Límite de postulaciones (opcional)</label>
+          <input id="limitePostulaciones" class="form-control" type="number"
+            th:field="*{limitePostulaciones}" min="1" step="1" inputmode="numeric">
+          <div class="form-text">Dejalo vacío si no querés limitar la cantidad de candidatos.</div>
         </div>
 
         <p class="publication-note"><i class="bi bi-calendar-check" aria-hidden="true"></i> La fecha de publicación se asigna automáticamente al publicar.</p>

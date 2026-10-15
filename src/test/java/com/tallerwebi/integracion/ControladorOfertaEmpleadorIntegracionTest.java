@@ -2,6 +2,7 @@ package com.tallerwebi.integracion;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -121,6 +122,98 @@ public class ControladorOfertaEmpleadorIntegracionTest {
       .perform(get("/vacantes/sugerencias").param("q", "Analista de Inte").session(session))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$[0]").value("Analista de Integración"));
+  }
+
+  @Test
+  public void empleadorCierraOfertaSinPerderElHistorial() throws Exception {
+    MockHttpSession sesionEmpleador = crearSesionEmpleador();
+    String titulo = "Oferta de cierre " + UUID.randomUUID();
+    mockMvc
+      .perform(
+        post("/crear-postulacion")
+          .session(sesionEmpleador)
+          .param("titulo", titulo)
+          .param("descripcion", "Prueba de postulación y cierre.")
+          .param("ubicacion", "Buenos Aires")
+          .param("modalidad", "remoto")
+          .param("horario", "Lunes a viernes")
+          .param("salario", "1000000")
+          .param("skills", "Java")
+          .param("limitePostulaciones", "10")
+      )
+      .andExpect(status().is3xxRedirection());
+
+    MvcResult listado = mockMvc
+      .perform(get("/busquedas-Empleador").session(sesionEmpleador))
+      .andExpect(status().isOk())
+      .andReturn();
+    @SuppressWarnings("unchecked")
+    java.util.List<com.tallerwebi.dominio.Vacante> vacantesActivas = (java.util.List<
+        com.tallerwebi.dominio.Vacante
+      >) listado.getModelAndView().getModel().get("vacantesActivas");
+    com.tallerwebi.dominio.Vacante vacante = vacantesActivas
+      .stream()
+      .filter(oferta -> titulo.equals(oferta.getTitulo()))
+      .findFirst()
+      .orElseThrow();
+
+    com.tallerwebi.dominio.Usuario candidato = new com.tallerwebi.dominio.Usuario();
+    candidato.setEmail("candidato-" + UUID.randomUUID() + "@correo.com");
+    candidato.setPassword("secreto");
+    candidato.setRol("CANDIDATO");
+    servicioLogin.registrar(candidato);
+    MockHttpSession sesionCandidato = new MockHttpSession();
+    sesionCandidato.setAttribute("USUARIO_ID", candidato.getId());
+    sesionCandidato.setAttribute("ROL", candidato.getRol());
+
+    mockMvc
+      .perform(post("/vacantes/" + vacante.getId() + "/cerrar").session(crearSesionEmpleador()))
+      .andExpect(status().isForbidden());
+    mockMvc
+      .perform(post("/vacantes/" + vacante.getId() + "/cerrar").session(sesionEmpleador))
+      .andExpect(status().is3xxRedirection())
+      .andExpect(redirectedUrl("/busquedas-Empleador?cerrada=true"));
+
+    String paginaActivas = mockMvc
+      .perform(get("/busquedas-Empleador").session(sesionEmpleador))
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+    assertThat(paginaActivas, containsString("Historial"));
+    assertThat(paginaActivas, containsString(titulo));
+    assertThat(paginaActivas, containsString("0 de 10 postulaciones"));
+    assertThat(paginaActivas, containsString("Ver postulantes"));
+
+    MvcResult perfil = mockMvc
+      .perform(get("/empleador/perfil").session(sesionEmpleador))
+      .andExpect(status().isOk())
+      .andReturn();
+    String paginaPerfil = perfil.getResponse().getContentAsString();
+    assertThat(paginaPerfil, containsString("Perfil de la empresa"));
+    assertThat(paginaPerfil, containsString("Empresa de prueba"));
+    assertThat(paginaPerfil, containsString("Búsquedas activas"));
+    assertThat(paginaPerfil, containsString("Postulaciones recibidas"));
+    assertThat(paginaPerfil, containsString("1"));
+
+    mockMvc
+      .perform(get("/empleador/perfil"))
+      .andExpect(status().is3xxRedirection())
+      .andExpect(redirectedUrl("/login"));
+    mockMvc
+      .perform(get("/empleador/perfil").session(sesionCandidato))
+      .andExpect(status().isForbidden());
+    String paginaHome = mockMvc
+      .perform(get("/home"))
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+    assertThat(paginaHome, not(containsString(titulo)));
+    mockMvc
+      .perform(get("/vacantes").param("texto", titulo))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$").isEmpty());
   }
 
   private String ofertaIdDeListado(String contenidoHome) {

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+  <th:block th:fragment="appNavbar(activePage, showSearch)"
+    th:with="authenticated=${session.USUARIO_ID != null and session.ROL != null}">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top app-navbar">
+      <div class="container-fluid app-navbar-container">
+        <a th:if="${authenticated and session.ROL == 'EMPLEADOR'}"
+          class="navbar-brand app-navbar-brand" th:href="@{/busquedas-Empleador}">
+          <img th:src="@{/img/HormigaLogo.png}" alt="Agarra la Pala" id="Logo-ant">
+          <span>Agarra la Pala</span>
+        </a>
+        <a th:unless="${authenticated and session.ROL == 'EMPLEADOR'}"
+          class="navbar-brand app-navbar-brand" th:href="@{/home}">
+          <img th:src="@{/img/HormigaLogo.png}" alt="Agarra la Pala" id="Logo-ant">
+          <span>Agarra la Pala</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#app-main-menu" aria-controls="app-main-menu"
+          aria-expanded="false" aria-label="Abrir menú">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse app-navbar-collapse" id="app-main-menu">
+          <form th:if="${showSearch}" class="search-shell search-autocomplete app-navbar-search"
+            role="search" method="get" th:action="@{/buscar}"
+            th:data-sugerencias-url="@{/vacantes/sugerencias}">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" name="texto" aria-label="Buscar ofertas"
+              placeholder="Buscar puesto, empresa o palabra clave" autocomplete="off"
+              aria-expanded="false" aria-controls="sugerencias-inicio">
+            <div class="search-suggestions" id="sugerencias-inicio" role="listbox" hidden></div>
+          </form>
+
+          <ul class="navbar-nav app-navbar-links">
+            <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
+              <a class="nav-link" th:href="@{/busquedas-Empleador}"
+                th:classappend="${activePage == 'searches'} ? ' active' : ''"
+                th:attr="aria-current=${activePage == 'searches'} ? 'page' : null">
+                <i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas
+              </a>
+            </li>
+            <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
+              <a class="nav-link" th:href="@{/home}"
+                th:classappend="${activePage == 'home'} ? ' active' : ''"
+                th:attr="aria-current=${activePage == 'home'} ? 'page' : null">
+                <i class="bi bi-house" aria-hidden="true"></i> Inicio
+              </a>
+            </li>
+            <li class="nav-item dropdown"
+              th:if="${authenticated and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')}">
+              <button class="nav-link dropdown-toggle" id="jobs-dropdown-toggle" type="button"
+                data-bs-toggle="dropdown" aria-controls="jobs-dropdown" aria-haspopup="true"
+                aria-expanded="false" aria-label="Empleos"
+                th:classappend="${activePage == 'jobs'} ? ' active' : ''">
+                <i class="bi bi-briefcase" aria-hidden="true"></i> Empleos
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" id="jobs-dropdown">
+                <li><a class="dropdown-item" th:href="@{/home#ofertas}">
+                  <i class="bi bi-search" aria-hidden="true"></i> Buscar empleos
+                </a></li>
+                <li><a class="dropdown-item" th:href="@{/home#empleos-guardados}">
+                  <i class="bi bi-bookmark" aria-hidden="true"></i> Empleos guardados
+                </a></li>
+                <li><a class="dropdown-item" th:href="@{/postulaciones}">
+                  <i class="bi bi-send" aria-hidden="true"></i> Postulaciones enviadas
+                </a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown"
+              th:if="${authenticated and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')}">
+              <button class="nav-link dropdown-toggle" id="notifications-dropdown-toggle" type="button"
+                data-bs-toggle="dropdown" aria-controls="notifications-dropdown" aria-haspopup="true"
+                aria-expanded="false" aria-label="Notificaciones"
+                th:classappend="${activePage == 'notifications'} ? ' active' : ''">
+                <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
+                aria-label="Notificaciones recientes">
+                <li><h2 class="dropdown-header">Notificaciones recientes</h2></li>
+                <li>
+                  <a class="dropdown-item notification-item" th:href="@{/postulaciones}">
+                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>
+                    <span class="notification-content">
+                      <span class="notification-sender">Agarra la Pala</span>
+                      <span class="notification-text">Consultá el estado de tus postulaciones</span>
+                    </span>
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-center" th:href="@{/postulaciones}">Ver mis postulaciones</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
+              <button class="nav-link dropdown-toggle" id="business-dropdown-toggle" type="button"
+                data-bs-toggle="dropdown" aria-controls="business-dropdown" aria-haspopup="true"
+                aria-expanded="false" aria-label="Para empresas">
+                <i class="bi bi-building" aria-hidden="true"></i> Para empresas
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" id="business-dropdown">
+                <li><a class="dropdown-item" th:href="@{/crear-postulacion}">
+                  <i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta
+                </a></li>
+                <li><a class="dropdown-item" th:href="@{/busquedas-Empleador}">
+                  <i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas
+                </a></li>
+                <li><a class="dropdown-item" th:href="@{/empleador/perfil}">
+                  <i class="bi bi-person-circle" aria-hidden="true"></i> Perfil de empresa
+                </a></li>
+              </ul>
+            </li>
+            <li class="nav-item" th:unless="${authenticated}">
+              <a class="nav-link" th:href="@{/login}"
+                th:classappend="${activePage == 'login'} ? ' active' : ''"
+                th:attr="aria-current=${activePage == 'login'} ? 'page' : null">
+                Iniciar sesión
+              </a>
+            </li>
+            <li class="nav-item" th:unless="${authenticated}">
+              <a class="nav-link" th:href="@{/registro}"
+                th:classappend="${activePage == 'register'} ? ' active' : ''"
+                th:attr="aria-current=${activePage == 'register'} ? 'page' : null">
+                Registrarse
+              </a>
+            </li>
+          </ul>
+
+          <div class="app-navbar-actions" th:if="${authenticated}">
+            <a th:if="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light"
+              th:href="@{/empleador/perfil}"
+              th:classappend="${activePage == 'profile'} ? ' active' : ''"
+              th:attr="aria-current=${activePage == 'profile'} ? 'page' : null">
+              <i class="bi bi-person-circle" aria-hidden="true"></i> Perfil de empresa
+            </a>
+            <a th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}"
+              class="btn btn-outline-light" th:href="@{/perfil}"
+              th:classappend="${activePage == 'profile'} ? ' active' : ''"
+              th:attr="aria-current=${activePage == 'profile'} ? 'page' : null">
+              <i class="bi bi-person-circle" aria-hidden="true"></i> Mi perfil
+            </a>
+            <form th:action="@{/logout}" method="post">
+              <button class="btn btn-outline-light" type="submit">
+                <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+      crossorigin="anonymous"></script>
+  </th:block>
+</body>
+</html>

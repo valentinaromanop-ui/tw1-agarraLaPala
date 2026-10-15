@@ -55,6 +55,8 @@ public class ControladorDetalleVacante {
     modelo.put("datosPostulacion", datosPostulacion);
     modelo.put("vacante", oferta);
     modelo.put("fuente", fuente);
+    modelo.put("ofertaEmpleador", esOfertaEmpleador(oferta));
+    modelo.put("ofertaCerrada", estaCerrada(oferta));
     modelo.put("puedePostularse", esPostulante(session));
     modelo.put(
       "yaPostulado",
@@ -105,6 +107,7 @@ public class ControladorDetalleVacante {
     if (session.getAttribute(VACANTES) == null || session.getAttribute(BUSQUEDA) == null) {
       return new ModelAndView("redirect:/vacantes/recomendadas");
     }
+    refrescarEstadoOfertasLocales(session);
     Map<String, Object> modelo = new ModelMap();
     modelo.put(VACANTES, session.getAttribute(VACANTES));
     modelo.put(BUSQUEDA, session.getAttribute(BUSQUEDA));
@@ -115,6 +118,22 @@ public class ControladorDetalleVacante {
       servicioPostulacion.obtenerOfertasPostuladas((Long) session.getAttribute(USUARIO_ID))
     );
     return new ModelAndView(VACANTES, modelo);
+  }
+
+  private void refrescarEstadoOfertasLocales(HttpSession session) {
+    Object resultados = session.getAttribute(VACANTES);
+    if (resultados instanceof List<?> lista) {
+      for (Object elemento : lista) {
+        if (elemento instanceof VacanteDTO oferta && "LOCAL".equals(oferta.getFuente())) {
+          Vacante guardada = servicioPostulacion.obtenerVacante("LOCAL", oferta.getId());
+          if (guardada != null) {
+            oferta.setOfertaEmpleador(guardada.getEmpleadorId() != null);
+            oferta.setEstado(guardada.getEstado().name());
+            oferta.setLimitePostulaciones(guardada.getLimitePostulaciones());
+          }
+        }
+      }
+    }
   }
 
   private VacanteDTO buscarEnResultados(String fuente, Long id, HttpSession session) {
@@ -143,6 +162,20 @@ public class ControladorDetalleVacante {
     oferta.setFuente(fuente);
     oferta.setTitulo(guardada.getTitulo());
     return oferta;
+  }
+
+  private boolean esOfertaEmpleador(Object oferta) {
+    if (oferta instanceof VacanteDTO vacanteDTO) {
+      return vacanteDTO.isOfertaEmpleador();
+    }
+    return oferta instanceof Vacante vacante && vacante.getEmpleadorId() != null;
+  }
+
+  private boolean estaCerrada(Object oferta) {
+    if (oferta instanceof VacanteDTO vacanteDTO) {
+      return vacanteDTO.isCerrada();
+    }
+    return oferta instanceof Vacante vacante && vacante.isCerrada();
   }
 
   private boolean esPostulante(HttpSession session) {

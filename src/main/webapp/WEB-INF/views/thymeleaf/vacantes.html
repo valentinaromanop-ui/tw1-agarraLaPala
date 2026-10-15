@@ -15,7 +15,7 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-dark">
+  <nav th:replace="~{fragments/navbar :: appNavbar('jobs', false)}">
     <div class="container navbar-container justify-content-between">
       <a class="navbar-brand" th:href="@{/home}">
         <img th:src="@{/img/HormigaLogo.png}" alt="" id="Logo-ant">
@@ -35,8 +35,16 @@
     </div>
   </nav>
 
-  <main class="container search-results-page recommended-page">
+  <main class="container page-container search-results-page recommended-page">
     <header class="search-results-heading">
+      <a th:if="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light page-back"
+        th:href="@{/busquedas-Empleador}">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a mis búsquedas
+      </a>
+      <a th:unless="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light page-back"
+        th:href="@{/home}">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio
+      </a>
       <h1>Vacantes recomendadas</h1>
       <p class="recommended-skills">Ofertas para: <span th:text="${#strings.listJoin(skills, ', ')}"></span></p>
     </header>
@@ -132,8 +140,10 @@
             th:data-ubicacion="${vacante.ubicacion}"
             th:data-modalidad="${vacante.modalidad}"
             th:data-url="${vacante.url}"
-            th:disabled="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)}"
+            th:disabled="${(postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)) or (vacante.ofertaEmpleador and vacante.cerrada)}"
             th:text="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id) ? '✓ Postulado' : 'Postularme'}">Postularme</button>
+          <span class="postulada-label" th:if="${postuladas != null and #lists.contains(postuladas, vacante.fuente + ':' + vacante.id)}">Ya te postulaste</span>
+          <p th:if="${vacante.ofertaEmpleador and vacante.cerrada}" class="postulada-label">Oferta cerrada</p>
           <p th:if="${vacante.fuente == 'LOCAL'}" class="local-source">Oferta de nuestra plataforma</p>
         </article>
       </div>

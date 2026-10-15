@@ -1,9 +1,13 @@
 package com.tallerwebi.presentacion;
 
+import com.tallerwebi.dominio.EstadoVacante;
+import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
+import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.Skill;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.Vacante;
+import com.tallerwebi.dominio.VacanteNoEncontradaException;
 import com.tallerwebi.dominio.VacanteSkill;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -20,9 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class ControladorOfertaEmpleador {
@@ -32,21 +38,27 @@ public class ControladorOfertaEmpleador {
   private static final String VISTA_CREAR = "crear-postulacion";
   private static final String VISTA_BUSQUEDAS = "busquedas-Empleador";
   private static final String ATRIBUTO_DATOS = "datosOferta";
+  private static final String REDIRECT_LOGIN = "redirect:/login";
   private static final String PUBLICADA_TRUE = Boolean.TRUE.toString();
   private static final List<String> MODALIDADES = List.of("presencial", "remoto", "híbrido");
 
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
+  private final ServicioPostulacion servicioPostulacion;
 
   @Autowired
-  public ControladorOfertaEmpleador(ServicioOfertaEmpleador servicioOfertaEmpleador) {
+  public ControladorOfertaEmpleador(
+    ServicioOfertaEmpleador servicioOfertaEmpleador,
+    ServicioPostulacion servicioPostulacion
+  ) {
     this.servicioOfertaEmpleador = servicioOfertaEmpleador;
+    this.servicioPostulacion = servicioPostulacion;
   }
 
   @RequestMapping(path = RUTA_CREAR, method = RequestMethod.GET)
   public ModelAndView mostrarFormulario(HttpServletRequest request) {
     Usuario empleador = obtenerEmpleador(request);
     if (empleador == null) {
-      return new ModelAndView("redirect:/login");
+      return new ModelAndView(REDIRECT_LOGIN);
     }
     Map<String, Object> modelo = new ModelMap();
     modelo.put(ATRIBUTO_DATOS, new DatosOfertaEmpleador());
@@ -61,7 +73,7 @@ public class ControladorOfertaEmpleador {
   ) {
     Usuario empleador = obtenerEmpleador(request);
     if (empleador == null) {
-      return new ModelAndView("redirect:/login");
+      return new ModelAndView(REDIRECT_LOGIN);
     }
 
     List<String> errores = new ArrayList<>();
@@ -79,14 +91,54 @@ public class ControladorOfertaEmpleador {
   public ModelAndView mostrarBusquedas(HttpServletRequest request) {
     Usuario empleador = obtenerEmpleador(request);
     if (empleador == null) {
-      return new ModelAndView("redirect:/login");
+      return new ModelAndView(REDIRECT_LOGIN);
     }
     Map<String, Object> modelo = new ModelMap();
-    modelo.put("vacantes", servicioOfertaEmpleador.listarPorEmpleador(empleador.getId()));
+    List<Vacante> vacantes = servicioOfertaEmpleador.listarPorEmpleador(empleador.getId());
+    List<Vacante> vacantesActivas = new ArrayList<>();
+    List<Vacante> vacantesCerradas = new ArrayList<>();
+    Map<Long, Long> cantidadesPostulaciones = new LinkedHashMap<>();
+    for (Vacante vacante : vacantes) {
+      cantidadesPostulaciones.put(
+        vacante.getId(),
+        servicioPostulacion.contarPorOferta(vacante.getId())
+      );
+      if (vacante.getEstado() == EstadoVacante.ABIERTA) {
+        vacantesActivas.add(vacante);
+      } else {
+        vacantesCerradas.add(vacante);
+      }
+    }
+    modelo.put("vacantes", vacantes);
+    modelo.put("vacantesActivas", vacantesActivas);
+    modelo.put("vacantesCerradas", vacantesCerradas);
+    modelo.put("cantidadesPostulaciones", cantidadesPostulaciones);
     if (PUBLICADA_TRUE.equals(request.getParameter("publicada"))) {
       modelo.put("mensaje", "La postulación se publicó correctamente.");
     }
+    if (PUBLICADA_TRUE.equals(request.getParameter("cerrada"))) {
+      modelo.put("mensaje", "La búsqueda se cerró correctamente.");
+    }
     return new ModelAndView(VISTA_BUSQUEDAS, modelo);
+  }
+
+  @RequestMapping(path = "/vacantes/{id}/cerrar", method = RequestMethod.POST)
+  public ModelAndView cerrarOferta(
+    @PathVariable("id") Long vacanteId,
+    HttpServletRequest request,
+    RedirectAttributes mensajes
+  ) {
+    Usuario empleador = obtenerEmpleador(request);
+    if (empleador == null) {
+      return new ModelAndView(REDIRECT_LOGIN);
+    }
+    try {
+      servicioOfertaEmpleador.cerrar(vacanteId, empleador.getId());
+      return new ModelAndView("redirect:" + RUTA_BUSQUEDAS + "?cerrada=true");
+    } catch (OfertaCerradaException | VacanteNoEncontradaException excepcion) {
+      mensajes.addFlashAttribute("error", excepcion.getMessage());
+      return new ModelAndView("redirect:" + RUTA_BUSQUEDAS);
+    }
   }
 
   private ModelAndView mostrarFormularioConErrores(
@@ -106,6 +158,7 @@ public class ControladorOfertaEmpleador {
     validarModalidad(datos.getModalidad(), errores);
     validarSalario(datos.getSalario(), errores);
     validarSkills(datos.getSkills(), errores);
+    validarLimitePostulaciones(datos.getLimitePostulaciones(), errores);
   }
 
   private void validarCamposObligatorios(DatosOfertaEmpleador datos, List<String> errores) {
@@ -149,6 +202,19 @@ public class ControladorOfertaEmpleador {
     }
   }
 
+  private void validarLimitePostulaciones(String limite, List<String> errores) {
+    if (vacio(limite)) {
+      return;
+    }
+    try {
+      if (Integer.parseInt(limite.trim()) <= 0) {
+        errores.add("El límite de postulaciones debe ser un número entero mayor a cero.");
+      }
+    } catch (NumberFormatException excepcion) {
+      errores.add("El límite de postulaciones debe ser un número entero mayor a cero.");
+    }
+  }
+
   private Vacante crearVacante(DatosOfertaEmpleador datos, Usuario empleador) {
     Vacante vacante = new Vacante();
     vacante.setTitulo(datos.getTitulo().trim());
@@ -160,6 +226,9 @@ public class ControladorOfertaEmpleador {
     vacante.setSalario(new BigDecimal(datos.getSalario().trim()));
     vacante.setEmpleadorId(empleador.getId());
     vacante.setFechaPublicacion(LocalDateTime.now());
+    if (!vacio(datos.getLimitePostulaciones())) {
+      vacante.setLimitePostulaciones(Integer.parseInt(datos.getLimitePostulaciones().trim()));
+    }
 
     Set<VacanteSkill> relaciones = new HashSet<>();
     for (String nombre : normalizarSkills(datos.getSkills())) {

@@ -107,4 +107,48 @@ public class ServicioPostulacionTest {
     assertThrows(IllegalArgumentException.class, () -> servicio.registrarEnVacante(1L, oferta));
     verify(postulaciones, never()).guardar(any());
   }
+
+  @Test
+  public void noDeberiaPostularseAUnaVacanteLocalCerrada() {
+    oferta.setFuente("LOCAL");
+    Vacante local = new Vacante();
+    local.setEstado(EstadoVacante.CERRADA);
+    when(vacantes.obtenerPorId(10L)).thenReturn(local);
+
+    assertThrows(OfertaCerradaException.class, () -> servicio.registrarEnVacante(1L, oferta));
+    verify(postulaciones, never()).guardar(any());
+  }
+
+  @Test
+  public void noDeberiaSuperarElLimiteDePostulacionesDeUnaVacante() {
+    oferta.setFuente("LOCAL");
+    Vacante local = new Vacante();
+    local.setId(10L);
+    local.setEmpleadorId(42L);
+    local.setLimitePostulaciones(1);
+    when(vacantes.obtenerPorId(10L)).thenReturn(local);
+    when(postulaciones.contarPorVacante(10L)).thenReturn(1L);
+
+    assertThrows(
+      CupoPostulacionesCompletoException.class,
+      () -> servicio.registrarEnVacante(1L, oferta)
+    );
+    verify(postulaciones, never()).guardar(any());
+  }
+
+  @Test
+  public void empleadorNoPuedeVerPostulantesDeOfertaAjena() {
+    Vacante vacanteAjena = ofertaDeEmpleador(10L, 99L);
+    when(vacantes.obtenerPorId(10L)).thenReturn(vacanteAjena);
+
+    assertThrows(AccesoOfertaDenegadoException.class, () -> servicio.obtenerPostulantes(10L, 42L));
+    verify(postulaciones, never()).buscarPorVacante(10L);
+  }
+
+  private Vacante ofertaDeEmpleador(Long id, Long empleadorId) {
+    Vacante vacante = new Vacante();
+    vacante.setId(id);
+    vacante.setEmpleadorId(empleadorId);
+    return vacante;
+  }
 }

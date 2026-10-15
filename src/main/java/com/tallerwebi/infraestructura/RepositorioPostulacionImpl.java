@@ -47,4 +47,33 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
       .setParameter("usuarioId", usuarioId)
       .getResultList();
   }
+
+  @Override
+  public long contarPorVacante(Long vacanteId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select count(p.id) from Postulacion p " +
+        "where p.idOferta = :ofertaLocal or p.idOferta = :idVacante",
+        Long.class
+      )
+      .setParameter("ofertaLocal", "LOCAL:" + vacanteId)
+      .setParameter("idVacante", String.valueOf(vacanteId))
+      .getSingleResult();
+  }
+
+  @Override
+  public List<Postulacion> buscarPorVacante(Long vacanteId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "from Postulacion p join fetch p.usuario " +
+        "where p.idOferta = :ofertaLocal or p.idOferta = :idVacante " +
+        "order by p.fechaPostulacion desc",
+        Postulacion.class
+      )
+      .setParameter("ofertaLocal", "LOCAL:" + vacanteId)
+      .setParameter("idVacante", String.valueOf(vacanteId))
+      .getResultList();
+  }
 }

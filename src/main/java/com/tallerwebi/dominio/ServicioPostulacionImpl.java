@@ -1,16 +1,18 @@
 package com.tallerwebi.dominio;
 
-import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   private static final String FUENTE_LOCAL = "LOCAL";
+  private static final String FUENTE_JOBICY = "JOBICY";
+  private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
 
   private final RepositorioUsuario repositorioUsuario;
   private final RepositorioPostulacion repositorioPostulacion;
@@ -33,6 +35,10 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
       throw new IllegalArgumentException("La oferta es obligatoria.");
     }
     String identificador = ofertaId.trim();
+    VacanteDTO oferta = ofertaDesdeIdentificador(identificador);
+    if (oferta != null) {
+      return registrarEnVacante(usuarioId, oferta);
+    }
     Postulacion existente = repositorioPostulacion.buscarPorUsuarioYOferta(
       usuarioId,
       identificador
@@ -113,25 +119,69 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   @Override
   public Postulacion registrarEnVacante(Long usuarioId, VacanteDTO oferta) {
-    Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
-    if (
-      usuario == null ||
-      !("CANDIDATO".equals(usuario.getRol()) || "POSTULANTE".equals(usuario.getRol()))
-    ) {
-      throw new IllegalArgumentException("Iniciá sesión como postulante.");
-    }
+    Usuario usuario = validarCandidato(usuarioId);
+    validarOferta(oferta);
     String clave = oferta.getFuente() + ":" + oferta.getId();
     Postulacion existente = repositorioPostulacion.buscarPorUsuarioYOferta(usuarioId, clave);
     if (existente != null) {
       return existente;
     }
     Vacante vacante = obtenerOfertaParaPostularse(oferta);
+    validarCupoPostulaciones(vacante);
     Postulacion postulacion = new Postulacion();
     postulacion.setUsuario(usuario);
     postulacion.setIdOferta(clave);
     postulacion.setVacante(vacante);
     copiarDatos(oferta, postulacion);
     return guardarPostulacion(usuarioId, postulacion, false);
+  }
+
+  private Usuario validarCandidato(Long usuarioId) {
+    Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
+    if (
+      usuario == null ||
+      !("CANDIDATO".equalsIgnoreCase(usuario.getRol()) ||
+        "POSTULANTE".equalsIgnoreCase(usuario.getRol()))
+    ) {
+      throw new IllegalArgumentException("Iniciá sesión como postulante.");
+    }
+    return usuario;
+  }
+
+  private void validarOferta(VacanteDTO oferta) {
+    if (oferta == null || oferta.getId() == null || oferta.getFuente() == null) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA);
+    }
+  }
+
+  private void validarCupoPostulaciones(Vacante vacante) {
+    if (vacante.getEmpleadorId() == null || vacante.getLimitePostulaciones() == null) {
+      return;
+    }
+    if (
+      repositorioPostulacion.contarPorVacante(vacante.getId()) >= vacante.getLimitePostulaciones()
+    ) {
+      throw new CupoPostulacionesCompletoException();
+    }
+  }
+
+  private VacanteDTO ofertaDesdeIdentificador(String identificador) {
+    int separador = identificador.indexOf(':');
+    if (separador <= 0 || separador == identificador.length() - 1) {
+      return null;
+    }
+    String fuente = identificador.substring(0, separador).toUpperCase(java.util.Locale.ROOT);
+    if (!FUENTE_LOCAL.equals(fuente) && !FUENTE_JOBICY.equals(fuente)) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA);
+    }
+    try {
+      VacanteDTO oferta = new VacanteDTO();
+      oferta.setFuente(fuente);
+      oferta.setId(Long.valueOf(identificador.substring(separador + 1)));
+      return oferta;
+    } catch (NumberFormatException excepcion) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA, excepcion);
+    }
   }
 
   private void copiarDatos(VacanteDTO oferta, Postulacion postulacion) {
@@ -142,12 +192,36 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     postulacion.setUrl(oferta.getUrl());
   }
 
+  @Override
+  public long contarPorOferta(Long vacanteId) {
+    return repositorioPostulacion.contarPorVacante(vacanteId);
+  }
+
+  @Override
+  public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
+    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+    if (vacante == null || !empleadorId.equals(vacante.getEmpleadorId())) {
+      throw new AccesoOfertaDenegadoException();
+    }
+    return repositorioPostulacion
+      .buscarPorVacante(vacanteId)
+      .stream()
+      .map(postulacion ->
+        new PostulanteOfertaDTO(
+          postulacion.getUsuario().getEmail(),
+          postulacion.getUsuario().getHabilidades(),
+          postulacion.getFechaPostulacion()
+        )
+      )
+      .toList();
+  }
+
   private Vacante obtenerOfertaParaPostularse(VacanteDTO oferta) {
     if (FUENTE_LOCAL.equals(oferta.getFuente())) {
       return obtenerLocalActiva(oferta.getId());
     }
-    if (!"JOBICY".equals(oferta.getFuente()) || oferta.getId() == null) {
-      throw new IllegalArgumentException("La oferta no es válida.");
+    if (!FUENTE_JOBICY.equals(oferta.getFuente()) || oferta.getId() == null) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA);
     }
     Vacante guardada = repositorioVacante.buscarPorFuenteEIdExterno(
       oferta.getFuente(),
@@ -162,12 +236,14 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   private Vacante obtenerLocalActiva(Long id) {
     Vacante local = repositorioVacante.obtenerPorId(id);
-    if (
-      local == null ||
-      !Boolean.TRUE.equals(local.getActiva()) ||
-      (local.getFuente() != null && !FUENTE_LOCAL.equals(local.getFuente()))
-    ) {
+    if (local == null || (local.getFuente() != null && !FUENTE_LOCAL.equals(local.getFuente()))) {
+      throw new VacanteNoEncontradaException();
+    }
+    if (!Boolean.TRUE.equals(local.getActiva())) {
       throw new IllegalArgumentException("Esta vacante ya no está disponible.");
+    }
+    if (local.getEstado() == EstadoVacante.CERRADA) {
+      throw new OfertaCerradaException();
     }
     return local;
   }

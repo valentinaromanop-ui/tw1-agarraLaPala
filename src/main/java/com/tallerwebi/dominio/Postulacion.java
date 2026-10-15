@@ -2,8 +2,6 @@ package com.tallerwebi.dominio;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +11,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Entity
 @Table(
@@ -21,6 +20,8 @@ import java.time.LocalDateTime;
 )
 @SuppressWarnings("PMD.TooManyFields")
 public class Postulacion {
+
+  private static final String ESTADO_LEGADO_REGISTRADA = "REGISTRADA";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,9 +47,8 @@ public class Postulacion {
   @Column(name = "fecha_postulacion", nullable = false)
   private LocalDateTime fechaPostulacion;
 
-  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private EstadoPostulacion estado = EstadoPostulacion.ENVIADA;
+  private String estado = EstadoPostulacion.ENVIADA.name();
 
   @Transient
   private Vacante vacante;
@@ -142,17 +142,26 @@ public class Postulacion {
   }
 
   public EstadoPostulacion getEstado() {
-    return estado;
+    if (ESTADO_LEGADO_REGISTRADA.equalsIgnoreCase(estado)) {
+      return EstadoPostulacion.ENVIADA;
+    }
+    return EstadoPostulacion.valueOf(estado.toUpperCase(Locale.ROOT));
   }
 
   public void setEstado(EstadoPostulacion estado) {
-    this.estado = estado;
+    if (estado != null) {
+      this.estado = estado.name();
+    }
   }
 
   public void setEstado(String estado) {
+    if (estado == null) {
+      return;
+    }
+    String estadoNormalizado = estado.trim();
     this.estado =
-      "Registrada".equalsIgnoreCase(estado)
-        ? EstadoPostulacion.ENVIADA
-        : EstadoPostulacion.valueOf(estado);
+      ESTADO_LEGADO_REGISTRADA.equalsIgnoreCase(estadoNormalizado)
+        ? EstadoPostulacion.ENVIADA.name()
+        : EstadoPostulacion.valueOf(estadoNormalizado.toUpperCase(Locale.ROOT)).name();
   }
 }

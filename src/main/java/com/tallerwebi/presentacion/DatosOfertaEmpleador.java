@@ -9,6 +9,7 @@ public class DatosOfertaEmpleador {
   private String horario;
   private String salario;
   private String skills;
+  private String limitePostulaciones;
 
   public String getTitulo() {
     return titulo;
@@ -64,5 +65,13 @@ public class DatosOfertaEmpleador {
 
   public void setSkills(String skills) {
     this.skills = skills;
+  }
+
+  public String getLimitePostulaciones() {
+    return limitePostulaciones;
+  }
+
+  public void setLimitePostulaciones(String limitePostulaciones) {
+    this.limitePostulaciones = limitePostulaciones;
   }
 }

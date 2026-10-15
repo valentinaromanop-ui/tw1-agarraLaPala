@@ -92,19 +92,25 @@ async function enviarPostulacion(boton, ofertaId) {
         url: boton.dataset.url || "",
       }),
     });
-    let resultado;
-    try {
-      resultado = await respuesta.json();
-    } catch {
-      throw new Error("No se pudo procesar la respuesta del servidor");
+    const contentType = respuesta.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      throw new Error("No pudimos procesar tu postulación, intentá de nuevo.");
     }
-    if (!respuesta.ok && respuesta.status !== 409) {
+    const resultado = await respuesta.json();
+    if (respuesta.status === 401) {
+      window.location.href = rutaAplicacion("/login");
+      return;
+    }
+    if (!respuesta.ok || resultado.ok === false) {
       throw new Error(resultado.mensaje || "No se pudo enviar la postulación");
     }
     marcarComoPostulado(boton);
   } catch (error) {
+    console.error(error);
     boton.disabled = false;
-    boton.textContent = error.message || "No se pudo enviar la postulación";
+    boton.textContent = error instanceof TypeError
+      ? "No pudimos procesar tu postulación, intentá de nuevo."
+      : error.message || "No se pudo enviar la postulación";
   }
 }
 

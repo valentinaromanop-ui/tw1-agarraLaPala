@@ -10,7 +10,7 @@
 	<link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body>
-	<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+	<nav th:replace="~{fragments/navbar :: appNavbar('jobs', false)}">
 		<div class="container-fluid navbar-container justify-content-between">
 			<a class="navbar-brand" th:href="@{/home}">
 				<img th:src="@{/img/HormigaLogo.png}" alt="" id="Logo-ant">

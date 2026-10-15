@@ -183,6 +183,15 @@ public class ControladorLogin {
     }
   }
 
+  @RequestMapping(path = "/logout", method = RequestMethod.POST)
+  public ModelAndView cerrarSesion(HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    if (session != null) {
+      session.invalidate();
+    }
+    return new ModelAndView("redirect:/login");
+  }
+
   public ModelAndView irAHome() {
     return new ModelAndView("home");
   }

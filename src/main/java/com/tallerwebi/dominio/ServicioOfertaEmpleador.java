@@ -10,4 +10,8 @@ public interface ServicioOfertaEmpleador {
   List<Vacante> listarPorEmpleador(Long empleadorId);
 
   List<Vacante> listarOfertasPublicadas();
+
+  void cerrar(Long vacanteId, Long empleadorId);
+
+  ResumenEmpleador obtenerResumen(Long empleadorId);
 }
