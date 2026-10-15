@@ -72,3 +72,30 @@ SET @copiar_id_oferta = IF(
 PREPARE migracion_id_oferta FROM @copiar_id_oferta;
 EXECUTE migracion_id_oferta;
 DEALLOCATE PREPARE migracion_id_oferta;
+
+SET @permitir_oferta_id_nulo = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Postulacion'
+      AND column_name = 'oferta_id'
+  ) > 0,
+  (
+    SELECT CONCAT(
+      'ALTER TABLE Postulacion MODIFY COLUMN oferta_id ',
+      column_type,
+      IF(character_set_name IS NULL, '', CONCAT(' CHARACTER SET ', character_set_name)),
+      IF(collation_name IS NULL, '', CONCAT(' COLLATE ', collation_name)),
+      ' NULL'
+    )
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Postulacion'
+      AND column_name = 'oferta_id'
+  ),
+  'SELECT 1'
+);
+PREPARE migracion_oferta_id_nula FROM @permitir_oferta_id_nulo;
+EXECUTE migracion_oferta_id_nula;
+DEALLOCATE PREPARE migracion_oferta_id_nula;
