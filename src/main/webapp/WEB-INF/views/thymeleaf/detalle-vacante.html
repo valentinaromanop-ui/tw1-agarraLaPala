@@ -9,16 +9,25 @@
   <link rel="stylesheet" th:href="@{/css/vacantes.css}">
 </head>
 <body>
-  <nav class="navbar navbar-dark">
+  <nav th:replace="~{fragments/navbar :: appNavbar('jobs', false)}">
     <div class="container navbar-container justify-content-between">
       <a class="navbar-brand" th:href="@{/home}">
         <img th:src="@{/img/HormigaLogo.png}" alt="" id="Logo-ant">
         <span>Agarra la Pala</span>
       </a>
-      <a class="text-action" th:href="@{/vacantes/resultados}">Volver a vacantes</a>
+      <th:block th:if="${session.ROL == 'EMPLEADOR'}">
+        <div th:replace="~{fragments/navbar :: sessionActions(@{/empleador/perfil}, 'Perfil de empresa')}"></div>
+      </th:block>
+      <th:block th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
+        <div th:replace="~{fragments/navbar :: sessionActions(@{/perfil}, 'Mi perfil')}"></div>
+      </th:block>
     </div>
   </nav>
   <main class="container search-results-page recommended-page">
+    <a th:if="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light page-back"
+      th:href="@{/busquedas-Empleador}">Volver a mis búsquedas</a>
+    <a th:unless="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light page-back"
+      th:href="@{/home}">Volver al inicio</a>
     <p th:if="${error != null}" th:text="${error}" class="alert alert-warning" role="alert"></p>
     <article th:if="${vacante != null}" class="detalle-oferta">
       <header>
@@ -44,14 +53,14 @@
       </section>
       <section class="detalle-postulacion">
         <p th:if="${fuente != 'LOCAL'}">La postulación se registra en nuestra plataforma. No se envía automáticamente a Jobicy ni a la empresa.</p>
+        <p th:if="${ofertaEmpleador and ofertaCerrada}" class="postulada-label">Oferta cerrada</p>
         <p th:if="${yaPostulado}" class="postulada-label">Ya te postulaste a esta oferta.</p>
-        <form th:if="${puedePostularse and !yaPostulado}" method="post" th:action="@{/vacantes/postular}" th:object="${datosPostulacion}">
+        <form th:if="${puedePostularse and !yaPostulado}" method="post"
+          th:action="@{/vacantes/postular}" th:object="${datosPostulacion}">
           <input type="hidden" th:field="*{fuente}">
           <input type="hidden" th:field="*{id}">
           <button type="submit" class="btn primary-action">Postularme</button>
         </form>
-        <button th:if="${yaPostulado}" type="button" class="btn btn-secondary" disabled>Ya te postulaste</button>
-        <p th:if="${!puedePostularse}"><a th:href="@{/login}">Iniciá sesión como postulante para postularte.</a></p>
       </section>
     </article>
   </main>

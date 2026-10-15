@@ -90,6 +90,16 @@ public class ControladorLoginTest {
   }
 
   @Test
+  public void cerrarSesionInvalidaLaSesionYRedirigeAlLogin() {
+    when(requestMock.getSession(false)).thenReturn(sessionMock);
+
+    ModelAndView respuesta = controladorLogin.cerrarSesion(requestMock);
+
+    assertThat(respuesta.getViewName(), equalToIgnoringCase("redirect:/login"));
+    verify(sessionMock).invalidate();
+  }
+
+  @Test
   public void irARegistroDeberiaRetornarSelectorDeTipoDeCuenta() {
     ModelAndView modelAndView = controladorLogin.irARegistro();
 

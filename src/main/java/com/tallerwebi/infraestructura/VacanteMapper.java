@@ -26,6 +26,9 @@ public class VacanteMapper {
     dto.setFechaPublicacion(vacante.getFechaPublicacion());
     dto.setHorario(vacante.getHorario());
     dto.setFuente("LOCAL");
+    dto.setOfertaEmpleador(vacante.getEmpleadorId() != null);
+    dto.setEstado(vacante.getEstado().name());
+    dto.setLimitePostulaciones(vacante.getLimitePostulaciones());
     List<String> coincidencias = new ArrayList<>();
 
     for (VacanteSkill relacion : vacante.getVacanteSkills()) {

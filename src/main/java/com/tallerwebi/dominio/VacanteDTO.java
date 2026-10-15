@@ -22,6 +22,9 @@ public class VacanteDTO {
   private String seniority;
   private String jornada;
   private String moneda;
+  private boolean ofertaEmpleador;
+  private String estado = "ABIERTA";
+  private Integer limitePostulaciones;
 
   public Long getId() {
     return id;
@@ -141,5 +144,33 @@ public class VacanteDTO {
 
   public void setMoneda(String moneda) {
     this.moneda = moneda;
+  }
+
+  public boolean isOfertaEmpleador() {
+    return ofertaEmpleador;
+  }
+
+  public void setOfertaEmpleador(boolean ofertaEmpleador) {
+    this.ofertaEmpleador = ofertaEmpleador;
+  }
+
+  public String getEstado() {
+    return estado == null ? "ABIERTA" : estado;
+  }
+
+  public void setEstado(String estado) {
+    this.estado = estado == null ? "ABIERTA" : estado;
+  }
+
+  public boolean isCerrada() {
+    return "CERRADA".equals(getEstado());
+  }
+
+  public Integer getLimitePostulaciones() {
+    return limitePostulaciones;
+  }
+
+  public void setLimitePostulaciones(Integer limitePostulaciones) {
+    this.limitePostulaciones = limitePostulaciones;
   }
 }

@@ -1,9 +1,11 @@
 package com.tallerwebi.infraestructura;
 
+import com.tallerwebi.dominio.EstadoVacante;
 import com.tallerwebi.dominio.RepositorioVacante;
 import com.tallerwebi.dominio.Skill;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteSkill;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Locale;
 import org.hibernate.SessionFactory;
@@ -61,6 +63,13 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
   }
 
   @Override
+  public Vacante obtenerPorIdParaActualizar(Long id) {
+    return sessionFactory
+      .getCurrentSession()
+      .find(Vacante.class, id, LockModeType.PESSIMISTIC_WRITE);
+  }
+
+  @Override
   public Vacante buscarPorFuenteEIdExterno(String fuente, Long idExterno) {
     return sessionFactory
       .getCurrentSession()
@@ -78,9 +87,11 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
         "SELECT DISTINCT v FROM Vacante v " +
         "JOIN VacanteSkill vs ON v.id = vs.vacante.id " +
         "JOIN Skill s ON vs.skill.id = s.id " +
-        "WHERE v.activa = true AND (v.fuente = 'LOCAL' OR v.fuente IS NULL) AND LOWER(s.nombre) IN (:skills)",
+        "WHERE v.activa = true AND (v.estado = :estado OR v.estado IS NULL) " +
+        "AND (v.fuente = 'LOCAL' OR v.fuente IS NULL) AND LOWER(s.nombre) IN (:skills)",
         Vacante.class
       )
+      .setParameter("estado", EstadoVacante.ABIERTA)
       .setParameterList("skills", skills)
       .getResultList();
   }
@@ -106,9 +117,11 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
         "LEFT JOIN FETCH v.vacanteSkills vs " +
         "LEFT JOIN FETCH vs.skill " +
         "WHERE v.empleadorId IS NOT NULL AND v.activa = true " +
+        "AND (v.estado = :estado OR v.estado IS NULL) " +
         "ORDER BY v.fechaPublicacion DESC",
         Vacante.class
       )
+      .setParameter("estado", EstadoVacante.ABIERTA)
       .getResultList();
   }
 }

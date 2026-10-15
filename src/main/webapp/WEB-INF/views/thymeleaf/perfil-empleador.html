@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perfil de la empresa | Agarra la Pala</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" th:href="@{/css/ofertas-empleador.css}">
+</head>
+<body class="employer-body">
+  <nav th:replace="~{fragments/navbar :: appNavbar('profile', false)}">
+    <div class="container navbar-container employer-navbar-container">
+      <a class="navbar-brand" th:href="@{/home}">Agarra la Pala</a>
+      <div th:replace="~{fragments/navbar :: sessionActions(@{/empleador/perfil}, 'Perfil de empresa')}"></div>
+    </div>
+  </nav>
+  <main class="page-container employer-page">
+    <a class="btn btn-outline-light page-back" th:href="@{/busquedas-Empleador}">
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a mis búsquedas
+    </a>
+    <section class="employer-panel employer-profile" aria-labelledby="perfil-empresa-title">
+      <p class="employer-eyebrow"><i class="bi bi-building" aria-hidden="true"></i> Cuenta empleadora</p>
+      <h1 id="perfil-empresa-title">Perfil de la empresa</h1>
+      <p class="employer-intro">Datos registrados y actividad de tus búsquedas.</p>
+
+      <h2 class="h4 mt-4">Resumen</h2>
+      <div class="employer-summary">
+        <article class="employer-summary-card">
+          <span>Búsquedas activas</span>
+          <strong th:text="${resumen.busquedasActivas}">0</strong>
+        </article>
+        <article class="employer-summary-card">
+          <span>Historial</span>
+          <strong th:text="${resumen.busquedasCerradas}">0</strong>
+        </article>
+        <article class="employer-summary-card">
+          <span>Postulaciones recibidas</span>
+          <strong th:text="${resumen.postulacionesRecibidas}">0</strong>
+        </article>
+      </div>
+
+      <h2 class="h4 mt-4">Datos de la cuenta</h2>
+      <dl class="employer-profile-details">
+        <div>
+          <dt>Empresa</dt>
+          <dd th:text="${#strings.isEmpty(empleador.empresa) ? 'No especificado' : empleador.empresa}">Empresa</dd>
+        </div>
+        <div>
+          <dt>Correo electrónico</dt>
+          <dd th:text="${#strings.isEmpty(empleador.email) ? 'No especificado' : empleador.email}">correo</dd>
+        </div>
+        <div>
+          <dt>Número de legajo</dt>
+          <dd th:text="${#strings.isEmpty(empleador.legajo) ? 'No especificado' : empleador.legajo}">Legajo</dd>
+        </div>
+        <div>
+          <dt>Teléfono</dt>
+          <dd th:text="${#strings.isEmpty(empleador.telefono) ? 'No especificado' : empleador.telefono}">Teléfono</dd>
+        </div>
+        <div>
+          <dt>Ubicación</dt>
+          <dd th:text="${#strings.isEmpty(empleador.ubicacion) ? 'No especificado' : empleador.ubicacion}">Ubicación</dd>
+        </div>
+      </dl>
+      <a class="btn btn-primary" th:href="@{/busquedas-Empleador}">
+        <i class="bi bi-list-check" aria-hidden="true"></i> Ver mis búsquedas
+      </a>
+    </section>
+  </main>
+</body>
+</html>

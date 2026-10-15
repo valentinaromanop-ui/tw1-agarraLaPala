@@ -1,12 +1,16 @@
 package com.tallerwebi.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -31,6 +35,27 @@ public class SpringWebConfig implements WebMvcConfigurer {
     registry.addResourceHandler("/js/**").addResourceLocations("/resources/core/js/");
     registry.addResourceHandler("/img/**").addResourceLocations("/resources/img/");
     registry.addResourceHandler("/webjars/**").addResourceLocations("/webjars/");
+  }
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry
+      .addInterceptor(
+        new HandlerInterceptor() {
+          @Override
+          public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler
+          ) {
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 0);
+            return true;
+          }
+        }
+      )
+      .excludePathPatterns("/css/**", "/js/**", "/img/**", "/webjars/**");
   }
 
   // https://www.thymeleaf.org/doc/tutorials/3.0/thymeleafspring.html

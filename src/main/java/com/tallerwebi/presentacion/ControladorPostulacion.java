@@ -1,11 +1,15 @@
 package com.tallerwebi.presentacion;
 
-import com.tallerwebi.dominio.Postulacion;
+import com.tallerwebi.dominio.CupoPostulacionesCompletoException;
+import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.ServicioPostulacion;
+import com.tallerwebi.dominio.VacanteDTO;
+import com.tallerwebi.dominio.VacanteNoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,18 +17,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class ControladorPostulacion {
 
   private static final String RUTA_POSTULACIONES = "/postulaciones";
-  private static final String POSTULACION_DUPLICADA = "Ya te postulaste a esta oferta";
-
+  private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
   private final ServicioPostulacion servicioPostulacion;
 
   @Autowired
@@ -34,7 +39,7 @@ public class ControladorPostulacion {
 
   @RequestMapping(path = "/postularse", method = RequestMethod.POST)
   @ResponseBody
-  public ResponseEntity<Map<String, String>> postularse(
+  public ResponseEntity<Map<String, Object>> postularse(
     @RequestParam("ofertaId") String ofertaId,
     HttpServletRequest request
   ) {
@@ -44,8 +49,18 @@ public class ControladorPostulacion {
         .status(HttpStatus.UNAUTHORIZED)
         .body(mensaje("Iniciá sesión como postulante."));
     }
-    servicioPostulacion.crearPostulacion(usuarioId, ofertaId);
-    return ResponseEntity.ok(mensaje("Postulación registrada"));
+    try {
+      servicioPostulacion.crearPostulacion(usuarioId, ofertaId);
+      return ResponseEntity.ok(mensaje("Postulación registrada"));
+    } catch (OfertaCerradaException excepcion) {
+      return respuesta(HttpStatus.BAD_REQUEST, false, excepcion.getMessage());
+    } catch (CupoPostulacionesCompletoException excepcion) {
+      return respuesta(HttpStatus.CONFLICT, false, excepcion.getMessage());
+    } catch (VacanteNoEncontradaException excepcion) {
+      return respuesta(HttpStatus.NOT_FOUND, false, excepcion.getMessage());
+    } catch (IllegalArgumentException excepcion) {
+      return respuesta(HttpStatus.BAD_REQUEST, false, excepcion.getMessage());
+    }
   }
 
   @RequestMapping(
@@ -67,27 +82,20 @@ public class ControladorPostulacion {
     if (usuarioId == null) {
       return respuesta(HttpStatus.UNAUTHORIZED, false, "Iniciá sesión como postulante.");
     }
-    Postulacion postulacion = new Postulacion();
-    postulacion.setIdOferta(idOferta);
-    postulacion.setTitulo(titulo);
-    postulacion.setEmpresa(empresa);
-    postulacion.setUbicacion(ubicacion);
-    postulacion.setModalidad(modalidad);
-    postulacion.setUrl(url);
     try {
-      servicioPostulacion.registrarPostulacion(usuarioId, postulacion);
-      return respuesta(HttpStatus.OK, true, "Postulación registrada");
-    } catch (IllegalArgumentException excepcion) {
-      if (POSTULACION_DUPLICADA.equals(excepcion.getMessage())) {
-        return respuesta(HttpStatus.OK, true, excepcion.getMessage());
-      }
-      return respuesta(HttpStatus.CONFLICT, false, excepcion.getMessage());
-    } catch (Exception excepcion) {
-      return respuesta(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        false,
-        "No se pudo guardar la postulación. Intentá nuevamente."
+      servicioPostulacion.registrarEnVacante(
+        usuarioId,
+        crearOferta(idOferta, titulo, empresa, ubicacion, modalidad, url)
       );
+      return respuesta(HttpStatus.OK, true, "Postulación registrada");
+    } catch (OfertaCerradaException excepcion) {
+      return respuesta(HttpStatus.BAD_REQUEST, false, excepcion.getMessage());
+    } catch (CupoPostulacionesCompletoException excepcion) {
+      return respuesta(HttpStatus.CONFLICT, false, excepcion.getMessage());
+    } catch (VacanteNoEncontradaException excepcion) {
+      return respuesta(HttpStatus.NOT_FOUND, false, excepcion.getMessage());
+    } catch (IllegalArgumentException excepcion) {
+      return respuesta(HttpStatus.BAD_REQUEST, false, excepcion.getMessage());
     }
   }
 
@@ -101,6 +109,21 @@ public class ControladorPostulacion {
     return ResponseEntity.ok(servicioPostulacion.obtenerOfertasPostuladas(usuarioId));
   }
 
+  @RequestMapping(path = "/ofertas/{id}/postulantes", method = RequestMethod.GET)
+  public ModelAndView mostrarPostulantes(@PathVariable("id") Long vacanteId, HttpSession session) {
+    Object rol = session.getAttribute("ROL");
+    Object id = session.getAttribute("USUARIO_ID");
+    if (!"EMPLEADOR".equalsIgnoreCase(String.valueOf(rol)) || !(id instanceof Number)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    }
+
+    Long empleadorId = ((Number) id).longValue();
+    Map<String, Object> modelo = new ModelMap();
+    modelo.put("postulantes", servicioPostulacion.obtenerPostulantes(vacanteId, empleadorId));
+    modelo.put("vacante", servicioPostulacion.obtenerVacante("LOCAL", vacanteId));
+    return new ModelAndView("postulantes-oferta", modelo);
+  }
+
   @RequestMapping(path = RUTA_POSTULACIONES, method = RequestMethod.GET)
   public ModelAndView mostrarPostulaciones(HttpServletRequest request) {
     Long usuarioId = obtenerUsuarioPostulante(request);
@@ -112,10 +135,52 @@ public class ControladorPostulacion {
     return new ModelAndView("postulaciones", modelo);
   }
 
-  private Map<String, String> mensaje(String texto) {
-    Map<String, String> respuesta = new HashMap<>();
+  private Map<String, Object> mensaje(String texto) {
+    Map<String, Object> respuesta = new HashMap<>();
     respuesta.put("mensaje", texto);
     return respuesta;
+  }
+
+  private VacanteDTO crearOferta(
+    String ofertaId,
+    String titulo,
+    String empresa,
+    String ubicacion,
+    String modalidad,
+    String url
+  ) {
+    VacanteDTO oferta = new VacanteDTO();
+    oferta.setId(parsearIdOferta(ofertaId));
+    oferta.setFuente(parsearFuenteOferta(ofertaId));
+    oferta.setTitulo(titulo);
+    oferta.setEmpresa(empresa);
+    oferta.setUbicacion(ubicacion);
+    oferta.setModalidad(modalidad);
+    oferta.setUrl(url);
+    return oferta;
+  }
+
+  private Long parsearIdOferta(String ofertaId) {
+    if (ofertaId == null) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA);
+    }
+    int separador = ofertaId.indexOf(':');
+    if (separador <= 0 || separador == ofertaId.length() - 1) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA);
+    }
+    try {
+      return Long.valueOf(ofertaId.substring(separador + 1));
+    } catch (NumberFormatException excepcion) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA, excepcion);
+    }
+  }
+
+  private String parsearFuenteOferta(String ofertaId) {
+    String fuente = ofertaId.substring(0, ofertaId.indexOf(':')).toUpperCase(Locale.ROOT);
+    if (!"LOCAL".equals(fuente) && !"JOBICY".equals(fuente)) {
+      throw new IllegalArgumentException(OFERTA_NO_VALIDA);
+    }
+    return fuente;
   }
 
   private ResponseEntity<Map<String, Object>> respuesta(

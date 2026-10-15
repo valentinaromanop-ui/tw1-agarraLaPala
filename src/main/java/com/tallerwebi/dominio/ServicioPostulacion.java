@@ -9,4 +9,6 @@ public interface ServicioPostulacion {
   Vacante obtenerVacante(String fuente, Long id);
   List<String> obtenerOfertasPostuladas(Long usuarioId);
   List<Postulacion> listarPostulaciones(Long usuarioId);
+  long contarPorOferta(Long vacanteId);
+  List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId);
 }

@@ -5,20 +5,10 @@
     linear-gradient(135deg, var(--background) 0%, #171b2a 48%, #0a0c12 100%);
 }
 
-.employer-home-link {
-  margin-left: 1rem;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.employer-home-link:hover,
-.employer-home-link:focus {
-  color: var(--text);
-}
-
 .employer-page {
-  max-width: 62rem;
-  margin-bottom: 3rem;
+  width: min(calc(100% - 2rem), 68.75rem);
+  max-width: 68.75rem;
+  margin: 0 auto 3rem;
 }
 
 .employer-panel {
@@ -136,11 +126,20 @@
 }
 
 .employer-table {
+  width: 100%;
+  min-width: 46rem;
   margin-bottom: 0;
   color: var(--text);
+  text-align: left;
   --bs-table-bg: transparent;
   --bs-table-color: var(--text);
   --bs-table-border-color: var(--border);
+}
+
+.employer-table th,
+.employer-table td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
 }
 
 .employer-table thead th {
@@ -149,14 +148,24 @@
   font-weight: 600;
 }
 
+.employer-table.postulantes-table { min-width: 52rem; }
+.postulantes-table td { overflow-wrap: anywhere; }
+.employer-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.employer-summary-card { display: flex; min-height: 7rem; flex-direction: column; justify-content: space-between; padding: 1rem; border: 1px solid var(--border); border-radius: 0.75rem; color: var(--muted); background: #141927; }
+.employer-summary-card strong { color: var(--text); font-size: 1.75rem; }
+.employer-profile-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; margin: 0 0 1.5rem; }
+.employer-profile-details > div { padding: 1rem 0.5rem; border-bottom: 1px solid var(--border); }
+.employer-profile-details dt { color: var(--muted); font-size: 0.85rem; }
+.employer-profile-details dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+
 @media (max-width: 576px) {
   .employer-body {
     padding-top: 5.75rem;
   }
 
-  .employer-home-link {
-    margin: 0.5rem 0 0 0.8rem;
-  }
+  .employer-page { width: min(calc(100% - 1.25rem), 68.75rem); }
+  .employer-summary { grid-template-columns: 1fr; }
+  .employer-profile-details { grid-template-columns: 1fr; }
 
   .employer-heading {
     align-items: flex-start;

@@ -6,4 +6,6 @@ public interface RepositorioPostulacion {
   Postulacion guardar(Postulacion postulacion);
   Postulacion buscarPorUsuarioYOferta(Long usuarioId, String ofertaId);
   List<Postulacion> buscarPorUsuarioId(Long usuarioId);
+  long contarPorVacante(Long vacanteId);
+  List<Postulacion> buscarPorVacante(Long vacanteId);
 }

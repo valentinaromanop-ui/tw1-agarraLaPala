@@ -2,6 +2,8 @@ package com.tallerwebi.dominio;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -54,6 +56,13 @@ public class Vacante {
 
   @Column
   private Boolean activa = true;
+
+  @Column(name = "limite_postulaciones")
+  private Integer limitePostulaciones;
+
+  @Enumerated(EnumType.STRING)
+  @Column
+  private EstadoVacante estado = EstadoVacante.ABIERTA;
 
   @Column
   private String seniority;
@@ -159,6 +168,26 @@ public class Vacante {
 
   public void setActiva(Boolean activa) {
     this.activa = activa;
+  }
+
+  public Integer getLimitePostulaciones() {
+    return limitePostulaciones;
+  }
+
+  public void setLimitePostulaciones(Integer limitePostulaciones) {
+    this.limitePostulaciones = limitePostulaciones;
+  }
+
+  public EstadoVacante getEstado() {
+    return estado == null ? EstadoVacante.ABIERTA : estado;
+  }
+
+  public void setEstado(EstadoVacante estado) {
+    this.estado = estado == null ? EstadoVacante.ABIERTA : estado;
+  }
+
+  public boolean isCerrada() {
+    return getEstado() == EstadoVacante.CERRADA;
   }
 
   public Set<VacanteSkill> getVacanteSkills() {

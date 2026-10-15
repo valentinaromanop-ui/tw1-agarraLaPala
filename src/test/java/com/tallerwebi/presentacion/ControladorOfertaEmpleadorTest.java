@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
+import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.Vacante;
 import jakarta.servlet.http.HttpSession;
@@ -25,13 +26,15 @@ public class ControladorOfertaEmpleadorTest {
 
   private ControladorOfertaEmpleador controlador;
   private ServicioOfertaEmpleador servicio;
+  private ServicioPostulacion servicioPostulacion;
   private Usuario empleador;
   private MockHttpServletRequest request;
 
   @BeforeEach
   public void iniciar() {
     servicio = mock(ServicioOfertaEmpleador.class);
-    controlador = new ControladorOfertaEmpleador(servicio);
+    servicioPostulacion = mock(ServicioPostulacion.class);
+    controlador = new ControladorOfertaEmpleador(servicio, servicioPostulacion);
     empleador = new Usuario();
     empleador.setId(42L);
     empleador.setRol("EMPLEADOR");
