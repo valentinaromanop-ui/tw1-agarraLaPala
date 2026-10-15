@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <body>
-  <th:block th:fragment="appNavbar(activePage, showSearch)"
+  <th:block th:fragment="appNavbar(activePage, showSearch, showPremium)"
     th:with="authenticated=${session.USUARIO_ID != null and session.ROL != null}">
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top app-navbar">
       <div class="container-fluid app-navbar-container">
@@ -33,6 +33,15 @@
             <div class="search-suggestions" id="sugerencias-inicio" role="listbox" hidden></div>
           </form>
 
+          <div class="app-navbar-page-actions"
+            th:if="${showPremium and authenticated and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')}">
+            <a class="premium-button" th:href="@{/premium/pagar}">
+              <i class="bi bi-star-fill" aria-hidden="true"></i>
+              <span th:if="${premiumHasta == null}">Hacete Premium</span>
+              <span th:if="${premiumHasta != null}">Premium activo</span>
+            </a>
+          </div>
+
           <ul class="navbar-nav app-navbar-links">
             <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
               <a class="nav-link" th:href="@{/busquedas-Empleador}"
@@ -60,7 +69,7 @@
                 <li><a class="dropdown-item" th:href="@{/home#ofertas}">
                   <i class="bi bi-search" aria-hidden="true"></i> Buscar empleos
                 </a></li>
-                <li><a class="dropdown-item" th:href="@{/home#empleos-guardados}">
+                <li><a class="dropdown-item" th:href="@{/empleos-guardados}">
                   <i class="bi bi-bookmark" aria-hidden="true"></i> Empleos guardados
                 </a></li>
                 <li><a class="dropdown-item" th:href="@{/postulaciones}">
@@ -127,20 +136,20 @@
           </ul>
 
           <div class="app-navbar-actions" th:if="${authenticated}">
-            <a th:if="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light"
+            <a th:if="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light nav-action"
               th:href="@{/empleador/perfil}"
               th:classappend="${activePage == 'profile'} ? ' active' : ''"
               th:attr="aria-current=${activePage == 'profile'} ? 'page' : null">
               <i class="bi bi-person-circle" aria-hidden="true"></i> Perfil de empresa
             </a>
             <a th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}"
-              class="btn btn-outline-light" th:href="@{/perfil}"
+              class="btn btn-outline-light nav-action" th:href="@{/perfil}"
               th:classappend="${activePage == 'profile'} ? ' active' : ''"
               th:attr="aria-current=${activePage == 'profile'} ? 'page' : null">
               <i class="bi bi-person-circle" aria-hidden="true"></i> Mi perfil
             </a>
             <form th:action="@{/logout}" method="post">
-              <button class="btn btn-outline-light" type="submit">
+              <button class="btn btn-outline-light nav-action" type="submit">
                 <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
               </button>
             </form>

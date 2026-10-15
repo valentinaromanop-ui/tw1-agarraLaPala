@@ -7,6 +7,7 @@
   <link rel="stylesheet" th:href="@{/css/vacantes.css}">
 </head>
 <body class="vacantes-page">
+  <nav th:replace="~{fragments/navbar :: appNavbar('payments', false, true)}"></nav>
   <main class="container py-4">
     <a th:href="@{/perfil}">Volver al perfil</a>
     <h1>Historial de pagos</h1>

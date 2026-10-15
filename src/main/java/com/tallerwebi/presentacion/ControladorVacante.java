@@ -1,6 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
+import com.tallerwebi.dominio.ServicioEmpleoGuardado;
 import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPerfil;
 import com.tallerwebi.dominio.ServicioPostulacion;
@@ -26,6 +27,7 @@ public class ControladorVacante {
   private final ServicioPostulacion servicioPostulacion;
   private final ServicioPerfil servicioPerfil;
   private final ServicioPago servicioPago;
+  private final ServicioEmpleoGuardado servicioEmpleoGuardado;
   private static final String BUSQUEDA = "busqueda";
   private static final String VISTA_VACANTES = "vacantes";
 
@@ -34,12 +36,14 @@ public class ControladorVacante {
     ServicioVacante servicioVacante,
     ServicioPostulacion servicioPostulacion,
     ServicioPerfil servicioPerfil,
-    ServicioPago servicioPago
+    ServicioPago servicioPago,
+    ServicioEmpleoGuardado servicioEmpleoGuardado
   ) {
     this.servicioVacante = servicioVacante;
     this.servicioPostulacion = servicioPostulacion;
     this.servicioPerfil = servicioPerfil;
     this.servicioPago = servicioPago;
+    this.servicioEmpleoGuardado = servicioEmpleoGuardado;
   }
 
   public ControladorVacante(
@@ -47,7 +51,7 @@ public class ControladorVacante {
     ServicioPostulacion servicioPostulacion,
     ServicioPerfil servicioPerfil
   ) {
-    this(servicioVacante, servicioPostulacion, servicioPerfil, null);
+    this(servicioVacante, servicioPostulacion, servicioPerfil, null, null);
   }
 
   @ModelAttribute("postuladas")
@@ -107,6 +111,12 @@ public class ControladorVacante {
     modelo.put(
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
+    );
+    modelo.put(
+      "guardadas",
+      servicioEmpleoGuardado == null
+        ? java.util.List.of()
+        : servicioEmpleoGuardado.listarIds(usuarioId)
     );
     if (busqueda.getSkills().isEmpty()) {
       session.removeAttribute(VISTA_VACANTES);

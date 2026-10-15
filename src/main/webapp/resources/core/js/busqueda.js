@@ -332,6 +332,23 @@ function iniciarResultados() {
   function crearTarjeta(oferta) {
     const tarjeta = document.createElement("article");
     tarjeta.className = "offer-card search-result-card";
+    tarjeta.dataset.ofertaId = oferta.fuente && oferta.id
+      ? `${oferta.fuente}:${oferta.id}`
+      : oferta.url || `${oferta.titulo || "Oferta sin título"} | ${oferta.empresa || "Empresa no informada"}`;
+    const botonGuardar = document.createElement("button");
+    botonGuardar.type = "button";
+    botonGuardar.className = "save-job-button";
+    botonGuardar.dataset.ofertaId = tarjeta.dataset.ofertaId;
+    botonGuardar.dataset.titulo = oferta.titulo || "Oferta sin título";
+    botonGuardar.dataset.empresa = oferta.empresa || "Empresa no informada";
+    botonGuardar.dataset.ubicacion = oferta.ubicacion || "";
+    botonGuardar.dataset.modalidad = oferta.modalidad || "";
+    botonGuardar.dataset.url = oferta.url || "";
+    botonGuardar.dataset.guardado = "false";
+    botonGuardar.setAttribute("aria-label", "Guardar empleo");
+    botonGuardar.setAttribute("aria-pressed", "false");
+    botonGuardar.innerHTML = "<i class=\"bi bi-bookmark\" aria-hidden=\"true\"></i>";
+    tarjeta.append(botonGuardar);
     const informacion = document.createElement("div");
     informacion.className = "offer-info";
     const titulo = document.createElement("h3");
@@ -379,6 +396,7 @@ function iniciarResultados() {
 
   function mostrarOfertas() {
     tarjetas.replaceChildren(...ofertas.slice(0, cantidadVisible).map(crearTarjeta));
+    document.dispatchEvent(new CustomEvent("guardados:actualizar"));
     botonVerMas.hidden = cantidadVisible >= ofertas.length;
   }
 

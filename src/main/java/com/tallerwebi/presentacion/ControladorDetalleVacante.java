@@ -1,6 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
+import com.tallerwebi.dominio.ServicioEmpleoGuardado;
 import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteDTO;
@@ -28,10 +29,19 @@ public class ControladorDetalleVacante {
 
   private static final String VOLVER = "redirect:/vacantes/resultados";
   private final ServicioPostulacion servicioPostulacion;
+  private final ServicioEmpleoGuardado servicioEmpleoGuardado;
 
   @Autowired
-  public ControladorDetalleVacante(ServicioPostulacion servicioPostulacion) {
+  public ControladorDetalleVacante(
+    ServicioPostulacion servicioPostulacion,
+    ServicioEmpleoGuardado servicioEmpleoGuardado
+  ) {
     this.servicioPostulacion = servicioPostulacion;
+    this.servicioEmpleoGuardado = servicioEmpleoGuardado;
+  }
+
+  public ControladorDetalleVacante(ServicioPostulacion servicioPostulacion) {
+    this(servicioPostulacion, null);
   }
 
   @RequestMapping(path = "/vacantes/detalle", method = RequestMethod.GET)
@@ -116,6 +126,12 @@ public class ControladorDetalleVacante {
     modelo.put(
       "postuladas",
       servicioPostulacion.obtenerOfertasPostuladas((Long) session.getAttribute(USUARIO_ID))
+    );
+    modelo.put(
+      "guardadas",
+      servicioEmpleoGuardado == null
+        ? java.util.List.of()
+        : servicioEmpleoGuardado.listarIds((Long) session.getAttribute(USUARIO_ID))
     );
     return new ModelAndView(VACANTES, modelo);
   }

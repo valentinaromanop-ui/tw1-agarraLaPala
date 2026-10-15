@@ -23,7 +23,7 @@
 
 <body>
 
-  <nav th:replace="~{fragments/navbar :: appNavbar('jobs', true)}">
+  <nav th:replace="~{fragments/navbar :: appNavbar('jobs', true, false)}">
     <div class="container-fluid navbar-container justify-content-between">
       <a class="navbar-brand" href="#inicio">
         <img th:src="@{/img/HormigaLogo.png}" alt="Logo-ant" id="Logo-ant">
@@ -277,6 +277,7 @@
   <!-- Bootstrap core js -->
 
   <script type="module" th:src="@{/js/busqueda.js}"></script>
+  <script type="module" th:src="@{/js/guardados.js}"></script>
 
 </body>
 
