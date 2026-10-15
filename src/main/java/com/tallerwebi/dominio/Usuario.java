@@ -1,14 +1,6 @@
 package com.tallerwebi.dominio;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,8 +25,16 @@ public class Usuario {
 
   private String empresa;
   private String legajo;
+  private String nombre;
+  private String apellido;
   private String telefono;
   private String ubicacion;
+
+  @Lob
+  @Column(name = "foto_perfil")
+  private byte[] fotoPerfil;
+
+  private String fotoPerfilTipo;
 
   @ElementCollection
   @CollectionTable(name = "usuario_habilidades", joinColumns = @JoinColumn(name = "usuario_id"))
@@ -97,6 +97,22 @@ public class Usuario {
     this.legajo = legajo;
   }
 
+  public String getNombre() {
+    return nombre;
+  }
+
+  public void setNombre(String nombre) {
+    this.nombre = nombre;
+  }
+
+  public String getApellido() {
+    return apellido;
+  }
+
+  public void setApellido(String apellido) {
+    this.apellido = apellido;
+  }
+
   public String getTelefono() {
     return telefono;
   }
@@ -139,5 +155,25 @@ public class Usuario {
 
   public void activar() {
     activo = true;
+  }
+
+  public byte[] getFotoPerfil() {
+    return fotoPerfil == null ? null : fotoPerfil.clone();
+  }
+
+  public void setFotoPerfil(byte[] fotoPerfil) {
+    this.fotoPerfil = fotoPerfil == null ? fotoPerfil : fotoPerfil.clone();
+  } // clone crea una copia del arreglo  Así, quien llama a getFotoPerfil() no puede modificar directamente los datos guardados en Usuari
+
+  public String getFotoPerfilTipo() {
+    return fotoPerfilTipo;
+  }
+
+  public void setFotoPerfilTipo(String fotoPerfilTipo) {
+    this.fotoPerfilTipo = fotoPerfilTipo;
+  }
+
+  public boolean tieneFotoPerfil() {
+    return fotoPerfil != null && fotoPerfil.length > 0;
   }
 }

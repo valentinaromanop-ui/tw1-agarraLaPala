@@ -114,34 +114,13 @@ public class ControladorLogin {
   public ModelAndView registrarCandidato(
     @ModelAttribute("datosRegistroCandidato") DatosRegistroCandidato datosRegistroCandidato
   ) {
-    if (
-      campoVacio(datosRegistroCandidato.getEmail()) ||
-      campoVacio(datosRegistroCandidato.getPassword()) ||
-      campoVacio(datosRegistroCandidato.getConfirmarPassword())
-    ) {
-      return mostrarErrorRegistroCandidato(datosRegistroCandidato, "Completá todos los campos.");
-    }
-    if (!correoValido(datosRegistroCandidato.getEmail())) {
-      return mostrarErrorRegistroCandidato(
-        datosRegistroCandidato,
-        "Ingresá un correo electrónico válido."
-      );
-    }
-    if (
-      !datosRegistroCandidato.getPassword().equals(datosRegistroCandidato.getConfirmarPassword())
-    ) {
-      return mostrarErrorRegistroCandidato(datosRegistroCandidato, "Las contraseñas no coinciden.");
-    }
-    if (
-      datosRegistroCandidato.getHabilidades() != null &&
-      !HABILIDADES_DISPONIBLES.containsAll(datosRegistroCandidato.getHabilidades())
-    ) {
-      return mostrarErrorRegistroCandidato(
-        datosRegistroCandidato,
-        "Seleccioná únicamente habilidades disponibles."
-      );
+    String errorValidacion = validarRegistroCandidato(datosRegistroCandidato);
+    if (errorValidacion != null) {
+      return mostrarErrorRegistroCandidato(datosRegistroCandidato, errorValidacion);
     }
     Usuario usuario = new Usuario();
+    usuario.setNombre(datosRegistroCandidato.getNombre().trim());
+    usuario.setApellido(datosRegistroCandidato.getApellido().trim());
     usuario.setEmail(datosRegistroCandidato.getEmail());
     usuario.setPassword(datosRegistroCandidato.getPassword());
     usuario.setRol("CANDIDATO");
@@ -156,6 +135,34 @@ public class ControladorLogin {
     }
     identificarUsuarioEnSesion(usuario);
     return new ModelAndView("redirect:/vacantes/recomendadas");
+  }
+
+  private String validarRegistroCandidato(DatosRegistroCandidato datos) {
+    if (faltanDatosCandidato(datos)) {
+      return "Completá todos los campos.";
+    }
+    if (!correoValido(datos.getEmail())) {
+      return "Ingresá un correo electrónico válido.";
+    }
+    if (!datos.getPassword().equals(datos.getConfirmarPassword())) {
+      return "Las contraseñas no coinciden.";
+    }
+    if (
+      datos.getHabilidades() != null && !HABILIDADES_DISPONIBLES.containsAll(datos.getHabilidades())
+    ) {
+      return "Seleccioná únicamente habilidades disponibles.";
+    }
+    return null;
+  }
+
+  private boolean faltanDatosCandidato(DatosRegistroCandidato datos) {
+    return (
+      campoVacio(datos.getNombre()) ||
+      campoVacio(datos.getApellido()) ||
+      campoVacio(datos.getEmail()) ||
+      campoVacio(datos.getPassword()) ||
+      campoVacio(datos.getConfirmarPassword())
+    );
   }
 
   @RequestMapping(path = "/validar-login", method = RequestMethod.POST)

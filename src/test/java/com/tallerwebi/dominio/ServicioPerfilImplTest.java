@@ -55,10 +55,14 @@ class ServicioPerfilImplTest {
       repositorioPerfil
     );
     PerfilPostulante datos = new PerfilPostulante();
+    datos.setNombre("Ana");
+    datos.setApellido("Pérez");
     datos.setSkillIds(List.of(1L));
 
     servicio.guardarPerfil(5L, datos);
 
+    assertThat(usuario.getNombre(), org.hamcrest.Matchers.is("Ana"));
+    assertThat(usuario.getApellido(), org.hamcrest.Matchers.is("Pérez"));
     assertThat(usuario.getHabilidades(), containsInAnyOrder("Java"));
     verify(repositorioUsuario).modificar(usuario);
     verify(repositorioPerfil).guardarSkill(any(PostulanteSkill.class));
@@ -101,5 +105,24 @@ class ServicioPerfilImplTest {
     List<String> resultado = servicio.obtenerHabilidades(5L);
 
     assertThat(resultado, containsInAnyOrder("Java", "Docker"));
+  }
+
+  @Test
+  void eliminarFotoPerfilBorraLosDatosDeLaFotoDelUsuario() {
+    RepositorioUsuario repositorioUsuario = mock(RepositorioUsuario.class);
+    Usuario usuario = new Usuario();
+    usuario.setFotoPerfil(new byte[] { 1, 2, 3 });
+    usuario.setFotoPerfilTipo("image/png");
+    when(repositorioUsuario.buscarPorId(5L)).thenReturn(usuario);
+    ServicioPerfilImpl servicio = new ServicioPerfilImpl(
+      repositorioUsuario,
+      mock(RepositorioSkill.class),
+      mock(RepositorioPerfilPostulante.class)
+    );
+
+    servicio.eliminarFotoPerfil(5L);
+
+    assertThat(usuario.tieneFotoPerfil(), org.hamcrest.Matchers.is(false));
+    assertThat(usuario.getFotoPerfilTipo(), org.hamcrest.Matchers.nullValue());
   }
 }

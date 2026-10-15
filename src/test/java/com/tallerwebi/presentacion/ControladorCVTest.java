@@ -129,6 +129,25 @@ class ControladorCVTest {
   }
 
   @Test
+  void eliminaElOriginalYRedirigeAlPerfil() {
+    ModelAndView respuesta = controladorCV.eliminarOriginal(
+      session,
+      new RedirectAttributesModelMap()
+    );
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/perfil"));
+    verify(servicioCurriculum).eliminarOriginal(1L);
+  }
+
+  @Test
+  void eliminaElAtsYRedirigeAlPerfil() {
+    ModelAndView respuesta = controladorCV.eliminarAts(session, new RedirectAttributesModelMap());
+
+    assertThat(respuesta.getViewName(), equalTo("redirect:/perfil"));
+    verify(servicioCurriculum).eliminarAts(1L);
+  }
+
+  @Test
   void descargaYVisualizacionDevuelvenElPdfAtsSinLimite() {
     CurriculumGenerado cv = new CurriculumGenerado();
     cv.setArchivoAtsPdf(new byte[] { 37, 80, 68, 70, 45 });

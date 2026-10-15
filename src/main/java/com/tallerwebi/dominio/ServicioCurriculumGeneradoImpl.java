@@ -45,28 +45,46 @@ public class ServicioCurriculumGeneradoImpl implements ServicioCurriculumGenerad
     throws IOException {
     validarTamanioArchivo(archivo);
     Usuario usuario = obtenerPostulanteParaActualizar(usuarioId);
-    verificarGeneracionDisponible(usuarioId);
     validarArchivo(nombreArchivo, archivo);
     String textoOriginal = extraerTexto(archivo);
-    return guardarOriginal(usuario, nombreArchivo, archivo, textoOriginal);
+    CurriculumGenerado curriculum = repositorioCurriculum.buscarPorUsuarioIdParaActualizar(
+      usuarioId
+    );
+    return guardarOriginal(usuario, curriculum, nombreArchivo, archivo, textoOriginal);
   }
 
   @Override
   public CurriculumGenerado generarAts(Long usuarioId) {
     Usuario usuario = obtenerPostulanteParaActualizar(usuarioId);
+    CurriculumGenerado curriculum = obtenerCurriculumParaGenerarAts(usuarioId);
+    validarAtsDisponible(curriculum);
+    return guardarAts(usuarioId, usuario, curriculum);
+  }
+
+  private CurriculumGenerado obtenerCurriculumParaGenerarAts(Long usuarioId) {
     CurriculumGenerado curriculum = repositorioCurriculum.buscarPorUsuarioIdParaActualizar(
       usuarioId
     );
     if (curriculum == null) {
       throw new IllegalArgumentException("Primero tenés que subir tu CV original.");
     }
-    if (curriculum.getContenidoAts() != null) {
-      if (curriculum.getArchivoAtsPdf() == null) {
-        curriculum.setArchivoAtsPdf(crearPdfAts(curriculum.getContenidoAts()));
-        return repositorioCurriculum.guardar(curriculum);
-      }
+    return curriculum;
+  }
+
+  private void validarAtsDisponible(CurriculumGenerado curriculum) {
+    if (curriculum.isAtsGratisUsado() || curriculum.getContenidoAts() != null) {
       throw new CurriculumGratisYaGeneradoException();
     }
+    if (curriculum.getTextoOriginal() == null) {
+      throw new IllegalArgumentException("Primero tenés que subir un CV original nuevo.");
+    }
+  }
+
+  private CurriculumGenerado guardarAts(
+    Long usuarioId,
+    Usuario usuario,
+    CurriculumGenerado curriculum
+  ) {
     String contenidoAts = servicioIA.generarCvAts(
       curriculum.getTextoOriginal(),
       obtenerHabilidades(usuarioId, usuario)
@@ -76,12 +94,45 @@ public class ServicioCurriculumGeneradoImpl implements ServicioCurriculumGenerad
     }
     curriculum.setContenidoAts(contenidoAts);
     curriculum.setArchivoAtsPdf(crearPdfAts(contenidoAts));
+    curriculum.setAtsGratisUsado(true);
     return repositorioCurriculum.guardar(curriculum);
   }
 
   @Override
   public CurriculumGenerado obtener(Long usuarioId) {
     return repositorioCurriculum.buscarPorUsuarioId(usuarioId);
+  }
+
+  @Override
+  public void eliminarOriginal(Long usuarioId) {
+    obtenerPostulanteParaActualizar(usuarioId);
+    CurriculumGenerado curriculum = obtenerCurriculumParaActualizar(usuarioId);
+    if (curriculum.getArchivoOriginal() == null) {
+      throw new IllegalArgumentException("No hay un CV original para eliminar.");
+    }
+    curriculum.eliminarOriginal();
+    repositorioCurriculum.guardar(curriculum);
+  }
+
+  @Override
+  public void eliminarAts(Long usuarioId) {
+    obtenerPostulanteParaActualizar(usuarioId);
+    CurriculumGenerado curriculum = obtenerCurriculumParaActualizar(usuarioId);
+    if (curriculum.getArchivoAtsPdf() == null) {
+      throw new IllegalArgumentException("No hay un CV ATS para eliminar.");
+    }
+    curriculum.eliminarAts();
+    repositorioCurriculum.guardar(curriculum);
+  }
+
+  private CurriculumGenerado obtenerCurriculumParaActualizar(Long usuarioId) {
+    CurriculumGenerado curriculum = repositorioCurriculum.buscarPorUsuarioIdParaActualizar(
+      usuarioId
+    );
+    if (curriculum == null) {
+      throw new IllegalArgumentException("No hay un CV guardado para esta cuenta.");
+    }
+    return curriculum;
   }
 
   private String obtenerHabilidades(Long usuarioId, Usuario usuario) {
@@ -121,12 +172,6 @@ public class ServicioCurriculumGeneradoImpl implements ServicioCurriculumGenerad
     return usuario;
   }
 
-  private void verificarGeneracionDisponible(Long usuarioId) {
-    if (repositorioCurriculum.buscarPorUsuarioId(usuarioId) != null) {
-      throw new IllegalStateException("Ya existe un CV original guardado en esta cuenta.");
-    }
-  }
-
   private void validarArchivo(String nombreArchivo, byte[] archivo) throws IOException {
     if (!servicioCV.esArchivoValido(nombreArchivo, archivo)) {
       throw new ArchivoCvInvalidoException();
@@ -143,18 +188,26 @@ public class ServicioCurriculumGeneradoImpl implements ServicioCurriculumGenerad
 
   private CurriculumGenerado guardarOriginal(
     Usuario usuario,
+    CurriculumGenerado curriculum,
     String nombreArchivo,
     byte[] archivo,
     String textoOriginal
   ) {
+    CurriculumGenerado curriculumActualizado = curriculum == null
+      ? crearCurriculum(usuario)
+      : curriculum;
+    curriculumActualizado.setNombreArchivoOriginal(nombreSeguro(nombreArchivo));
+    curriculumActualizado.setArchivoOriginal(archivo);
+    curriculumActualizado.setTextoOriginal(textoOriginal);
+    curriculumActualizado.setGeneradoEn(LocalDateTime.now());
+    return repositorioCurriculum.guardar(curriculumActualizado);
+  }
+
+  private CurriculumGenerado crearCurriculum(Usuario usuario) {
     CurriculumGenerado curriculum = new CurriculumGenerado();
     curriculum.setUsuario(usuario);
-    curriculum.setNombreArchivoOriginal(nombreSeguro(nombreArchivo));
-    curriculum.setArchivoOriginal(archivo);
-    curriculum.setTextoOriginal(textoOriginal);
-    curriculum.setGeneradoEn(LocalDateTime.now());
     curriculum.setDescargaUsada(false);
-    return repositorioCurriculum.guardar(curriculum);
+    return curriculum;
   }
 
   private boolean esPostulante(String rol) {

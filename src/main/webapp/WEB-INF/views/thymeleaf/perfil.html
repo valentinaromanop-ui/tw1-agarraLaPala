@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/vacantes.css}">
   <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" th:href="@{/css/perfil.css}">
 </head>
 <body class="vacantes-page profile-page">
   <nav th:replace="~{fragments/navbar :: appNavbar('profile', false, false)}"></nav>
@@ -16,17 +17,62 @@
       <a class="btn btn-outline-light page-back" th:href="@{/home}">
         <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio
       </a>
-      <a class="btn btn-outline-light page-back" th:href="@{/vacantes/recomendadas}">
-        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a vacantes
-      </a>
+<!--      <a class="btn btn-outline-light page-back" th:href="@{/vacantes/recomendadas}">-->
+<!--        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a vacantes-->
+<!--      </a>-->
     </div>
+    <h1>Mi perfil</h1>
     <div class="profile-heading">
       <span class="avatar-wrapper">
-        <img th:src="@{/img/UserLogo.png}" alt="Avatar de perfil" class="profile-avatar" th:classappend="${premiumHasta != null} ? ' premium-avatar' : ''">
+        <img th:src="${tieneFotoPerfil} ? @{/perfil/foto} : @{/img/UserLogo.png}" alt="Avatar de perfil" class="profile-avatar" th:classappend="${premiumHasta != null} ? ' premium-avatar' : ''">
+        <details class="avatar-actions">
+          <summary class="avatar-edit" aria-label="Opciones de foto de perfil" title="Opciones de foto de perfil">
+         <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+          </summary>
+          <div class="avatar-menu">
+            <form th:action="@{/perfil/foto}" method="post" enctype="multipart/form-data">
+              <label class="avatar-menu-item" for="foto-perfil" th:text="${tieneFotoPerfil} ? 'Cambiar foto' : 'Agregar foto'">Agregar foto</label>
+              <input class="visually-hidden" id="foto-perfil" type="file" name="foto"
+                     accept="image/jpeg,image/png" required
+                     onchange="this.form.submit()">
+            </form>
+            <form th:if="${tieneFotoPerfil}" th:action="@{/perfil/foto/eliminar}" method="post">
+              <button class="avatar-menu-item" type="submit">Eliminar foto</button>
+            </form>
+
+          </div>
+        </details>
       </span>
-      <h1>Mi perfil</h1>
+      <h2 class="profile-name-display" th:hidden="${editarPerfil}" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Apellido</h2>
+      <div class="profile-name-fields">
+        <input
+          id="nombre"
+          class="form-control"
+          type="text"
+          name="nombre"
+          form="perfil-form"
+          placeholder="Nombre"
+          autocomplete="given-name"
+          th:value="${perfil.nombre}"
+          th:hidden="${!editarPerfil}"
+          th:disabled="${!editarPerfil}"
+          required
+        >
+        <input
+          id="apellido"
+          class="form-control"
+          type="text"
+          name="apellido"
+          form="perfil-form"
+          placeholder="Apellido"
+          autocomplete="family-name"
+          th:value="${perfil.apellido}"
+          th:hidden="${!editarPerfil}"
+          th:disabled="${!editarPerfil}"
+          required
+        >
+      </div>
     </div>
-    <p>Completá tus datos para recibir oportunidades más relevantes.</p>
     <section class="profile-section">
       <h2 class="h5">Plan Premium</h2>
       <p th:if="${premiumHasta == null}">Accedé a beneficios exclusivos para tu búsqueda.</p>
@@ -43,56 +89,91 @@
     <p th:if="${errorCV != null}" th:text="${errorCV}" class="alert alert-danger" role="alert"></p>
 
     <section class="profile-section" aria-labelledby="cv-generado-titulo">
-      <h2 class="h5" id="cv-generado-titulo">Mis documentos CV</h2>
-      <div th:if="${curriculumGenerado == null}">
-        <p>Todavía no subiste tu CV. El original se guarda aquí y después podés pedir la versión ATS.</p>
+      <h2 class="h5" id="cv-generado-titulo">Mis currículums</h2>
+      <div th:if="${curriculumGenerado == null or curriculumGenerado.nombreArchivoOriginal == null}">
+        <p>No hay un CV original cargado. Subilo para guardarlo y generar una versión ATS.</p>
         <form th:action="@{/cv/subir}" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
           <label class="form-label" for="cv-perfil">Seleccioná tu CV original (PDF, DOC o DOCX)</label>
           <input class="form-control mb-3" id="cv-perfil" name="archivo" type="file" accept=".pdf,.doc,.docx" required>
           <button class="btn btn-outline-primary" type="submit">Guardar CV original</button>
         </form>
       </div>
-      <div th:if="${curriculumGenerado != null}">
-        <div class="cv-document-card">
-          <h3 class="h5">CV original</h3>
-          <p class="text-muted" th:text="${curriculumGenerado.nombreArchivoOriginal}">archivo.pdf</p>
-          <iframe
-            th:if="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
-            class="cv-document-preview"
-            th:src="@{/cv/original/ver}"
-            title="Vista previa del CV original"
-          ></iframe>
-          <details
-            th:unless="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
-            class="mb-3"
-          >
-            <summary>Vista previa del contenido del documento original</summary>
-            <pre class="cv-ats-content" th:text="${curriculumGenerado.textoOriginal}"></pre>
-          </details>
-          <a class="btn btn-outline-primary" th:href="@{/cv/original/descargar}">Descargar original</a>
-        </div>
-
-        <div class="cv-document-card mt-4">
-          <h3 class="h5">CV optimizado para ATS</h3>
-          <div th:if="${curriculumGenerado.archivoAtsPdf == null}">
-            <p>El original ya está guardado. Generá una única versión ATS con IA; después podrás visualizarla y descargarla todas las veces que quieras.</p>
-            <form th:action="@{/cv/ats/generar}" method="post">
-              <button class="btn btn-primary" type="submit">Mejorar mi CV con IA</button>
+      <form th:if="${curriculumGenerado != null and curriculumGenerado.nombreArchivoOriginal != null}"
+            th:action="@{/cv/subir}" method="post" enctype="multipart/form-data" class="mb-3">
+        <label class="form-label" for="cv-reemplazo">Subir un CV nuevo (reemplaza el original)</label>
+        <input class="form-control mb-2" id="cv-reemplazo" name="archivo" type="file" accept=".pdf,.doc,.docx" required>
+        <button class="btn btn-outline-primary" type="submit">Guardar CV nuevo</button>
+      </form>
+      <p class="alert alert-info" th:if="${curriculumGenerado != null and curriculumGenerado.atsGratisUsado}">
+        Ya usaste tu CV ATS gratis. Contratá Premium para hacer más.
+        <a th:href="@{/premium/pagar}">Contratar Premium</a>
+      </p>
+      <details class="cv-folder" th:if="${curriculumGenerado != null}">
+        <summary class="cv-folder-summary">
+          <i class="bi bi-folder2-open" aria-hidden="true"></i>
+          <span>Mis currículums</span>
+          <i class="bi bi-chevron-down cv-folder-chevron" aria-hidden="true"></i>
+        </summary>
+        <div class="cajaCvs">
+          <div class="cv-entry" th:if="${curriculumGenerado.nombreArchivoOriginal != null}">
+            <a class="cv-card-link"
+               th:if="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
+               th:href="@{/cv/original/ver}">
+              <div class="cv-thumb">
+                <iframe th:src="@{/cv/original/ver} + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH'"
+                        tabindex="-1" loading="lazy" scrolling="no" title="Vista previa del CV original"></iframe>
+              </div>
+              <span>CV original</span>
+              <small th:text="${curriculumGenerado.nombreArchivoOriginal}">archivo.pdf</small>
+            </a>
+            <a class="cv-card-link"
+               th:unless="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
+               th:href="@{/cv/original/descargar}">
+              <i class="bi bi-file-earmark-word" aria-hidden="true"></i>
+              <span>CV original</span>
+              <small th:text="${curriculumGenerado.nombreArchivoOriginal}">archivo.docx</small>
+            </a>
+            <form th:action="@{/cv/original/eliminar}" method="post"
+                  onsubmit="return confirm('¿Eliminar el CV original? El CV ATS se conservará.');">
+              <button class="btn btn-outline-danger btn-sm" type="submit">Eliminar original</button>
             </form>
           </div>
-          <div th:if="${curriculumGenerado.archivoAtsPdf != null}">
-            <iframe
-              class="cv-document-preview"
-              th:src="@{/cv/ats/ver}"
-              title="Vista previa del CV optimizado para ATS"
-            ></iframe>
-            <a class="btn btn-primary" th:href="@{/cv/ats/descargar}">Descargar CV ATS</a>
+          <div class="cv-entry" th:if="${curriculumGenerado.archivoAtsPdf != null}">
+            <a class="cv-card-link" th:href="@{/cv/ats/ver}">
+              <div class="cv-thumb">
+                <iframe th:src="@{/cv/ats/ver} + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH'"
+                        tabindex="-1" loading="lazy" scrolling="no" title="Vista previa del CV ATS"></iframe>
+              </div>
+              <span>CV optimizado para ATS</span>
+              <small>PDF</small>
+            </a>
+            <form th:action="@{/cv/ats/eliminar}" method="post"
+                  onsubmit="return confirm('¿Eliminar el CV ATS? No se restablecerá la generación gratuita.');">
+              <button class="btn btn-outline-danger btn-sm" type="submit">Eliminar CV ATS</button>
+            </form>
+          </div>
+          <div class="cv-item cv-generate-card"
+               th:if="${curriculumGenerado.nombreArchivoOriginal != null and curriculumGenerado.archivoAtsPdf == null and !curriculumGenerado.atsGratisUsado}">
+            <i class="bi bi-file-earmark-plus" aria-hidden="true"></i>
+            <span>Versión optimizada</span>
+            <form th:action="@{/cv/ats/generar}" method="post">
+              <button class="btn btn-primary" type="submit">Generar CV ATS</button>
+            </form>
           </div>
         </div>
-      </div>
+      </details>
     </section>
 
-    <form th:action="@{/perfil/guardar}" th:object="${perfil}" method="post" accept-charset="UTF-8">
+    <form id="perfil-form" th:action="@{/perfil/guardar}" th:object="${perfil}" method="post" accept-charset="UTF-8" th:attr="data-editable=${editarPerfil}">
+      <section class="profile-section">
+        <h2 class="h5">Presentación</h2>
+        <label class="form-label mt-3" for="presentacion">Contanos brevemente sobre vos</label>
+        <textarea class="form-control" id="presentacion" th:field="*{presentacion}" rows="4" maxlength="500"></textarea>
+        <label class="form-label" for="linkedin">LinkedIn (opcional)</label>
+        <input class="form-control" id="linkedin" th:field="*{linkedin}" type="url">
+        <label class="form-label mt-3" for="github">GitHub (opcional)</label>
+        <input class="form-control" id="github" th:field="*{github}" type="url">
+      </section>
       <section class="profile-section">
         <h2 class="h5">Datos de contacto</h2>
         <label class="form-label" for="telefono">Teléfono</label>
@@ -172,17 +253,18 @@
         </fieldset>
       </section>
 
-      <section class="profile-section">
-        <h2 class="h5">Presentación</h2>
-        <label class="form-label" for="linkedin">LinkedIn (opcional)</label>
-        <input class="form-control" id="linkedin" th:field="*{linkedin}" type="url">
-        <label class="form-label mt-3" for="github">GitHub (opcional)</label>
-        <input class="form-control" id="github" th:field="*{github}" type="url">
-        <label class="form-label mt-3" for="presentacion">Contanos brevemente sobre vos</label>
-        <textarea class="form-control" id="presentacion" th:field="*{presentacion}" rows="4" maxlength="500"></textarea>
-      </section>
+<!--      <section class="profile-section">-->
+<!--        <h2 class="h5">Presentación</h2>-->
+<!--        <label class="form-label" for="linkedin">LinkedIn (opcional)</label>-->
+<!--        <input class="form-control" id="linkedin" th:field="*{linkedin}" type="url">-->
+<!--        <label class="form-label mt-3" for="github">GitHub (opcional)</label>-->
+<!--        <input class="form-control" id="github" th:field="*{github}" type="url">-->
+<!--&lt;!&ndash;        <label class="form-label mt-3" for="presentacion">Contanos brevemente sobre vos</label>&ndash;&gt;-->
+<!--&lt;!&ndash;        <textarea class="form-control" id="presentacion" th:field="*{presentacion}" rows="4" maxlength="500"></textarea>&ndash;&gt;-->
+<!--      </section>-->
 
-      <button class="btn btn-primary" type="submit">Guardar perfil</button>
+      <button id="editar-perfil" class="btn btn-outline-primary" type="button" th:hidden="${editarPerfil}">Editar perfil</button>
+      <button id="guardar-perfil" class="btn btn-primary" type="submit" th:hidden="${!editarPerfil}">Guardar perfil</button>
     </form>
   </main>
   <script th:src="@{/js/perfil.js}"></script>

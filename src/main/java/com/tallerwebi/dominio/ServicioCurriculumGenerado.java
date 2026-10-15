@@ -7,4 +7,6 @@ public interface ServicioCurriculumGenerado {
     throws IOException;
   CurriculumGenerado generarAts(Long usuarioId);
   CurriculumGenerado obtener(Long usuarioId);
+  void eliminarOriginal(Long usuarioId);
+  void eliminarAts(Long usuarioId);
 }

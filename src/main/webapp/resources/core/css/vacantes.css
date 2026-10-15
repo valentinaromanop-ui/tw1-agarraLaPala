@@ -63,6 +63,10 @@ body.vacantes-page {
   padding-bottom: 4rem !important;
 }
 
+.premium-page main.container {
+  padding-top: 8rem !important;
+}
+
 .vacantes-page main.container > a {
   display: inline-block;
   margin-bottom: 2.5rem;
@@ -496,7 +500,7 @@ body.vacantes-page {
 
 .profile-page .cv-document-preview {
   display: block;
-  width: 100%;
+  width: 50%;
   height: 32rem;
   margin: 1rem 0;
   border: 1px solid var(--vacantes-border);

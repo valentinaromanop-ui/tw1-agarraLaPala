@@ -32,6 +32,12 @@ public class PerfilPostulante {
   @JoinColumn(name = "usuario_id", nullable = false, unique = true)
   private Usuario usuario;
 
+  @Transient
+  private String nombre;
+
+  @Transient
+  private String apellido;
+
   private String telefono;
   private String ubicacion;
   private String nivelExperiencia;
@@ -87,6 +93,22 @@ public class PerfilPostulante {
 
   public void setUsuario(Usuario usuario) {
     this.usuario = usuario;
+  }
+
+  public String getNombre() {
+    return nombre;
+  }
+
+  public void setNombre(String nombre) {
+    this.nombre = nombre;
+  }
+
+  public String getApellido() {
+    return apellido;
+  }
+
+  public void setApellido(String apellido) {
+    this.apellido = apellido;
   }
 
   public String getTelefono() {

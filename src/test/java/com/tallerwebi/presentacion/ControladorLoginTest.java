@@ -220,6 +220,8 @@ public class ControladorLoginTest {
   @Test
   public void registroCandidatoConDatosValidosDeberiaRedirigirAlLogin() throws Exception {
     DatosRegistroCandidato datos = new DatosRegistroCandidato();
+    datos.setNombre("Ana");
+    datos.setApellido("Pérez");
     datos.setEmail("persona@example.com");
     datos.setPassword("secreto");
     datos.setConfirmarPassword("secreto");
@@ -232,6 +234,8 @@ public class ControladorLoginTest {
       .registrar(
         argThat(usuario ->
           usuario.getRol().equals("CANDIDATO") &&
+          usuario.getNombre().equals("Ana") &&
+          usuario.getApellido().equals("Pérez") &&
           usuario.getHabilidades().equals(java.util.List.of("Java", "SQL"))
         )
       );
@@ -255,6 +259,8 @@ public class ControladorLoginTest {
   @Test
   public void registroCandidatoConCorreoExistenteDeberiaMostrarError() throws Exception {
     DatosRegistroCandidato datos = new DatosRegistroCandidato();
+    datos.setNombre("Ana");
+    datos.setApellido("Pérez");
     datos.setEmail("persona@example.com");
     datos.setPassword("secreto");
     datos.setConfirmarPassword("secreto");
@@ -276,6 +282,8 @@ public class ControladorLoginTest {
   @Test
   public void registroCandidatoConContrasenasDistintasDeberiaMostrarError() {
     DatosRegistroCandidato datos = new DatosRegistroCandidato();
+    datos.setNombre("Ana");
+    datos.setApellido("Pérez");
     datos.setEmail("persona@example.com");
     datos.setPassword("secreto");
     datos.setConfirmarPassword("otro-secreto");

@@ -8,6 +8,31 @@ const botonesIdiomas = document.querySelectorAll(".language-button");
 const idiomasSeleccionados = document.getElementById("idiomas-seleccionados");
 const telefono = document.getElementById("telefono");
 const todosLosDias = document.getElementById("todos-los-dias");
+const formularioPerfil = document.getElementById("perfil-form");
+const botonEditarPerfil = document.getElementById("editar-perfil");
+const botonGuardarPerfil = document.getElementById("guardar-perfil");
+
+function establecerEdicionPerfil(editar) {
+  const controlesPerfil = [
+    ...formularioPerfil.querySelectorAll("input:not([type='hidden']), select, textarea, button"),
+    ...document.querySelectorAll("[form='perfil-form']"),
+  ];
+  controlesPerfil.forEach((control) => {
+    if (control !== botonEditarPerfil && control !== botonGuardarPerfil) {
+      control.disabled = !editar;
+    }
+  });
+  document.querySelector(".profile-name-display").hidden = editar;
+  document.querySelectorAll(".profile-name-fields input").forEach((control) => {
+    control.hidden = !editar;
+    control.disabled = !editar;
+  });
+  botonEditarPerfil.hidden = editar;
+  botonGuardarPerfil.hidden = !editar;
+}
+
+establecerEdicionPerfil(formularioPerfil.dataset.editable === "true");
+botonEditarPerfil.addEventListener("click", () => establecerEdicionPerfil(true));
 
 function actualizarSkillsOcultas() {
   skillsSeleccionadas.innerHTML = "";

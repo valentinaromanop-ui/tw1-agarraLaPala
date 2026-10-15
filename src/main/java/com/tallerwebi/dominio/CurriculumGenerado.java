@@ -25,11 +25,11 @@ public class CurriculumGenerado {
   @JoinColumn(name = "usuario_id", nullable = false, unique = true)
   private Usuario usuario;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String nombreArchivoOriginal;
 
   @Lob
-  @Column(nullable = false)
+  @Column(nullable = true)
   private byte[] archivoOriginal;
 
   @Lob
@@ -37,7 +37,7 @@ public class CurriculumGenerado {
   private byte[] archivoAtsPdf;
 
   @Lob
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String textoOriginal;
 
   @Lob
@@ -49,6 +49,9 @@ public class CurriculumGenerado {
 
   @Column(nullable = false)
   private boolean descargaUsada;
+
+  @Column(nullable = false)
+  private boolean atsGratisUsado;
 
   public Long getId() {
     return id;
@@ -78,12 +81,25 @@ public class CurriculumGenerado {
     this.archivoOriginal = Objects.requireNonNull(archivoOriginal).clone();
   }
 
+  @SuppressWarnings("PMD.NullAssignment")
+  public void eliminarOriginal() {
+    nombreArchivoOriginal = null;
+    archivoOriginal = null;
+    textoOriginal = null;
+  }
+
   public byte[] getArchivoAtsPdf() {
     return archivoAtsPdf == null ? null : archivoAtsPdf.clone();
   }
 
   public void setArchivoAtsPdf(byte[] archivoAtsPdf) {
     this.archivoAtsPdf = Objects.requireNonNull(archivoAtsPdf).clone();
+  }
+
+  @SuppressWarnings("PMD.NullAssignment")
+  public void eliminarAts() {
+    archivoAtsPdf = null;
+    contenidoAts = null;
   }
 
   public String getTextoOriginal() {
@@ -116,5 +132,13 @@ public class CurriculumGenerado {
 
   public void setDescargaUsada(boolean descargaUsada) {
     this.descargaUsada = descargaUsada;
+  }
+
+  public boolean isAtsGratisUsado() {
+    return atsGratisUsado;
+  }
+
+  public void setAtsGratisUsado(boolean atsGratisUsado) {
+    this.atsGratisUsado = atsGratisUsado;
   }
 }

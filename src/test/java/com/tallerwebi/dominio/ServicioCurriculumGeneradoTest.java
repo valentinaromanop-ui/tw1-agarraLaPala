@@ -46,7 +46,7 @@ class ServicioCurriculumGeneradoTest {
   @Test
   void guardaElOriginalSinLlamarALaIa() throws Exception {
     when(repositorioUsuario.buscarPorIdParaActualizar(7L)).thenReturn(postulante());
-    when(repositorioCurriculum.buscarPorUsuarioId(7L)).thenReturn(null);
+    when(repositorioCurriculum.buscarPorUsuarioIdParaActualizar(7L)).thenReturn(null);
     when(servicioCV.esArchivoValido("original.pdf", new byte[] { 1 })).thenReturn(true);
     when(servicioCV.extraerTexto(new byte[] { 1 })).thenReturn("Experiencia original");
     when(repositorioCurriculum.guardar(any(CurriculumGenerado.class)))
@@ -94,15 +94,58 @@ class ServicioCurriculumGeneradoTest {
   }
 
   @Test
-  void noPermiteSubirMasDeUnCvOriginal() throws Exception {
+  void permiteReemplazarOriginalConservandoElAts() throws Exception {
+    CurriculumGenerado existente = new CurriculumGenerado();
+    existente.setContenidoAts("ATS existente");
+    existente.setArchivoAtsPdf(new byte[] { 37, 80, 68, 70 });
     when(repositorioUsuario.buscarPorIdParaActualizar(7L)).thenReturn(postulante());
-    when(repositorioCurriculum.buscarPorUsuarioId(7L)).thenReturn(new CurriculumGenerado());
+    when(repositorioCurriculum.buscarPorUsuarioIdParaActualizar(7L)).thenReturn(existente);
+    when(servicioCV.esArchivoValido("nuevo.pdf", new byte[] { 2 })).thenReturn(true);
+    when(servicioCV.extraerTexto(new byte[] { 2 })).thenReturn("Nuevo contenido");
+    when(repositorioCurriculum.guardar(existente)).thenReturn(existente);
 
-    assertThrows(
-      IllegalStateException.class,
-      () -> servicio.subirOriginal(7L, "original.pdf", new byte[] { 1 })
-    );
-    verify(servicioCV, never()).esArchivoValido(anyString(), any(byte[].class));
+    CurriculumGenerado actualizado = servicio.subirOriginal(7L, "nuevo.pdf", new byte[] { 2 });
+
+    assertThat(actualizado.getNombreArchivoOriginal(), equalTo("nuevo.pdf"));
+    assertThat(actualizado.getArchivoOriginal(), equalTo(new byte[] { 2 }));
+    assertThat(actualizado.getContenidoAts(), equalTo("ATS existente"));
+    assertThat(actualizado.getArchivoAtsPdf(), equalTo(new byte[] { 37, 80, 68, 70 }));
+  }
+
+  @Test
+  void eliminaOriginalSinBorrarAts() {
+    CurriculumGenerado cv = new CurriculumGenerado();
+    cv.setNombreArchivoOriginal("original.pdf");
+    cv.setArchivoOriginal(new byte[] { 1 });
+    cv.setTextoOriginal("Original");
+    cv.setContenidoAts("ATS");
+    cv.setArchivoAtsPdf(new byte[] { 37, 80, 68, 70 });
+    when(repositorioUsuario.buscarPorIdParaActualizar(7L)).thenReturn(postulante());
+    when(repositorioCurriculum.buscarPorUsuarioIdParaActualizar(7L)).thenReturn(cv);
+    when(repositorioCurriculum.guardar(cv)).thenReturn(cv);
+
+    servicio.eliminarOriginal(7L);
+
+    assertThat(cv.getArchivoOriginal(), equalTo(null));
+    assertThat(cv.getNombreArchivoOriginal(), equalTo(null));
+    assertThat(cv.getArchivoAtsPdf(), equalTo(new byte[] { 37, 80, 68, 70 }));
+  }
+
+  @Test
+  void eliminarAtsConservaLaMarcaDeUsoGratis() {
+    CurriculumGenerado cv = new CurriculumGenerado();
+    cv.setArchivoAtsPdf(new byte[] { 37, 80, 68, 70 });
+    cv.setContenidoAts("ATS");
+    cv.setAtsGratisUsado(true);
+    when(repositorioUsuario.buscarPorIdParaActualizar(7L)).thenReturn(postulante());
+    when(repositorioCurriculum.buscarPorUsuarioIdParaActualizar(7L)).thenReturn(cv);
+    when(repositorioCurriculum.guardar(cv)).thenReturn(cv);
+
+    servicio.eliminarAts(7L);
+
+    assertThat(cv.getArchivoAtsPdf(), equalTo(null));
+    assertThat(cv.getContenidoAts(), equalTo(null));
+    assertThat(cv.isAtsGratisUsado(), equalTo(true));
   }
 
   private Usuario postulante() {
