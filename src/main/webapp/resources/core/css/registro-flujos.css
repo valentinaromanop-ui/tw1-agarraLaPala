@@ -46,14 +46,11 @@
 }
 
 .skill-checkbox {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: 0 !important;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
+  width: 1rem;
+  height: 1rem;
+  margin: 0 0.4rem 0 0;
+  accent-color: #282dc7;
+  vertical-align: middle;
 }
 
 .skill-chip span {
@@ -71,8 +68,9 @@
 
 .skill-checkbox:checked + span {
   border-color: #686ce3;
-  color: var(--highlight);
-  background-color: var(--accent);
+  color: #ffffff;
+  background-color: #282dc7;
+  font-weight: 700;
 }
 
 .skill-checkbox:focus-visible + span {
