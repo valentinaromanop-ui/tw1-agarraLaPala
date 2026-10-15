@@ -53,6 +53,20 @@ docker run --env-file .env --name tallerwebi-mysql -d -p 3306:3306 mysql
 $ mvn clean jetty:run
 # http://localhost:8080/spring
 ```
+
+### Datos de prueba
+
+Al iniciar la aplicación, Hibernate crea o actualiza las tablas mapeadas (`hibernate.hbm2ddl.auto=update`) y luego se ejecutan [`schema-update.sql`](src/main/resources/schema-update.sql) y [`data.sql`](src/main/resources/data.sql).
+Esto incluye la tabla `EmpleoGuardado`, que se genera desde su entidad JPA, y datos mínimos para probar postulaciones y empleos guardados:
+
+| Usuario | Rol | Contraseña |
+| --- | --- | --- |
+| `candidato@unlam.edu.ar` | `CANDIDATO` | `test` |
+| `empleador@unlam.edu.ar` | `EMPLEADOR` | `test` |
+| `test@unlam.edu.ar` | `ADMIN` | `test` |
+
+Los scripts son idempotentes para los datos de prueba y no requieren tablas ni registros creados manualmente en una base local.
+
 ## 2. Thymeleaf
 * [Documentación](https://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html)
 

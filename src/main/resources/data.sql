@@ -1,6 +1,12 @@
 INSERT INTO Usuario(id, email, password, rol, activo) VALUES(null, 'test@unlam.edu.ar', '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', 'ADMIN', true)
 ON DUPLICATE KEY UPDATE password = IF(password = 'test', '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', password);
 
+-- La contraseña de los usuarios de prueba es: test
+INSERT IGNORE INTO Usuario(email, password, rol, activo)
+VALUES
+  ('candidato@unlam.edu.ar', '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', 'CANDIDATO', true),
+  ('empleador@unlam.edu.ar', '$2a$10$PKlkiiDQ/H1KbxoNatbSUOcyPndlBhdCorjLYinWOHzRgZmrABu9.', 'EMPLEADOR', true);
+
 INSERT INTO Skill (id, nombre) VALUES (1, 'java'), (2, 'sql'), (3, 'php'), (4, 'python')
 ON DUPLICATE KEY UPDATE id = id;
 INSERT INTO Skill (id, nombre) VALUES
@@ -21,6 +27,11 @@ INSERT INTO Vacante (id, titulo, empresa, descripcion, ubicacion, modalidad, fec
 ON DUPLICATE KEY UPDATE id = id;
 UPDATE Vacante SET seniority = 'junior', jornada = 'full-time', salario = 1500, moneda = 'USD' WHERE id = 1;
 UPDATE Vacante SET seniority = 'mid-level', jornada = 'part-time', salario = 900000, moneda = 'ARS' WHERE id = 2;
+UPDATE Vacante
+SET empleador_id = (
+  SELECT id FROM Usuario WHERE email = 'empleador@unlam.edu.ar'
+)
+WHERE id IN (1, 2, 3, 4) AND empleador_id IS NULL;
 
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (1, 1) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (1, 2) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;
