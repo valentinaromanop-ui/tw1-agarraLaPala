@@ -15,25 +15,7 @@
 </head>
 
 <body>
-  <nav th:replace="~{fragments/navbar :: appNavbar('jobs', false)}">
-    <div class="container navbar-container justify-content-between">
-      <a class="navbar-brand" th:href="@{/home}">
-        <img th:src="@{/img/HormigaLogo.png}" alt="" id="Logo-ant">
-        <span>Agarra la Pala</span>
-      </a>
-      <a class="vacantes-home-link text-action" th:href="@{/home}">
-        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio
-      </a>
-      <div class="vacantes-header-actions">
-        <a th:href="@{/premium/pagar}" class="premium-button">
-          <i class="bi bi-star-fill" aria-hidden="true"></i>
-          <span th:if="${premiumHasta == null}">Hacete Premium</span>
-          <span th:if="${premiumHasta != null}">Premium activo</span>
-        </a>
-        <a th:href="@{/perfil}" class="btn btn-primary profile-button">Mi perfil</a>
-      </div>
-    </div>
-  </nav>
+  <nav th:replace="~{fragments/navbar :: appNavbar('vacantes', false, true)}"></nav>
 
   <main class="container page-container search-results-page recommended-page">
     <header class="search-results-heading">
@@ -103,7 +85,18 @@
       </p>
 
       <div class="offers-grid">
-        <article th:each="vacante : ${vacantes}" class="offer-card recommended-card">
+        <article th:each="vacante : ${vacantes}" class="offer-card recommended-card"
+          th:attr="data-oferta-id=${vacante.fuente + ':' + vacante.id}">
+          <button type="button" class="save-job-button"
+            th:attr="data-oferta-id=${vacante.fuente + ':' + vacante.id},data-titulo=${vacante.titulo},
+              data-empresa=${vacante.empresa},data-ubicacion=${vacante.ubicacion},data-modalidad=${vacante.modalidad},
+              data-url=${vacante.url},
+              data-guardado=${guardadas != null and #lists.contains(guardadas, vacante.fuente + ':' + vacante.id)},
+              aria-pressed=${guardadas != null and #lists.contains(guardadas, vacante.fuente + ':' + vacante.id)},
+              aria-label=${guardadas != null and #lists.contains(guardadas, vacante.fuente + ':' + vacante.id) ? 'Quitar empleo de guardados' : 'Guardar empleo'}"
+            th:classappend="${guardadas != null and #lists.contains(guardadas, vacante.fuente + ':' + vacante.id)} ? ' is-saved' : ''">
+            <i th:class="${guardadas != null and #lists.contains(guardadas, vacante.fuente + ':' + vacante.id)} ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'" aria-hidden="true"></i>
+          </button>
           <div class="offer-info">
             <h2 th:text="${vacante.titulo}">Título de la vacante</h2>
             <p th:text="${vacante.empresa}">Empresa</p>
@@ -163,6 +156,7 @@
     </div>
   </footer>
   <script type="module" th:src="@{/js/busqueda.js}"></script>
+  <script type="module" th:src="@{/js/guardados.js}"></script>
 </body>
 
 </html>

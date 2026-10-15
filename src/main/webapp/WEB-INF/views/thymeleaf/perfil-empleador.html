@@ -11,7 +11,7 @@
   <link rel="stylesheet" th:href="@{/css/ofertas-empleador.css}">
 </head>
 <body class="employer-body">
-  <nav th:replace="~{fragments/navbar :: appNavbar('profile', false)}">
+  <nav th:replace="~{fragments/navbar :: appNavbar('profile', false, false)}">
     <div class="container navbar-container employer-navbar-container">
       <a class="navbar-brand" th:href="@{/home}">Agarra la Pala</a>
       <div th:replace="~{fragments/navbar :: sessionActions(@{/empleador/perfil}, 'Perfil de empresa')}"></div>

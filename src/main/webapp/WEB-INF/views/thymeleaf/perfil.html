@@ -10,9 +10,16 @@
   <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body class="vacantes-page profile-page">
-  <nav th:replace="~{fragments/navbar :: appNavbar('profile', false)}"></nav>
+  <nav th:replace="~{fragments/navbar :: appNavbar('profile', false, false)}"></nav>
   <main class="container page-container py-4">
-    <a class="btn btn-outline-light page-back" th:href="@{/vacantes/recomendadas}">Volver a vacantes</a>
+    <div class="profile-navigation">
+      <a class="btn btn-outline-light page-back" th:href="@{/home}">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio
+      </a>
+      <a class="btn btn-outline-light page-back" th:href="@{/vacantes/recomendadas}">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a vacantes
+      </a>
+    </div>
     <div class="profile-heading">
       <span class="avatar-wrapper">
         <img th:src="@{/img/UserLogo.png}" alt="Avatar de perfil" class="profile-avatar" th:classappend="${premiumHasta != null} ? ' premium-avatar' : ''">

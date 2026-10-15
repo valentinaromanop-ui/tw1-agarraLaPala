@@ -9,7 +9,7 @@
   <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body class="vacantes-page profile-page">
-  <nav th:replace="~{fragments/navbar :: appNavbar('notifications', false)}">
+  <nav th:replace="~{fragments/navbar :: appNavbar('notifications', false, true)}">
     <div class="container navbar-container justify-content-between">
       <a class="navbar-brand" th:href="@{/home}">Agarra la Pala</a>
       <div th:replace="~{fragments/navbar :: sessionActions(@{/perfil}, 'Mi perfil')}"></div>
