@@ -153,12 +153,23 @@ function iniciarPostulaciones() {
     );
   });
   fetch(rutaAplicacion("/postulaciones/ids"))
-    .then((respuesta) => (respuesta.ok ? respuesta.json() : []))
+    .then((respuesta) => {
+      if (respuesta.status === 401) {
+        return [];
+      }
+      if (!respuesta.ok) {
+        throw new Error("No se pudieron cargar tus postulaciones.");
+      }
+      return respuesta.json();
+    })
     .then((ids) => {
-      postulacionesRegistradas = Array.isArray(ids) ? ids : [];
+      if (!Array.isArray(ids)) {
+        throw new Error("El servidor devolvió una lista de postulaciones inválida.");
+      }
+      postulacionesRegistradas = ids;
       actualizarBotonesPostulados();
     })
-    .catch(() => {});
+    .catch((error) => console.error("No se pudieron actualizar las postulaciones.", error));
 }
 
 function iniciarAutocompletado(formulario) {
@@ -167,6 +178,7 @@ function iniciarAutocompletado(formulario) {
   let cargos = [];
   let indiceActivo = -1;
   let listaCargada = false;
+  let errorCarga = false;
 
   function cerrarLista() {
     lista.hidden = true;
@@ -183,6 +195,13 @@ function iniciarAutocompletado(formulario) {
       const mensaje = document.createElement("p");
       mensaje.className = "search-suggestion-message";
       mensaje.textContent = "Cargando cargos...";
+      lista.append(mensaje);
+      return;
+    }
+    if (errorCarga) {
+      const mensaje = document.createElement("p");
+      mensaje.className = "search-suggestion-message";
+      mensaje.textContent = "No pudimos cargar los cargos. Intentá nuevamente.";
       lista.append(mensaje);
       return;
     }
@@ -279,15 +298,20 @@ function iniciarAutocompletado(formulario) {
       return respuesta.json();
     })
     .then((resultado) => {
+      if (!Array.isArray(resultado)) {
+        throw new Error("El servidor devolvió una lista de cargos inválida.");
+      }
       cargos = resultado;
       listaCargada = true;
       if (!lista.hidden) {
         renderizarLista();
       }
     })
-    .catch(() => {
+    .catch((error) => {
       cargos = [];
+      errorCarga = true;
       listaCargada = true;
+      console.error("No se pudieron cargar las sugerencias de cargos.", error);
       if (!lista.hidden) {
         renderizarLista();
       }

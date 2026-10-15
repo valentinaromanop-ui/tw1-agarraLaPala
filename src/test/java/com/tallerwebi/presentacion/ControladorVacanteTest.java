@@ -12,7 +12,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
+import com.tallerwebi.dominio.ServicioEmpleoGuardado;
+import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPerfil;
+import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.ServicioVacante;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
@@ -35,20 +38,29 @@ public class ControladorVacanteTest {
   private ControladorVacante controladorVacante;
   private ServicioVacante servicioVacanteMock;
   private ServicioPerfil servicioPerfilMock;
+  private ServicioPago servicioPagoMock;
+  private ServicioEmpleoGuardado servicioEmpleoGuardadoMock;
+  private ServicioPostulacion servicioPostulacionMock;
   private MockHttpSession session;
 
   @BeforeEach
   public void init() {
     servicioVacanteMock = mock(ServicioVacante.class);
     servicioPerfilMock = mock(ServicioPerfil.class);
+    servicioPagoMock = mock(ServicioPago.class);
+    servicioEmpleoGuardadoMock = mock(ServicioEmpleoGuardado.class);
+    servicioPostulacionMock = mock(ServicioPostulacion.class);
     session = new MockHttpSession();
     session.setAttribute("USUARIO_ID", 1L);
+    session.setAttribute("ROL", "CANDIDATO");
     when(servicioPerfilMock.obtenerHabilidades(1L)).thenReturn(Arrays.asList("Python", "Docker"));
     controladorVacante =
       new ControladorVacante(
         servicioVacanteMock,
-        mock(com.tallerwebi.dominio.ServicioPostulacion.class),
-        servicioPerfilMock
+        servicioPostulacionMock,
+        servicioPerfilMock,
+        servicioPagoMock,
+        servicioEmpleoGuardadoMock
       );
   }
 
@@ -189,6 +201,27 @@ public class ControladorVacanteTest {
 
     assertThat(vista.getViewName(), equalTo("redirect:/login"));
     verify(servicioVacanteMock, times(0)).obtenerVacantesPorSkills(any());
+  }
+
+  @Test
+  public void sesionEmpleadorDeberiaIrASusBusquedasSinConsultarDatosDePostulante()
+    throws Exception {
+    MockHttpSession sesionEmpleador = new MockHttpSession();
+    sesionEmpleador.setAttribute("USUARIO_ID", 2L);
+    sesionEmpleador.setAttribute("ROL", "EMPLEADOR");
+
+    ModelAndView vista = MockMvcBuilders
+      .standaloneSetup(controladorVacante)
+      .build()
+      .perform(get("/vacantes/recomendadas").session(sesionEmpleador))
+      .andReturn()
+      .getModelAndView();
+
+    assertThat(vista.getViewName(), equalTo("redirect:/busquedas-Empleador"));
+    verify(servicioPostulacionMock, times(0)).obtenerOfertasPostuladas(any());
+    verify(servicioPerfilMock, times(0)).obtenerHabilidades(any());
+    verify(servicioPagoMock, times(0)).fechaFinPremium(any());
+    verify(servicioEmpleoGuardadoMock, times(0)).listarIds(any());
   }
 
   @Test

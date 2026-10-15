@@ -145,11 +145,12 @@ public class ControladorPerfil {
     }
     Map<String, Object> modelo = new HashMap<>();
     Usuario usuario = servicioPerfil.obtenerUsuario(usuarioId);
-    if (usuario != null) {
-      perfil.setNombre(usuario.getNombre());
-      perfil.setApellido(usuario.getApellido());
+    if (usuario == null) {
+      return new ModelAndView(REDIRECT_LOGIN);
     }
-    modelo.put("tieneFotoPerfil", usuario != null && usuario.tieneFotoPerfil());
+    perfil.setNombre(usuario.getNombre());
+    perfil.setApellido(usuario.getApellido());
+    modelo.put("tieneFotoPerfil", usuario.tieneFotoPerfil());
     modelo.put(ATRIBUTO_PERFIL, perfil);
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
@@ -206,14 +207,17 @@ public class ControladorPerfil {
     PerfilPostulante perfil,
     String error
   ) {
+    Usuario usuario = servicioPerfil.obtenerUsuario(usuarioId);
+    if (usuario == null) {
+      return new ModelAndView(REDIRECT_LOGIN);
+    }
     Map<String, Object> modelo = new HashMap<>();
     modelo.put(ATRIBUTO_PERFIL, perfil);
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
     modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
-    Usuario usuario = servicioPerfil.obtenerUsuario(usuarioId);
     modelo.put("usuario", usuario);
-    modelo.put("tieneFotoPerfil", usuario != null && usuario.tieneFotoPerfil());
+    modelo.put("tieneFotoPerfil", usuario.tieneFotoPerfil());
     modelo.put(
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)

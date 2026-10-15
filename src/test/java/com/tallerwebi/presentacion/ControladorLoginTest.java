@@ -80,6 +80,19 @@ public class ControladorLoginTest {
   }
 
   @Test
+  public void loginDeEmpleadorDeberiaLlevarASusBusquedas() {
+    Usuario empleador = mock(Usuario.class);
+    when(empleador.getRol()).thenReturn("EMPLEADOR");
+    when(requestMock.getSession()).thenReturn(sessionMock);
+    when(servicioLoginMock.consultarUsuario(anyString(), anyString())).thenReturn(empleador);
+
+    ModelAndView respuesta = controladorLogin.validarLogin(datosLoginMock, requestMock);
+
+    assertThat(respuesta.getViewName(), equalToIgnoringCase("redirect:/busquedas-Empleador"));
+    verify(sessionMock).setAttribute("ROL", "EMPLEADOR");
+  }
+
+  @Test
   public void irALoginDeberiaRetornarFormularioUnico() {
     // ejecucion
     ModelAndView modelAndView = controladorLogin.irALogin();
@@ -143,7 +156,7 @@ public class ControladorLoginTest {
 
     ModelAndView modelAndView = controladorLogin.registrarEmpleador(datos);
 
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/vacantes/recomendadas"));
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/busquedas-Empleador"));
     verify(servicioLoginMock)
       .registrar(
         argThat(usuario ->

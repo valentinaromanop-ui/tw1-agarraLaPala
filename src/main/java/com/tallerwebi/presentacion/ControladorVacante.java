@@ -28,6 +28,11 @@ public class ControladorVacante {
   private final ServicioPerfil servicioPerfil;
   private final ServicioPago servicioPago;
   private final ServicioEmpleoGuardado servicioEmpleoGuardado;
+  private static final String ROL_EMPLEADOR = "EMPLEADOR";
+  private static final String ROL_CANDIDATO = "CANDIDATO";
+  private static final String ROL_POSTULANTE = "POSTULANTE";
+  private static final String RUTA_LOGIN = "redirect:/login";
+  private static final String RUTA_BUSQUEDAS_EMPLEADOR = "redirect:/busquedas-Empleador";
   private static final String BUSQUEDA = "busqueda";
   private static final String VISTA_VACANTES = "vacantes";
 
@@ -56,7 +61,11 @@ public class ControladorVacante {
 
   @ModelAttribute("postuladas")
   public List<String> postuladas(HttpSession session) {
-    return servicioPostulacion.obtenerOfertasPostuladas((Long) session.getAttribute("USUARIO_ID"));
+    Object usuarioId = session.getAttribute("USUARIO_ID");
+    if (!esPostulante(session.getAttribute("ROL")) || !(usuarioId instanceof Number)) {
+      return java.util.List.of();
+    }
+    return servicioPostulacion.obtenerOfertasPostuladas(((Number) usuarioId).longValue());
   }
 
   @RequestMapping(path = "/vacantes/recomendadas", method = RequestMethod.GET)
@@ -100,23 +109,31 @@ public class ControladorVacante {
     String error,
     HttpSession session
   ) {
-    Long usuarioId = (Long) session.getAttribute("USUARIO_ID");
-    if (usuarioId == null) {
-      return new ModelAndView("redirect:/login");
+    Object usuarioId = session.getAttribute("USUARIO_ID");
+    if (!(usuarioId instanceof Number)) {
+      return new ModelAndView(RUTA_LOGIN);
     }
+    Object rol = session.getAttribute("ROL");
+    if (ROL_EMPLEADOR.equalsIgnoreCase(String.valueOf(rol))) {
+      return new ModelAndView(RUTA_BUSQUEDAS_EMPLEADOR);
+    }
+    if (!esPostulante(rol)) {
+      return new ModelAndView(RUTA_LOGIN);
+    }
+    Long idPostulante = ((Number) usuarioId).longValue();
     Map<String, Object> modelo = new ModelMap();
-    busqueda.setSkills(servicioPerfil.obtenerHabilidades(usuarioId));
+    busqueda.setSkills(servicioPerfil.obtenerHabilidades(idPostulante));
     modelo.put("skills", busqueda.getSkills());
     modelo.put(BUSQUEDA, busqueda);
     modelo.put(
       "premiumHasta",
-      servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
+      servicioPago == null ? null : servicioPago.fechaFinPremium(idPostulante)
     );
     modelo.put(
       "guardadas",
       servicioEmpleoGuardado == null
         ? java.util.List.of()
-        : servicioEmpleoGuardado.listarIds(usuarioId)
+        : servicioEmpleoGuardado.listarIds(idPostulante)
     );
     if (busqueda.getSkills().isEmpty()) {
       session.removeAttribute(VISTA_VACANTES);
@@ -137,5 +154,12 @@ public class ControladorVacante {
       return new ModelAndView(VISTA_VACANTES, modelo);
     }
     return new ModelAndView(VISTA_VACANTES, modelo);
+  }
+
+  private boolean esPostulante(Object rol) {
+    return (
+      ROL_CANDIDATO.equalsIgnoreCase(String.valueOf(rol)) ||
+      ROL_POSTULANTE.equalsIgnoreCase(String.valueOf(rol))
+    );
   }
 }

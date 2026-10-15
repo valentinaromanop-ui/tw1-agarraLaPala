@@ -22,6 +22,8 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorLogin {
 
   private static final String ATRIBUTO_ERROR = "error";
+  private static final String RUTA_VACANTES_RECOMENDADAS = "redirect:/vacantes/recomendadas";
+  private static final String RUTA_BUSQUEDAS_EMPLEADOR = "redirect:/busquedas-Empleador";
   private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
   private static final List<String> HABILIDADES_DISPONIBLES = List.of(
     "Java",
@@ -107,7 +109,7 @@ public class ControladorLogin {
       );
     }
     identificarUsuarioEnSesion(usuario);
-    return new ModelAndView("redirect:/vacantes/recomendadas");
+    return new ModelAndView(RUTA_BUSQUEDAS_EMPLEADOR);
   }
 
   @RequestMapping(path = "/registro/candidato", method = RequestMethod.POST)
@@ -134,7 +136,7 @@ public class ControladorLogin {
       );
     }
     identificarUsuarioEnSesion(usuario);
-    return new ModelAndView("redirect:/vacantes/recomendadas");
+    return new ModelAndView(RUTA_VACANTES_RECOMENDADAS);
   }
 
   private String validarRegistroCandidato(DatosRegistroCandidato datos) {
@@ -180,7 +182,7 @@ public class ControladorLogin {
       session.setAttribute("USUARIO_ID", usuarioBuscado.getId());
       session.setAttribute("EMAIL", usuarioBuscado.getEmail());
       session.setAttribute("ROL", usuarioBuscado.getRol());
-      return new ModelAndView("redirect:/vacantes/recomendadas");
+      return new ModelAndView(rutaInicioSegunRol(usuarioBuscado.getRol()));
     } else {
       Map<String, Object> model = new ModelMap();
       model.put(ATRIBUTO_ERROR, "Usuario o clave incorrecta");
@@ -233,6 +235,12 @@ public class ControladorLogin {
 
   private boolean correoValido(String correo) {
     return FORMATO_CORREO.matcher(correo.trim()).matches();
+  }
+
+  private String rutaInicioSegunRol(String rol) {
+    return "EMPLEADOR".equalsIgnoreCase(rol)
+      ? RUTA_BUSQUEDAS_EMPLEADOR
+      : RUTA_VACANTES_RECOMENDADAS;
   }
 
   private void identificarUsuarioEnSesion(Usuario usuario) {
