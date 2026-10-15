@@ -64,6 +64,8 @@ public class ServicioPerfilImpl implements ServicioPerfil {
       perfil = new PerfilPostulante();
       perfil.setUsuario(usuario);
     }
+    usuario.setNombre(datos.getNombre().trim());
+    usuario.setApellido(datos.getApellido().trim());
     perfil.setTelefono(datos.getTelefono());
     perfil.setUbicacion(datos.getUbicacion());
     perfil.setDisponibilidadHoraria(datos.getDisponibilidadHoraria());

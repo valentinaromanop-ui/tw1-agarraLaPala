@@ -104,6 +104,38 @@ public class ControladorCV {
     }
   }
 
+  @PostMapping("/cv/original/eliminar")
+  public ModelAndView eliminarOriginal(HttpSession session, RedirectAttributes redirectAttributes) {
+    return eliminarCv(session, redirectAttributes, false);
+  }
+
+  @PostMapping("/cv/ats/eliminar")
+  public ModelAndView eliminarAts(HttpSession session, RedirectAttributes redirectAttributes) {
+    return eliminarCv(session, redirectAttributes, true);
+  }
+
+  private ModelAndView eliminarCv(
+    HttpSession session,
+    RedirectAttributes redirectAttributes,
+    boolean ats
+  ) {
+    Long usuarioId = obtenerPostulanteId(session);
+    if (usuarioId == null) {
+      return redirigirConErrorPerfil(redirectAttributes, "No pude verificar tu sesión.");
+    }
+    try {
+      if (ats) {
+        servicioCurriculum.eliminarAts(usuarioId);
+      } else {
+        servicioCurriculum.eliminarOriginal(usuarioId);
+      }
+      redirectAttributes.addFlashAttribute("mensaje", "El CV se eliminó correctamente.");
+      return new ModelAndView("redirect:/perfil");
+    } catch (IllegalArgumentException e) {
+      return redirigirConErrorPerfil(redirectAttributes, e.getMessage());
+    }
+  }
+
   private MultipartFile obtenerArchivo(MultipartFile archivo, MultipartFile cvAnterior) {
     MultipartFile archivoCv = archivo != null ? archivo : cvAnterior;
     if (archivoCv == null) {
@@ -182,7 +214,11 @@ public class ControladorCV {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
     CurriculumGenerado curriculum = servicioCurriculum.obtener(usuarioId);
-    if (curriculum == null || curriculum.getArchivoOriginal() == null) {
+    if (
+      curriculum == null ||
+      curriculum.getArchivoOriginal() == null ||
+      curriculum.getNombreArchivoOriginal() == null
+    ) {
       return ResponseEntity.notFound().build();
     }
     String nombre = curriculum.getNombreArchivoOriginal();

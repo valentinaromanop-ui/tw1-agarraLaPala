@@ -55,10 +55,14 @@ class ServicioPerfilImplTest {
       repositorioPerfil
     );
     PerfilPostulante datos = new PerfilPostulante();
+    datos.setNombre("Ana");
+    datos.setApellido("Pérez");
     datos.setSkillIds(List.of(1L));
 
     servicio.guardarPerfil(5L, datos);
 
+    assertThat(usuario.getNombre(), org.hamcrest.Matchers.is("Ana"));
+    assertThat(usuario.getApellido(), org.hamcrest.Matchers.is("Pérez"));
     assertThat(usuario.getHabilidades(), containsInAnyOrder("Java"));
     verify(repositorioUsuario).modificar(usuario);
     verify(repositorioPerfil).guardarSkill(any(PostulanteSkill.class));

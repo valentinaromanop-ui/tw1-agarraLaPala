@@ -1,8 +1,9 @@
 ALTER TABLE curriculum_generado
-  MODIFY COLUMN archivoOriginal LONGBLOB NOT NULL;
+  MODIFY COLUMN nombreArchivoOriginal VARCHAR(255) NULL,
+  MODIFY COLUMN archivoOriginal LONGBLOB NULL;
 
 ALTER TABLE curriculum_generado
-  MODIFY COLUMN textoOriginal LONGTEXT NOT NULL,
+  MODIFY COLUMN textoOriginal LONGTEXT NULL,
   MODIFY COLUMN contenidoAts LONGTEXT NULL;
 
 SET @agregar_pdf_ats = IF(
@@ -22,6 +23,25 @@ DEALLOCATE PREPARE migracion_pdf_ats;
 
 ALTER TABLE curriculum_generado
   MODIFY COLUMN archivoAtsPdf LONGBLOB NULL;
+
+SET @agregar_ats_gratis_usado = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'curriculum_generado'
+      AND column_name = 'atsGratisUsado'
+  ) = 0,
+  'ALTER TABLE curriculum_generado ADD COLUMN atsGratisUsado BOOLEAN NOT NULL DEFAULT FALSE',
+  'SELECT 1'
+);
+PREPARE migracion_ats_gratis_usado FROM @agregar_ats_gratis_usado;
+EXECUTE migracion_ats_gratis_usado;
+DEALLOCATE PREPARE migracion_ats_gratis_usado;
+
+UPDATE curriculum_generado
+SET atsGratisUsado = TRUE
+WHERE contenidoAts IS NOT NULL OR archivoAtsPdf IS NOT NULL;
 
 SET @actualizar_foto_perfil = IF(
   (

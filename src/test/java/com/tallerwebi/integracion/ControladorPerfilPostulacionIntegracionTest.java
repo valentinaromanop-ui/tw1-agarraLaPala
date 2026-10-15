@@ -68,7 +68,15 @@ class ControladorPerfilPostulacionIntegracionTest {
     Skill java = guardarSkill("java-" + UUID.randomUUID());
     Skill sql = guardarSkill("sql-" + UUID.randomUUID());
 
-    mockMvc.perform(get("/perfil").session(session)).andExpect(status().isOk());
+    MvcResult perfilInicial = mockMvc
+      .perform(get("/perfil").session(session))
+      .andExpect(status().isOk())
+      .andReturn();
+    assertThat(perfilInicial.getModelAndView().getModel().get("editarPerfil"), is(true));
+    assertThat(
+      ((PerfilPostulante) perfilInicial.getModelAndView().getModel().get("perfil")).getNombre(),
+      is("Nombre")
+    );
     mockMvc
       .perform(post("/perfil/guardar").session(session).param("telefono", "12A45"))
       .andExpect(status().isOk());
@@ -77,6 +85,8 @@ class ControladorPerfilPostulacionIntegracionTest {
       .perform(
         post("/perfil/guardar")
           .session(session)
+          .param("nombre", "Ana Maria")
+          .param("apellido", "Pérez")
           .param("telefono", "123456")
           .param("ubicacion", "Buenos Aires")
           .param("disponibilidadHoraria", "Mañana")
@@ -102,16 +112,24 @@ class ControladorPerfilPostulacionIntegracionTest {
     assertNotNull(modelAndView);
     PerfilPostulante perfil = (PerfilPostulante) modelAndView.getModel().get("perfil");
     assertEquals("Buenos Aires", perfil.getUbicacion());
+    assertEquals("Ana Maria", perfil.getNombre());
+    assertEquals("Pérez", perfil.getApellido());
+    Usuario usuarioGuardado = (Usuario) modelAndView.getModel().get("usuario");
+    assertEquals("Ana Maria", usuarioGuardado.getNombre());
+    assertEquals("Pérez", usuarioGuardado.getApellido());
     assertThat(perfil.getSkillIds(), contains(java.getId()));
     assertThat(
       modelAndView.getModel().get("mensaje"),
       is("Perfil guardado correctamente. Tus selecciones quedaron asociadas a tu cuenta.")
     );
+    assertThat(modelAndView.getModel().get("editarPerfil"), is(false));
 
     mockMvc
       .perform(
         post("/perfil/guardar")
           .session(session)
+          .param("nombre", "Ana Maria")
+          .param("apellido", "Pérez")
           .param("telefono", "654321")
           .param("skillIds", sql.getId().toString())
       )
@@ -162,6 +180,8 @@ class ControladorPerfilPostulacionIntegracionTest {
   private MockHttpSession crearSesionPostulante() throws UsuarioExistente {
     String email = "postulante-" + UUID.randomUUID() + "@correo.com";
     Usuario usuario = new Usuario();
+    usuario.setNombre("Nombre");
+    usuario.setApellido("Inicial");
     usuario.setEmail(email);
     usuario.setPassword("secreto");
     usuario.setRol("CANDIDATO");

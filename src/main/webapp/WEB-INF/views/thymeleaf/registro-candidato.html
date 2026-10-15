@@ -23,6 +23,14 @@
       <hr class="colorgraph">
       <form th:action="@{/registro/candidato}" th:object="${datosRegistroCandidato}" method="post">
         <div class="mb-3">
+          <label class="form-label" for="nombre">Nombre</label>
+          <input th:field="*{nombre}" id="nombre" type="text" class="form-control" autocomplete="given-name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="apellido">Apellido</label>
+          <input th:field="*{apellido}" id="apellido" type="text" class="form-control" autocomplete="family-name" required>
+        </div>
+        <div class="mb-3">
           <label class="form-label" for="email">Correo electrónico</label>
           <input th:field="*{email}" id="email" type="email" class="form-control" autocomplete="email" required>
         </div>

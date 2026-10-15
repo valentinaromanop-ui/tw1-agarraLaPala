@@ -74,6 +74,10 @@ public class ControladorPerfil {
       );
       return redirect1;
     }
+    if (foto.getSize() > 2 * 1024 * 1024) {
+      redirect.addFlashAttribute(error, "La foto no puede superar los 2 MB.");
+      return redirect1;
+    }
 
     try {
       servicioPerfil.guardarFotoPerfil(usuarioId, foto.getBytes(), foto.getContentType());
@@ -141,11 +145,17 @@ public class ControladorPerfil {
     }
     Map<String, Object> modelo = new HashMap<>();
     Usuario usuario = servicioPerfil.obtenerUsuario(usuarioId);
+    if (usuario != null) {
+      perfil.setNombre(usuario.getNombre());
+      perfil.setApellido(usuario.getApellido());
+    }
     modelo.put("tieneFotoPerfil", usuario != null && usuario.tieneFotoPerfil());
     modelo.put(ATRIBUTO_PERFIL, perfil);
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
     modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
+    modelo.put("usuario", usuario);
+    modelo.put("editarPerfil", perfil.getId() == null);
     modelo.put(
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
@@ -184,6 +194,9 @@ public class ControladorPerfil {
         "El teléfono debe contener únicamente números."
       );
     }
+    if (campoVacio(datos.getNombre()) || campoVacio(datos.getApellido())) {
+      return mostrarPerfilConError(usuarioId, datos, "Completá nombre y apellido.");
+    }
     servicioPerfil.guardarPerfil(usuarioId, datos);
     return new ModelAndView(PREFIJO_REDIRECT + RUTA_PERFIL + "?guardado=true");
   }
@@ -198,6 +211,14 @@ public class ControladorPerfil {
     modelo.put("skills", servicioPerfil.obtenerSkills());
     modelo.put("idiomasDisponibles", IDIOMAS_DISPONIBLES);
     modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
+    Usuario usuario = servicioPerfil.obtenerUsuario(usuarioId);
+    modelo.put("usuario", usuario);
+    modelo.put("tieneFotoPerfil", usuario != null && usuario.tieneFotoPerfil());
+    modelo.put(
+      "premiumHasta",
+      servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
+    );
+    modelo.put("editarPerfil", true);
     modelo.put("error", error);
     return new ModelAndView(VISTA_PERFIL, modelo);
   }
@@ -223,5 +244,9 @@ public class ControladorPerfil {
 
   private boolean telefonoValido(String telefono) {
     return telefono == null || telefono.isEmpty() || TELEFONO_VALIDO.matcher(telefono).matches();
+  }
+
+  private boolean campoVacio(String valor) {
+    return valor == null || valor.isBlank();
   }
 }

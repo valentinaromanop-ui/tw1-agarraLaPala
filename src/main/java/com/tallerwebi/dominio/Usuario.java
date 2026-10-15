@@ -25,6 +25,8 @@ public class Usuario {
 
   private String empresa;
   private String legajo;
+  private String nombre;
+  private String apellido;
   private String telefono;
   private String ubicacion;
 
@@ -93,6 +95,22 @@ public class Usuario {
 
   public void setLegajo(String legajo) {
     this.legajo = legajo;
+  }
+
+  public String getNombre() {
+    return nombre;
+  }
+
+  public void setNombre(String nombre) {
+    this.nombre = nombre;
+  }
+
+  public String getApellido() {
+    return apellido;
+  }
+
+  public void setApellido(String apellido) {
+    this.apellido = apellido;
   }
 
   public String getTelefono() {

@@ -115,6 +115,8 @@ public class ControladorLoginTest {
     MvcResult resultado =
       this.mockMvc.perform(
           post("/registro/candidato")
+            .param("nombre", "Ana")
+            .param("apellido", "Pérez")
             .param("email", email)
             .param("password", "secreto")
             .param("confirmarPassword", "secreto")
@@ -127,6 +129,8 @@ public class ControladorLoginTest {
     assertThat(session.getAttribute("ROL"), is("CANDIDATO"));
     Usuario usuario = servicioLogin.consultarUsuario(email, "secreto");
     assertThat(usuario.getRol(), is("CANDIDATO"));
+    assertThat(usuario.getNombre(), is("Ana"));
+    assertThat(usuario.getApellido(), is("Pérez"));
 
     String sessionIdBeforeLogin = session.getId();
     this.mockMvc.perform(

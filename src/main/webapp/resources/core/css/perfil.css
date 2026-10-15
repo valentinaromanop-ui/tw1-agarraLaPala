@@ -3,8 +3,8 @@
 }
 
 .profile-page .profile-avatar {
-  width: 9rem;
-  height: 9rem;
+  width: 10rem;
+  height: 10rem;
   object-fit: cover;
 }
 
@@ -16,8 +16,8 @@
 
 .avatar-edit {
   display: grid;
-  width:5rem;
-  height: 5rem;
+  width:2.5rem;
+  height: 2.5rem;
   place-items: center;
   border: 1px solid #0d6efd;
   border-radius: 50%;
@@ -66,3 +66,171 @@
 .avatar-menu form + form {
   border-top: 1px solid #dee2e6;
 }
+
+.profile-name-display {
+  margin: 0;
+}
+
+.profile-name-fields {
+  display: grid;
+  width: min(100%, 20rem);
+  gap: 0.5rem;
+}
+
+.cajaCvs {
+ display: grid;
+ grid-template-columns: repeat(2, minmax(0, 1fr));
+ gap: 1rem;
+}
+
+.profile-page .cv-document-card {
+ min-width: 0;
+}
+
+..profile-page .cv-document-preview {
+ width: 100%;
+ height: 20rem;
+}
+
+@media (max-width: 700px) {
+ .cajaCvs {
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+ }
+}
+
+.cv-folder {
+ border: 1px solid var(--vacantes-border);
+ border-radius: 0.75rem;
+ background: var(--vacantes-background);
+}
+
+.cv-folder-summary {
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 1rem;
+ color: var(--vacantes-text);
+ cursor: pointer;
+ list-style: none;
+}
+
+.cv-folder-summary::-webkit-details-marker,
+.cv-file-tile::-webkit-details-marker {
+ display: none;
+}
+
+.cv-folder-summary > .bi-folder2-open,
+.cv-file-tile > .bi,
+.cv-generate-card > .bi {
+ color: rgb(39, 77, 234);
+}
+
+.cv-folder-summary > .bi-folder2-open {
+ font-size: 1.6rem;
+}
+
+.cv-folder-chevron {
+ margin-left: auto;
+ transition: transform 0.2s ease;
+}
+
+.cv-folder[open] .cv-folder-chevron {
+ transform: rotate(180deg);
+}
+
+.cv-file-tile,
+.cv-generate-card {
+ display: flex;
+ min-height: 10rem;
+ aspect-ratio: 1;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: 0.55rem;
+ padding: 1rem;
+ border: 1px solid var(--vacantes-border);
+ border-radius: 0.65rem;
+ color: var(--vacantes-text);
+ background: var(--vacantes-surface);
+ text-align: center;
+ cursor: pointer;
+ list-style: none;
+}
+
+.cv-file-tile > .bi,
+.cv-generate-card > .bi {
+ font-size: 2.5rem;
+}
+
+.cv-file-tile small {
+ max-width: 100%;
+ overflow: hidden;
+ color: var(--vacantes-muted);
+ text-overflow: ellipsis;
+ white-space: nowrap;
+}
+
+.cv-file-tile:hover,
+.cv-file-tile:focus-visible {
+ border-color: rgb(39, 77, 234);
+}
+
+.cv-document-card {
+ margin-top: 0.75rem;
+ padding: 1rem;
+ border: 1px solid var(--vacantes-border);
+ border-radius: 0.65rem;
+ background: var(--vacantes-background);
+}
+
+.profile-page .cv-document-preview {
+ display: block;
+ width: 100%;
+ height: 28rem;
+ border: 1px solid var(--vacantes-border);
+ border-radius: 0.35rem;
+ background: white;
+}
+
+.cv-document-actions {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 0.5rem;
+ margin-top: 0.75rem;
+}
+
+.cv-original-text {
+ max-height: 28rem;
+ overflow: auto;
+}
+
+.cv-generate-card {
+ cursor: default;
+}
+
+.cv-generate-card form,
+.cv-generate-card .btn {
+ width: 100%;
+}
+
+@media (max-width: 700px) {
+ .cv-file-tile,
+ .cv-generate-card {
+   min-height: 8rem;
+   padding: 0.75rem;
+   font-size: 0.9rem;
+ }
+
+ .cv-document-preview {
+   height: 20rem;
+ }
+
+}
+
+.cv-card-link { display: flex; min-width: 0; aspect-ratio: 1; flex-direction: column; align-items: center; gap: 0.55rem; overflow: hidden; padding: 1rem; border: 1px solid var(--vacantes-border); border-radius: 0.65rem; background: var(--vacantes-surface); color: var(--vacantes-text); text-align: center; text-decoration: none; }
+.cv-card-link:hover, .cv-card-link:focus-visible { border-color: rgb(39, 77, 234); }
+.cv-card-link > .bi { margin: auto 0; color: rgb(39, 77, 234); font-size: 2.5rem; }
+.cv-thumb { width: 100%; height: 320px; overflow: hidden; border-radius: 0.5rem; background: #fff; }
+.cv-thumb iframe { width: 100%; height: 100%; overflow: hidden; border: 0; pointer-events: none; }
+.cv-entry { display: grid; min-width: 0; gap: 0.5rem; }
+.cv-entry form { display: flex; justify-content: center; }
