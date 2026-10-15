@@ -102,4 +102,23 @@ class ServicioPerfilImplTest {
 
     assertThat(resultado, containsInAnyOrder("Java", "Docker"));
   }
+
+  @Test
+  void eliminarFotoPerfilBorraLosDatosDeLaFotoDelUsuario() {
+    RepositorioUsuario repositorioUsuario = mock(RepositorioUsuario.class);
+    Usuario usuario = new Usuario();
+    usuario.setFotoPerfil(new byte[] { 1, 2, 3 });
+    usuario.setFotoPerfilTipo("image/png");
+    when(repositorioUsuario.buscarPorId(5L)).thenReturn(usuario);
+    ServicioPerfilImpl servicio = new ServicioPerfilImpl(
+      repositorioUsuario,
+      mock(RepositorioSkill.class),
+      mock(RepositorioPerfilPostulante.class)
+    );
+
+    servicio.eliminarFotoPerfil(5L);
+
+    assertThat(usuario.tieneFotoPerfil(), org.hamcrest.Matchers.is(false));
+    assertThat(usuario.getFotoPerfilTipo(), org.hamcrest.Matchers.nullValue());
+  }
 }

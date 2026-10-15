@@ -23,6 +23,21 @@ DEALLOCATE PREPARE migracion_pdf_ats;
 ALTER TABLE curriculum_generado
   MODIFY COLUMN archivoAtsPdf LONGBLOB NULL;
 
+SET @actualizar_foto_perfil = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Usuario'
+      AND column_name = 'foto_perfil'
+  ) = 0,
+  'ALTER TABLE Usuario ADD COLUMN foto_perfil LONGBLOB NULL',
+  'ALTER TABLE Usuario MODIFY COLUMN foto_perfil LONGBLOB NULL'
+);
+PREPARE migracion_foto_perfil FROM @actualizar_foto_perfil;
+EXECUTE migracion_foto_perfil;
+DEALLOCATE PREPARE migracion_foto_perfil;
+
 SET @copiar_id_oferta = IF(
   (
     SELECT COUNT(*)

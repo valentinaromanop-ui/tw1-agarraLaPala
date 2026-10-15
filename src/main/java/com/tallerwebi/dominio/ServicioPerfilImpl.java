@@ -8,8 +8,8 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
 @Transactional
+@Service
 public class ServicioPerfilImpl implements ServicioPerfil {
 
   private final RepositorioUsuario repositorioUsuario;
@@ -99,6 +99,11 @@ public class ServicioPerfilImpl implements ServicioPerfil {
     return obtenerNombresSkills(perfil.getSkillIds());
   }
 
+  @Override
+  public Usuario obtenerUsuario(Long usuarioId) {
+    return repositorioUsuario.buscarPorId(usuarioId);
+  }
+
   private List<String> obtenerNombresSkills(List<Long> skillIds) {
     List<String> nombres = new ArrayList<>();
     if (skillIds == null) {
@@ -143,5 +148,20 @@ public class ServicioPerfilImpl implements ServicioPerfil {
 
   private String normalizar(String valor) {
     return valor.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
+  }
+
+  @Transactional //si algo falla no me lo guardes en la BD ,Hibernate hace el UPDATE solo al terminar el método.
+  @Override
+  public void guardarFotoPerfil(Long usuarioId, byte[] bytes, String contentType) {
+    Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
+    usuario.setFotoPerfil(bytes);
+    usuario.setFotoPerfilTipo(contentType);
+  }
+
+  @Override
+  public void eliminarFotoPerfil(Long usuarioId) {
+    Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
+    usuario.setFotoPerfil(null);
+    usuario.setFotoPerfilTipo(null);
   }
 }
