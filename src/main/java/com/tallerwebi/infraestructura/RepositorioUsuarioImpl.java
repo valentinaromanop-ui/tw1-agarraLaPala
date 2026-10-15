@@ -4,6 +4,7 @@ import com.tallerwebi.dominio.RepositorioUsuario;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.excepcion.UsuarioNoEncontrado;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -68,5 +69,13 @@ public class RepositorioUsuarioImpl implements RepositorioUsuario {
       throw new UsuarioNoEncontrado();
     }
     sessionFactory.getCurrentSession().merge(usuario);
+  }
+
+  @Override
+  public List<Usuario> buscarPostulantes() {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery("from Usuario where upper(rol) in ('CANDIDATO', 'POSTULANTE')", Usuario.class)
+      .getResultList();
   }
 }

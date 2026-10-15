@@ -8,6 +8,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 public class ServicioCorreoImpl implements ServicioCorreo {
@@ -30,6 +32,7 @@ public class ServicioCorreoImpl implements ServicioCorreo {
 
   @Override
   @Async("ejecutorCorreos")
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void enviar(Correo correo) {
     if (!habilitado) {
       LOGGER.info("Envío de correos deshabilitado. Configurá correo.habilitado para activarlo.");

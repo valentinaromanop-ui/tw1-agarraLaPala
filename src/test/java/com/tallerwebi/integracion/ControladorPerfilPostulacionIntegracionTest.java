@@ -10,12 +10,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.dominio.PerfilPostulante;
 import com.tallerwebi.dominio.ServicioLogin;
 import com.tallerwebi.dominio.Skill;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.excepcion.UsuarioExistente;
-import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
 import java.util.UUID;
@@ -38,7 +38,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class, CorreoConfig.class })
+@ContextConfiguration(
+  classes = { SpringWebTestConfig.class, HibernateTestConfig.class, CorreoConfig.class }
+)
 class ControladorPerfilPostulacionIntegracionTest {
 
   @Autowired

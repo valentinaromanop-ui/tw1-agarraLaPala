@@ -22,7 +22,9 @@ import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { SpringWebTestConfig.class, HibernateTestConfig.class, CorreoConfig.class })
+@ContextConfiguration(
+  classes = { SpringWebTestConfig.class, HibernateTestConfig.class, CorreoConfig.class }
+)
 class ControladorIntegCVTest {
 
   @Autowired

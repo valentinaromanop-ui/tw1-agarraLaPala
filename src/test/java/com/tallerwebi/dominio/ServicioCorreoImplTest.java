@@ -8,7 +8,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
-class ServicioCorreoTest {
+class ServicioCorreoImplTest {
 
   @Test
   void enviaElCorreoConLosDatosIndicados() {
@@ -38,9 +38,7 @@ class ServicioCorreoTest {
     SimpleMailMessage segundo = crearMensaje("dos@gmail.com");
     doThrow(new MailSendException("Error SMTP")).when(sender).send(primero);
 
-    servicio.enviar(
-      new Correo(List.of("uno@gmail.com", "dos@gmail.com"), "Vacante", "Ver oferta")
-    );
+    servicio.enviar(new Correo(List.of("uno@gmail.com", "dos@gmail.com"), "Vacante", "Ver oferta"));
 
     verify(sender).send(primero);
     verify(sender).send(segundo);
