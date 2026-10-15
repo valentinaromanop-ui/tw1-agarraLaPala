@@ -47,10 +47,13 @@
         <fieldset class="skills-fieldset">
           <legend>Habilidades</legend>
           <div class="skill-options">
-            <label class="skill-chip" th:each="habilidad : ${habilidadesDisponibles}">
-              <input class="skill-checkbox" type="checkbox" th:field="*{habilidades}" th:value="${habilidad}">
-              <span th:text="${habilidad}">Java</span>
-            </label>
+            <div class="skill-option" th:each="habilidad, iterStat : ${habilidadesDisponibles}">
+              <input class="skill-checkbox" type="checkbox" name="habilidades" th:value="${habilidad}"
+                th:checked="${#lists.contains(datosRegistroCandidato.habilidades, habilidad)}"
+                th:id="${'habilidad-' + iterStat.index}">
+              <label class="skill-chip" th:for="${'habilidad-' + iterStat.index}"
+                th:text="${habilidad}">Java</label>
+            </div>
           </div>
         </fieldset>
         <p th:if="${error != null}" class="alert alert-danger" role="alert" th:text="${error}"></p>
