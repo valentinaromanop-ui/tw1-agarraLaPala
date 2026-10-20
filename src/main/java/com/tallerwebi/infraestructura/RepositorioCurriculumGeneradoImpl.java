@@ -3,6 +3,7 @@ package com.tallerwebi.infraestructura;
 import com.tallerwebi.dominio.CurriculumGenerado;
 import com.tallerwebi.dominio.RepositorioCurriculumGenerado;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -49,5 +50,23 @@ public class RepositorioCurriculumGeneradoImpl implements RepositorioCurriculumG
       return curriculum;
     }
     return sessionFactory.getCurrentSession().merge(curriculum);
+  }
+
+  @Override
+  public List<Long> buscarUsuarioIdsConCvOriginal(List<Long> usuarioIds) {
+    if (usuarioIds.isEmpty()) {
+      return List.of();
+    }
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select curriculum.usuario.id from CurriculumGenerado curriculum " +
+        "where curriculum.usuario.id in :usuarioIds " +
+        "and curriculum.archivoOriginal is not null " +
+        "and curriculum.nombreArchivoOriginal is not null",
+        Long.class
+      )
+      .setParameter("usuarioIds", usuarioIds)
+      .getResultList();
   }
 }

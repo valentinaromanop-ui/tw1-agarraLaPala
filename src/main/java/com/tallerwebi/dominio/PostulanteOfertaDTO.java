@@ -5,18 +5,35 @@ import java.util.List;
 
 public class PostulanteOfertaDTO {
 
+  private final Long postulacionId;
+  private final String nombreCompleto;
   private final String email;
   private final List<String> habilidades;
   private final LocalDateTime fechaPostulacion;
+  private final boolean tieneCv;
 
   public PostulanteOfertaDTO(
+    Long postulacionId,
+    String nombreCompleto,
     String email,
     List<String> habilidades,
-    LocalDateTime fechaPostulacion
+    LocalDateTime fechaPostulacion,
+    boolean tieneCv
   ) {
+    this.postulacionId = postulacionId;
+    this.nombreCompleto = nombreCompleto;
     this.email = email;
     this.habilidades = List.copyOf(habilidades);
     this.fechaPostulacion = fechaPostulacion;
+    this.tieneCv = tieneCv;
+  }
+
+  public Long getPostulacionId() {
+    return postulacionId;
+  }
+
+  public String getNombreCompleto() {
+    return nombreCompleto;
   }
 
   public String getEmail() {
@@ -29,5 +46,9 @@ public class PostulanteOfertaDTO {
 
   public LocalDateTime getFechaPostulacion() {
     return fechaPostulacion;
+  }
+
+  public boolean isTieneCv() {
+    return tieneCv;
   }
 }

@@ -32,6 +32,22 @@ public class RepositorioPerfilPostulanteImpl implements RepositorioPerfilPostula
   }
 
   @Override
+  public PerfilPostulante buscarPorUsuarioIdParaLectura(Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select distinct p from PerfilPostulante p " +
+        "join fetch p.usuario " +
+        "left join fetch p.postulanteSkills ps " +
+        "left join fetch ps.skill " +
+        "where p.usuario.id = :usuarioId",
+        PerfilPostulante.class
+      )
+      .setParameter("usuarioId", usuarioId)
+      .uniqueResult();
+  }
+
+  @Override
   public PerfilPostulante guardar(PerfilPostulante perfil) {
     if (perfil.getId() == null) {
       sessionFactory.getCurrentSession().persist(perfil);

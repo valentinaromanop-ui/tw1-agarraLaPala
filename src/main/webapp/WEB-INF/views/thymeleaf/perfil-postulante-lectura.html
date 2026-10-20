@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perfil del postulante | Agarra la Pala</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kad2F9CUG65" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+  <link rel="stylesheet" th:href="@{/css/ofertas-empleador.css}">
+</head>
+<body class="employer-body employer-applicant-body">
+  <nav th:replace="~{fragments/navbar :: appNavbar('searches', false, false)}"></nav>
+  <main class="page-container employer-page applicant-profile-page">
+    <a class="btn btn-outline-light page-back"
+      th:href="@{/ofertas/{ofertaId}/postulantes(ofertaId=${ofertaId})}">
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a postulantes
+    </a>
+
+    <section class="employer-panel" aria-labelledby="perfil-postulante-titulo">
+      <p class="employer-eyebrow">
+        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+        Vista de empresa · solo lectura
+      </p>
+      <header class="applicant-profile-heading">
+        <div class="applicant-avatar" aria-hidden="true">
+          <img th:if="${perfilPostulante.tieneFoto}"
+            th:src="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil/foto(ofertaId=${ofertaId}, postulacionId=${postulacionId})}"
+            alt="">
+          <span th:unless="${perfilPostulante.tieneFoto}" th:text="${perfilPostulante.iniciales}">AP</span>
+        </div>
+        <div class="applicant-profile-identity">
+          <h1 id="perfil-postulante-titulo" th:text="${perfilPostulante.nombreCompleto}">Nombre Apellido</h1>
+          <a class="applicant-email-link" th:href="|mailto:${perfilPostulante.email}|"
+            th:text="${perfilPostulante.email}">candidato@correo.com</a>
+          <p class="applicant-offer-meta">
+            Postulación a <strong th:text="${perfilPostulante.tituloOferta}">Título de oferta</strong>
+            <span aria-hidden="true">·</span>
+            <time th:datetime="${perfilPostulante.fechaPostulacion}"
+              th:text="${#temporals.format(perfilPostulante.fechaPostulacion, 'dd/MM/yyyy HH:mm')}">
+              20/10/2026 15:30
+            </time>
+          </p>
+        </div>
+      </header>
+
+      <section class="applicant-profile-section"
+        th:if="${perfilPostulante.tieneCv}" aria-labelledby="perfil-cv-titulo">
+        <h2 id="perfil-cv-titulo">Currículum</h2>
+        <div class="applicant-profile-actions">
+          <a class="btn btn-sm applicant-action-button"
+            th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/cv(ofertaId=${ofertaId}, postulacionId=${postulacionId})}"
+            target="_blank" rel="noopener">
+            <i class="bi bi-eye" aria-hidden="true"></i> Ver CV
+          </a>
+          <a class="btn btn-sm applicant-action-button"
+            th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/cv(ofertaId=${ofertaId}, postulacionId=${postulacionId}, descargar=true)}">
+            <i class="bi bi-download" aria-hidden="true"></i> Descargar CV
+          </a>
+        </div>
+      </section>
+      <section class="applicant-profile-section"
+        th:unless="${perfilPostulante.tieneCv}" aria-label="Currículum">
+        <h2>Currículum</h2>
+        <span class="postulante-no-cv" aria-disabled="true">Sin CV</span>
+      </section>
+
+      <section class="applicant-profile-section" th:if="${!#lists.isEmpty(perfilPostulante.habilidades)}">
+        <h2>Habilidades</h2>
+        <div class="postulante-skills">
+          <span class="skill-chip" th:each="habilidad : ${perfilPostulante.habilidades}" th:text="${habilidad}">
+            Habilidad
+          </span>
+        </div>
+      </section>
+
+      <section class="applicant-profile-section" th:if="${perfilPostulante.presentacion != null and !#strings.isEmpty(#strings.trim(perfilPostulante.presentacion))}">
+        <h2>Presentación</h2>
+        <p class="applicant-profile-text" th:text="${perfilPostulante.presentacion}">Presentación del candidato.</p>
+      </section>
+
+      <section class="applicant-profile-section"
+        th:if="${(perfilPostulante.telefono != null and !#strings.isEmpty(#strings.trim(perfilPostulante.telefono))) or (perfilPostulante.ubicacion != null and !#strings.isEmpty(#strings.trim(perfilPostulante.ubicacion)))}">
+        <h2>Contacto y ubicación</h2>
+        <dl class="applicant-profile-details">
+          <div th:if="${perfilPostulante.telefono != null and !#strings.isEmpty(#strings.trim(perfilPostulante.telefono))}">
+            <dt>Teléfono</dt><dd th:text="${perfilPostulante.telefono}">Teléfono</dd>
+          </div>
+          <div th:if="${perfilPostulante.ubicacion != null and !#strings.isEmpty(#strings.trim(perfilPostulante.ubicacion))}">
+            <dt>Ubicación</dt><dd th:text="${perfilPostulante.ubicacion}">Ubicación</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="applicant-profile-section"
+        th:if="${(perfilPostulante.nivelExperiencia != null and !#strings.isEmpty(#strings.trim(perfilPostulante.nivelExperiencia))) or (perfilPostulante.tipoBusqueda != null and !#strings.isEmpty(#strings.trim(perfilPostulante.tipoBusqueda))) or (perfilPostulante.nivelIngles != null and !#strings.isEmpty(#strings.trim(perfilPostulante.nivelIngles)))}">
+        <h2>Experiencia y preferencias</h2>
+        <dl class="applicant-profile-details">
+          <div th:if="${perfilPostulante.nivelExperiencia != null and !#strings.isEmpty(#strings.trim(perfilPostulante.nivelExperiencia))}">
+            <dt>Nivel de experiencia</dt><dd th:text="${perfilPostulante.nivelExperiencia}">Experiencia</dd>
+          </div>
+          <div th:if="${perfilPostulante.tipoBusqueda != null and !#strings.isEmpty(#strings.trim(perfilPostulante.tipoBusqueda))}">
+            <dt>Tipo de búsqueda</dt><dd th:text="${perfilPostulante.tipoBusqueda}">Tipo de búsqueda</dd>
+          </div>
+          <div th:if="${perfilPostulante.nivelIngles != null and !#strings.isEmpty(#strings.trim(perfilPostulante.nivelIngles))}">
+            <dt>Nivel de inglés</dt><dd th:text="${perfilPostulante.nivelIngles}">Nivel</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="applicant-profile-section"
+        th:if="${!#lists.isEmpty(perfilPostulante.disponibilidadHoraria) or !#lists.isEmpty(perfilPostulante.diasSemana) or !#lists.isEmpty(perfilPostulante.modalidades)}">
+        <h2>Disponibilidad y modalidad</h2>
+        <div class="applicant-profile-details">
+          <div th:if="${!#lists.isEmpty(perfilPostulante.disponibilidadHoraria)}">
+            <h3>Horario</h3>
+            <div class="postulante-skills">
+              <span class="skill-chip" th:each="horario : ${perfilPostulante.disponibilidadHoraria}" th:text="${horario}">Horario</span>
+            </div>
+          </div>
+          <div th:if="${!#lists.isEmpty(perfilPostulante.diasSemana)}">
+            <h3>Días</h3>
+            <div class="postulante-skills">
+              <span class="skill-chip" th:each="dia : ${perfilPostulante.diasSemana}" th:text="${dia}">Día</span>
+            </div>
+          </div>
+          <div th:if="${!#lists.isEmpty(perfilPostulante.modalidades)}">
+            <h3>Modalidades</h3>
+            <div class="postulante-skills">
+              <span class="skill-chip" th:each="modalidad : ${perfilPostulante.modalidades}" th:text="${modalidad}">Modalidad</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="applicant-profile-section" th:if="${!#maps.isEmpty(perfilPostulante.idiomas)}">
+        <h2>Idiomas</h2>
+        <dl class="applicant-profile-details">
+          <div th:each="idioma : ${perfilPostulante.idiomas}">
+            <dt th:text="${idioma.key}">Idioma</dt>
+            <dd th:text="${idioma.value}">Nivel</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="applicant-profile-section"
+        th:if="${perfilPostulante.linkedin != null or perfilPostulante.github != null}">
+        <h2>Enlaces</h2>
+        <div class="applicant-profile-actions">
+          <a th:if="${perfilPostulante.linkedin != null}" class="btn btn-sm applicant-action-button"
+            th:href="${perfilPostulante.linkedin}" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-linkedin" aria-hidden="true"></i> LinkedIn
+          </a>
+          <a th:if="${perfilPostulante.github != null}" class="btn btn-sm applicant-action-button"
+            th:href="${perfilPostulante.github}" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-github" aria-hidden="true"></i> GitHub
+          </a>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+    crossorigin="anonymous"></script>
+</body>
+</html>
