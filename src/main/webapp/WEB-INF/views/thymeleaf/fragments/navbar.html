@@ -44,13 +44,6 @@
 
           <ul class="navbar-nav app-navbar-links">
             <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
-              <a class="nav-link" th:href="@{/busquedas-Empleador}"
-                th:classappend="${activePage == 'searches'} ? ' active' : ''"
-                th:attr="aria-current=${activePage == 'searches'} ? 'page' : null">
-                <i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas
-              </a>
-            </li>
-            <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
               <a class="nav-link" th:href="@{/home}"
                 th:classappend="${activePage == 'home'} ? ' active' : ''"
                 th:attr="aria-current=${activePage == 'home'} ? 'page' : null">
@@ -114,9 +107,6 @@
                 </a></li>
                 <li><a class="dropdown-item" th:href="@{/busquedas-Empleador}">
                   <i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas
-                </a></li>
-                <li><a class="dropdown-item" th:href="@{/empleador/perfil}">
-                  <i class="bi bi-person-circle" aria-hidden="true"></i> Perfil de empresa
                 </a></li>
               </ul>
             </li>

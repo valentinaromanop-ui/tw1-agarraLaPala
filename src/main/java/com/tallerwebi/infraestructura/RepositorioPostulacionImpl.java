@@ -67,7 +67,8 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "from Postulacion p join fetch p.usuario " +
+        "select distinct p from Postulacion p join fetch p.usuario usuario " +
+        "left join fetch usuario.habilidades " +
         "where p.idOferta = :ofertaLocal or p.idOferta = :idVacante " +
         "order by p.fechaPostulacion desc",
         Postulacion.class
@@ -75,5 +76,21 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
       .setParameter("ofertaLocal", "LOCAL:" + vacanteId)
       .setParameter("idVacante", String.valueOf(vacanteId))
       .getResultList();
+  }
+
+  @Override
+  public Postulacion buscarPorIdYVacante(Long postulacionId, Long vacanteId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select distinct p from Postulacion p join fetch p.usuario " +
+        "where p.id = :postulacionId and " +
+        "(p.idOferta = :ofertaLocal or p.idOferta = :idVacante)",
+        Postulacion.class
+      )
+      .setParameter("postulacionId", postulacionId)
+      .setParameter("ofertaLocal", "LOCAL:" + vacanteId)
+      .setParameter("idVacante", String.valueOf(vacanteId))
+      .uniqueResult();
   }
 }

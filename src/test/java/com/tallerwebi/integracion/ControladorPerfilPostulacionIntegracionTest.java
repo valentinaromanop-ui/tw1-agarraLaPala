@@ -6,7 +6,9 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,12 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.dominio.PerfilPostulante;
+import com.tallerwebi.dominio.Postulacion;
 import com.tallerwebi.dominio.ServicioLogin;
 import com.tallerwebi.dominio.Skill;
 import com.tallerwebi.dominio.Usuario;
+import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.excepcion.UsuarioExistente;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -198,6 +203,102 @@ class ControladorPerfilPostulacionIntegracionTest {
     mockMvc.perform(get("/perfil")).andExpect(status().is3xxRedirection());
     mockMvc.perform(post("/perfil/guardar")).andExpect(status().is3xxRedirection());
     mockMvc.perform(get("/postulaciones")).andExpect(status().is3xxRedirection());
+  }
+
+  @Test
+  void empresaVeUnPerfilDeLecturaYSeRechazanOtrosRolesYOfertas() throws Exception {
+    long[] ids = guardarOfertaYPostulacion();
+    MockHttpSession sesionEmpresa = new MockHttpSession();
+    sesionEmpresa.setAttribute("ROL", "EMPLEADOR");
+    sesionEmpresa.setAttribute("USUARIO_ID", ids[0]);
+
+    MvcResult resultado = mockMvc
+      .perform(
+        get("/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil", ids[1], ids[2])
+          .session(sesionEmpresa)
+      )
+      .andExpect(status().isOk())
+      .andReturn();
+
+    assertNotNull(resultado.getModelAndView());
+    assertEquals("perfil-postulante-lectura", resultado.getModelAndView().getViewName());
+    assertTrue(
+      resultado.getModelAndView().getModel().get("perfilPostulante") instanceof
+      com.tallerwebi.dominio.PerfilPostulanteDTO
+    );
+    assertFalse(resultado.getModelAndView().getModel().containsKey("usuario"));
+    assertFalse(resultado.getModelAndView().getModel().containsKey("perfil"));
+    String html = resultado.getResponse().getContentAsString();
+    assertTrue(html.contains("Vista de empresa · solo lectura"));
+    assertTrue(html.contains("Ada Lovelace"));
+    assertTrue(html.contains("Java"));
+    assertTrue(html.contains("Sin CV"));
+    assertFalse(html.contains("no-debe-aparecer"));
+    assertFalse(html.contains("<input"));
+
+    MockHttpSession sesionCandidato = new MockHttpSession();
+    sesionCandidato.setAttribute("ROL", "CANDIDATO");
+    sesionCandidato.setAttribute("USUARIO_ID", ids[3]);
+    mockMvc
+      .perform(
+        get("/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil", ids[1], ids[2])
+          .session(sesionCandidato)
+      )
+      .andExpect(status().isForbidden());
+
+    MockHttpSession otraEmpresa = new MockHttpSession();
+    otraEmpresa.setAttribute("ROL", "EMPLEADOR");
+    otraEmpresa.setAttribute("USUARIO_ID", ids[0] + 10000);
+    mockMvc
+      .perform(
+        get("/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil", ids[1], ids[2])
+          .session(otraEmpresa)
+      )
+      .andExpect(status().isForbidden());
+  }
+
+  private long[] guardarOfertaYPostulacion() {
+    return new TransactionTemplate(transactionManager)
+      .execute(status -> {
+        Usuario empresa = new Usuario();
+        empresa.setEmail("empresa-" + UUID.randomUUID() + "@correo.com");
+        empresa.setPassword("interno-no-exponer");
+        empresa.setRol("EMPLEADOR");
+        sessionFactory.getCurrentSession().persist(empresa);
+
+        Usuario candidato = new Usuario();
+        candidato.setEmail("ada-" + UUID.randomUUID() + "@correo.com");
+        candidato.setPassword("no-debe-aparecer");
+        candidato.setRol("CANDIDATO");
+        candidato.setNombre("Ada");
+        candidato.setApellido("Lovelace");
+        candidato.setHabilidades(java.util.List.of("Java, SQL"));
+        sessionFactory.getCurrentSession().persist(candidato);
+
+        Vacante oferta = new Vacante();
+        oferta.setTitulo("Desarrolladora Java");
+        oferta.setEmpleadorId(empresa.getId());
+        sessionFactory.getCurrentSession().persist(oferta);
+
+        Postulacion postulacion = new Postulacion();
+        postulacion.setUsuario(candidato);
+        postulacion.setIdOferta("LOCAL:" + oferta.getId());
+        postulacion.setFechaPostulacion(LocalDateTime.of(2026, 10, 20, 15, 30));
+        sessionFactory.getCurrentSession().persist(postulacion);
+
+        PerfilPostulante perfil = new PerfilPostulante();
+        perfil.setUsuario(candidato);
+        perfil.setPresentacion("Desarrolladora de software");
+        perfil.setLinkedin("https://example.com/ada");
+        sessionFactory.getCurrentSession().persist(perfil);
+        sessionFactory.getCurrentSession().flush();
+        return new long[] {
+          empresa.getId(),
+          oferta.getId(),
+          postulacion.getId(),
+          candidato.getId(),
+        };
+      });
   }
 
   private MockHttpSession crearSesionPostulante() throws UsuarioExistente {

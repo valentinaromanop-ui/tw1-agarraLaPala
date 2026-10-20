@@ -13,7 +13,7 @@
   <link rel="stylesheet" th:href="@{/css/ofertas-empleador.css}">
 </head>
 
-<body class="employer-body">
+<body class="employer-body employer-applicant-body">
   <nav th:replace="~{fragments/navbar :: appNavbar('searches', false, true)}">
     <div class="container navbar-container employer-navbar-container">
       <a class="navbar-brand" th:href="@{/home}">Agarra la Pala</a>
@@ -28,26 +28,71 @@
     <section class="employer-panel" aria-labelledby="postulantes-title">
       <p class="employer-eyebrow"><i class="bi bi-people" aria-hidden="true"></i> Postulaciones recibidas</p>
       <h1 id="postulantes-title">Postulantes</h1>
-      <p class="employer-intro" th:text="${vacante.titulo}">Oferta publicada</p>
+      <div class="postulantes-summary">
+        <p class="employer-intro" th:text="${vacante.titulo}">Oferta publicada</p>
+        <p class="postulantes-count">
+          <strong th:text="${cantidadPostulantes}">0</strong>
+          <span th:text="${cantidadPostulantes == 1 ? 'postulante' : 'postulantes'}">postulantes</span>
+        </p>
+      </div>
 
-      <p th:if="${#lists.isEmpty(postulantes)}" class="empty-searches" role="status">
-        Todavía no hay postulantes.
-      </p>
+      <div th:if="${#lists.isEmpty(postulantes)}" class="empty-searches postulantes-empty" role="status">
+        <i class="bi bi-inbox" aria-hidden="true"></i>
+        <h2>Aún no hay postulantes</h2>
+        <p>Cuando alguien se postule a esta oferta, vas a poder ver su perfil y CV acá.</p>
+      </div>
 
       <div th:unless="${#lists.isEmpty(postulantes)}" class="table-responsive">
         <table class="table employer-table postulantes-table align-middle">
           <thead>
             <tr>
-              <th scope="col">Correo</th>
+              <th scope="col">Postulante</th>
               <th scope="col">Habilidades</th>
               <th scope="col">Fecha de postulación</th>
+              <th scope="col">CV</th>
             </tr>
           </thead>
           <tbody>
             <tr th:each="postulante : ${postulantes}">
-              <td th:text="${postulante.email}"></td>
-              <td th:text="${#lists.isEmpty(postulante.habilidades) ? 'Sin habilidades cargadas' : #strings.listJoin(postulante.habilidades, ', ')}"></td>
+              <td>
+                <a class="postulante-name postulante-name-link"
+                  th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}"
+                  th:text="${postulante.nombreCompleto}">Nombre Apellido</a>
+                <span class="postulante-email" th:text="${postulante.email}">candidato@correo.com</span>
+              </td>
+              <td>
+                <div th:if="${!#lists.isEmpty(postulante.habilidades)}" class="postulante-skills">
+                  <span class="skill-chip" th:each="habilidad : ${postulante.habilidades}" th:text="${habilidad}">
+                    Habilidad
+                  </span>
+                </div>
+                <span th:if="${#lists.isEmpty(postulante.habilidades)}" class="postulante-secondary">
+                  Sin habilidades cargadas
+                </span>
+              </td>
               <td th:text="${#temporals.format(postulante.fechaPostulacion, 'dd/MM/yyyy HH:mm')}"></td>
+              <td>
+                <div class="postulante-row-actions">
+                  <div th:if="${postulante.tieneCv}" class="postulante-cv-actions">
+                    <a class="btn btn-sm applicant-action-button"
+                      th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/cv(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}"
+                      target="_blank" rel="noopener">
+                      <i class="bi bi-eye" aria-hidden="true"></i> Ver CV
+                    </a>
+                    <a class="btn btn-sm applicant-action-button"
+                      th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/cv(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId}, descargar=true)}">
+                      Descargar
+                    </a>
+                  </div>
+                  <span th:unless="${postulante.tieneCv}" class="postulante-no-cv" aria-disabled="true">
+                    Sin CV
+                  </span>
+                  <a class="btn btn-sm applicant-profile-button"
+                    th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
+                    <i class="bi bi-person-vcard" aria-hidden="true"></i> Ver perfil
+                  </a>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
