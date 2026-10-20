@@ -8,4 +8,5 @@ public interface RepositorioPostulacion {
   List<Postulacion> buscarPorUsuarioId(Long usuarioId);
   long contarPorVacante(Long vacanteId);
   List<Postulacion> buscarPorVacante(Long vacanteId);
+  Postulacion buscarPorIdYVacante(Long postulacionId, Long vacanteId);
 }

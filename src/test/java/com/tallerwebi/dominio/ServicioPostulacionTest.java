@@ -11,6 +11,8 @@ public class ServicioPostulacionTest {
   private RepositorioUsuario usuarios;
   private RepositorioVacante vacantes;
   private RepositorioPostulacion postulaciones;
+  private RepositorioCurriculumGenerado curriculums;
+  private RepositorioPerfilPostulante perfiles;
   private ServicioPostulacion servicio;
   private VacanteDTO oferta;
 
@@ -19,7 +21,15 @@ public class ServicioPostulacionTest {
     usuarios = mock(RepositorioUsuario.class);
     vacantes = mock(RepositorioVacante.class);
     postulaciones = mock(RepositorioPostulacion.class);
-    servicio = new ServicioPostulacionImpl(usuarios, postulaciones, vacantes);
+    curriculums = mock(RepositorioCurriculumGenerado.class);
+    perfiles = mock(RepositorioPerfilPostulante.class);
+    servicio =
+      new ServicioPostulacionImpl(
+        usuarios,
+        postulaciones,
+        vacantes,
+        new ServicioPostulantesOferta(postulaciones, vacantes, curriculums, perfiles)
+      );
     Usuario usuario = new Usuario();
     usuario.setRol("CANDIDATO");
     when(usuarios.buscarPorId(1L)).thenReturn(usuario);
@@ -143,6 +153,158 @@ public class ServicioPostulacionTest {
 
     assertThrows(AccesoOfertaDenegadoException.class, () -> servicio.obtenerPostulantes(10L, 42L));
     verify(postulaciones, never()).buscarPorVacante(10L);
+  }
+
+  @Test
+  public void noDeberiaObtenerCvDeUnaPostulacionDeOtraOferta() {
+    Vacante ofertaPropia = ofertaDeEmpleador(10L, 42L);
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaPropia);
+
+    assertThrows(
+      VacanteNoEncontradaException.class,
+      () -> servicio.obtenerCvPostulante(10L, 20L, 42L)
+    );
+    verify(curriculums, never()).buscarPorUsuarioId(any());
+  }
+
+  @Test
+  public void deberiaIncluirNombreHabilidadesYDisponibilidadDelCv() {
+    Vacante ofertaPropia = ofertaDeEmpleador(10L, 42L);
+    Usuario candidato = new Usuario();
+    candidato.setId(7L);
+    candidato.setNombre("Ada");
+    candidato.setApellido("Lovelace");
+    candidato.setEmail("ada@example.com");
+    candidato.setHabilidades(java.util.List.of("Java", "SQL"));
+    Postulacion postulacion = new Postulacion();
+    postulacion.setId(20L);
+    postulacion.setUsuario(candidato);
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaPropia);
+    when(postulaciones.buscarPorVacante(10L)).thenReturn(java.util.List.of(postulacion));
+    when(curriculums.buscarUsuarioIdsConCvOriginal(java.util.List.of(7L)))
+      .thenReturn(java.util.List.of(7L));
+
+    PostulanteOfertaDTO resultado = servicio.obtenerPostulantes(10L, 42L).get(0);
+
+    assertEquals(20L, resultado.getPostulacionId());
+    assertEquals("Ada Lovelace", resultado.getNombreCompleto());
+    assertEquals("ada@example.com", resultado.getEmail());
+    assertEquals(java.util.List.of("Java", "SQL"), resultado.getHabilidades());
+    assertTrue(resultado.isTieneCv());
+    verify(curriculums).buscarUsuarioIdsConCvOriginal(java.util.List.of(7L));
+  }
+
+  @Test
+  public void deberiaPermitirObtenerElCvDePostulacionDeOfertaPropia() {
+    Vacante ofertaPropia = ofertaDeEmpleador(10L, 42L);
+    Usuario candidato = new Usuario();
+    candidato.setId(7L);
+    Postulacion postulacion = new Postulacion();
+    postulacion.setUsuario(candidato);
+    CurriculumGenerado curriculum = new CurriculumGenerado();
+    curriculum.setNombreArchivoOriginal("cv.pdf");
+    curriculum.setArchivoOriginal(new byte[] { 1, 2, 3 });
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaPropia);
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(postulacion);
+    when(curriculums.buscarPorUsuarioId(7L)).thenReturn(curriculum);
+
+    ArchivoCvPostulanteDTO resultado = servicio.obtenerCvPostulante(10L, 20L, 42L);
+
+    assertEquals("cv.pdf", resultado.getNombreArchivo());
+    assertArrayEquals(new byte[] { 1, 2, 3 }, resultado.getContenido());
+  }
+
+  @Test
+  public void deberiaProyectarPerfilPublicableSinExponerLaEntidadUsuario() {
+    Vacante ofertaPropia = ofertaDeEmpleador(10L, 42L);
+    ofertaPropia.setTitulo("Desarrolladora Java");
+    Usuario candidato = new Usuario();
+    candidato.setId(7L);
+    candidato.setNombre("Ada");
+    candidato.setApellido("Lovelace");
+    candidato.setEmail("ada@example.com");
+    candidato.setPassword("no-debe-exponerse");
+    candidato.setFotoPerfil(new byte[] { 4, 5 });
+    candidato.setFotoPerfilTipo("image/png");
+    candidato.setHabilidades(java.util.List.of("Java, SQL"));
+    Postulacion postulacion = new Postulacion();
+    postulacion.setId(20L);
+    postulacion.setUsuario(candidato);
+    postulacion.setFechaPostulacion(java.time.LocalDateTime.of(2026, 10, 20, 15, 30));
+    PerfilPostulante perfil = new PerfilPostulante();
+    perfil.setPresentacion("Desarrollo software");
+    perfil.setLinkedin("https://example.com/ada");
+    perfil.setGithub("javascript:alert(1)");
+    perfil.setDisponibilidadHoraria(java.util.List.of("Mañana"));
+    perfil.setIdiomas(java.util.Map.of("Inglés", "Avanzado"));
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaPropia);
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(postulacion);
+    when(perfiles.buscarPorUsuarioIdParaLectura(7L)).thenReturn(perfil);
+
+    PerfilPostulanteDTO resultado = servicio.obtenerPerfilPostulante(10L, 20L, 42L);
+
+    assertEquals("Ada Lovelace", resultado.getNombreCompleto());
+    assertEquals("ada@example.com", resultado.getEmail());
+    assertEquals("AL", resultado.getIniciales());
+    assertTrue(resultado.isTieneFoto());
+    assertEquals(java.util.List.of("Java", "SQL"), resultado.getHabilidades());
+    assertEquals("Desarrollo software", resultado.getPresentacion());
+    assertEquals(java.util.List.of("Mañana"), resultado.getDisponibilidadHoraria());
+    assertEquals(java.util.Map.of("Inglés", "Avanzado"), resultado.getIdiomas());
+    assertEquals("https://example.com/ada", resultado.getLinkedin());
+    assertNull(resultado.getGithub());
+    assertEquals("Desarrolladora Java", resultado.getTituloOferta());
+    assertEquals(java.time.LocalDateTime.of(2026, 10, 20, 15, 30), resultado.getFechaPostulacion());
+    org.junit.jupiter.api.Assertions.assertFalse(
+      java.util.Arrays
+        .stream(resultado.getClass().getMethods())
+        .anyMatch(metodo -> metodo.getName().equals("getPassword"))
+    );
+  }
+
+  @Test
+  public void noDeberiaConsultarPerfilSiOfertaEsAjena() {
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaDeEmpleador(10L, 99L));
+
+    assertThrows(
+      AccesoOfertaDenegadoException.class,
+      () -> servicio.obtenerPerfilPostulante(10L, 20L, 42L)
+    );
+
+    verify(postulaciones, never()).buscarPorIdYVacante(any(), any());
+    verify(perfiles, never()).buscarPorUsuarioIdParaLectura(any());
+  }
+
+  @Test
+  public void noDeberiaConsultarPostulanteSiNoPerteneceALaOferta() {
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaDeEmpleador(10L, 42L));
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(null);
+
+    assertThrows(
+      VacanteNoEncontradaException.class,
+      () -> servicio.obtenerPerfilPostulante(10L, 20L, 42L)
+    );
+
+    verify(perfiles, never()).buscarPorUsuarioIdParaLectura(any());
+    verify(curriculums, never()).buscarPorUsuarioId(any());
+  }
+
+  @Test
+  public void deberiaObtenerLaFotoSoloTrasValidarLaOfertaYPostulacion() {
+    Vacante ofertaPropia = ofertaDeEmpleador(10L, 42L);
+    Usuario candidato = new Usuario();
+    candidato.setId(7L);
+    candidato.setFotoPerfil(new byte[] { 4, 5 });
+    candidato.setFotoPerfilTipo("image/png");
+    Postulacion postulacion = new Postulacion();
+    postulacion.setUsuario(candidato);
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaPropia);
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(postulacion);
+
+    FotoPerfilPostulanteDTO resultado = servicio.obtenerFotoPerfilPostulante(10L, 20L, 42L);
+
+    assertEquals("image/png", resultado.getContentType());
+    assertArrayEquals(new byte[] { 4, 5 }, resultado.getContenido());
   }
 
   private Vacante ofertaDeEmpleador(Long id, Long empleadorId) {

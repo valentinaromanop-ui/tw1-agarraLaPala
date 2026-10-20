@@ -11,4 +11,11 @@ public interface ServicioPostulacion {
   List<Postulacion> listarPostulaciones(Long usuarioId);
   long contarPorOferta(Long vacanteId);
   List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId);
+  ArchivoCvPostulanteDTO obtenerCvPostulante(Long vacanteId, Long postulacionId, Long empleadorId);
+  PerfilPostulanteDTO obtenerPerfilPostulante(Long vacanteId, Long postulacionId, Long empleadorId);
+  FotoPerfilPostulanteDTO obtenerFotoPerfilPostulante(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId
+  );
 }

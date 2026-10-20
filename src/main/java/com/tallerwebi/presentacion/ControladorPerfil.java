@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -55,7 +56,7 @@ public class ControladorPerfil {
     HttpSession session,
     RedirectAttributes redirect
   ) {
-    Long usuarioId = (Long) session.getAttribute(ATRIBUTO_USUARIO_ID);
+    Long usuarioId = obtenerUsuarioPostulante(session);
     String redirect1 = PREFIJO_REDIRECT + RUTA_PERFIL;
     if (usuarioId == null) {
       redirect.addFlashAttribute(error, "Debes iniciar sesión para subir una foto de perfil.");
@@ -92,7 +93,7 @@ public class ControladorPerfil {
 
   @PostMapping("/perfil/foto/eliminar")
   public String eliminarFotoPerfil(HttpSession session, RedirectAttributes redirect) {
-    Long usuarioId = (Long) session.getAttribute(ATRIBUTO_USUARIO_ID);
+    Long usuarioId = obtenerUsuarioPostulante(session);
     if (usuarioId == null) {
       redirect.addFlashAttribute(error, "Debes iniciar sesión para eliminar tu foto de perfil.");
       return REDIRECT_LOGIN;
@@ -105,7 +106,10 @@ public class ControladorPerfil {
 
   @GetMapping("/perfil/foto")
   public ResponseEntity<byte[]> verFoto(HttpSession session) {
-    Long usuarioId = (Long) session.getAttribute(ATRIBUTO_USUARIO_ID);
+    Long usuarioId = obtenerUsuarioPostulante(session);
+    if (usuarioId == null) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
     Usuario usuario = servicioPerfil.obtenerUsuario(usuarioId);
     if (usuario == null || !usuario.tieneFotoPerfil()) return ResponseEntity.notFound().build(); //indica imagen no disp
     return ResponseEntity
@@ -229,6 +233,10 @@ public class ControladorPerfil {
 
   private Long obtenerUsuarioPostulante(HttpServletRequest request) {
     HttpSession session = request.getSession(false);
+    return obtenerUsuarioPostulante(session);
+  }
+
+  private Long obtenerUsuarioPostulante(HttpSession session) {
     if (session == null || !esPostulante(session.getAttribute("ROL"))) {
       return null;
     }
