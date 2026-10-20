@@ -15,6 +15,8 @@ import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,6 +73,13 @@ public class ControladorOfertaEmpleadorIntegracionTest {
       listaVacia.getResponse().getContentAsString(),
       containsString("Todavía no creaste postulaciones")
     );
+    String homeAntesDePublicar = mockMvc
+      .perform(get("/home").session(session))
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+    int cantidadOfertasInicial = cantidadOfertasMostradas(homeAntesDePublicar);
 
     mockMvc
       .perform(
@@ -104,7 +113,10 @@ public class ControladorOfertaEmpleadorIntegracionTest {
     String contenidoHome = home.getResponse().getContentAsString();
     assertThat(contenidoHome, containsString("Product Designer"));
     assertThat(contenidoHome, containsString("Analista de Integración"));
-    assertThat(contenidoHome, containsString("Mostrando 11 ofertas"));
+    assertThat(
+      contenidoHome,
+      containsString("Mostrando " + (cantidadOfertasInicial + 1) + " ofertas")
+    );
     assertThat(
       contenidoHome,
       containsString("data-oferta-id=\"" + ofertaIdDeListado(contenidoHome) + "\"")
@@ -222,6 +234,14 @@ public class ControladorOfertaEmpleadorIntegracionTest {
     int inicioValor = inicioId + "data-oferta-id=\"".length();
     int finValor = contenidoHome.indexOf('"', inicioValor);
     return contenidoHome.substring(inicioValor, finValor);
+  }
+
+  private int cantidadOfertasMostradas(String contenidoHome) {
+    Matcher matcher = Pattern.compile("Mostrando (\\d+) ofertas").matcher(contenidoHome);
+    if (!matcher.find()) {
+      throw new AssertionError("No se encontró la cantidad de ofertas en la página de inicio.");
+    }
+    return Integer.parseInt(matcher.group(1));
   }
 
   @Test
