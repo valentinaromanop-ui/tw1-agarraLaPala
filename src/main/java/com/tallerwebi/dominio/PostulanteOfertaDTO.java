@@ -11,6 +11,7 @@ public class PostulanteOfertaDTO {
   private final List<String> habilidades;
   private final LocalDateTime fechaPostulacion;
   private final boolean tieneCv;
+  private final EstadoPostulacion estado;
 
   public PostulanteOfertaDTO(
     Long postulacionId,
@@ -18,7 +19,8 @@ public class PostulanteOfertaDTO {
     String email,
     List<String> habilidades,
     LocalDateTime fechaPostulacion,
-    boolean tieneCv
+    boolean tieneCv,
+    EstadoPostulacion estado
   ) {
     this.postulacionId = postulacionId;
     this.nombreCompleto = nombreCompleto;
@@ -26,6 +28,7 @@ public class PostulanteOfertaDTO {
     this.habilidades = List.copyOf(habilidades);
     this.fechaPostulacion = fechaPostulacion;
     this.tieneCv = tieneCv;
+    this.estado = estado;
   }
 
   public Long getPostulacionId() {
@@ -50,5 +53,9 @@ public class PostulanteOfertaDTO {
 
   public boolean isTieneCv() {
     return tieneCv;
+  }
+
+  public EstadoPostulacion getEstado() {
+    return estado;
   }
 }

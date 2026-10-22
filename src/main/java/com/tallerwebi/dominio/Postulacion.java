@@ -2,6 +2,8 @@ package com.tallerwebi.dominio;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,7 +13,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
-import java.util.Locale;
 
 @Entity
 @Table(
@@ -20,8 +21,6 @@ import java.util.Locale;
 )
 @SuppressWarnings("PMD.TooManyFields")
 public class Postulacion {
-
-  private static final String ESTADO_LEGADO_REGISTRADA = "REGISTRADA";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,8 +46,12 @@ public class Postulacion {
   @Column(name = "fecha_postulacion", nullable = false)
   private LocalDateTime fechaPostulacion;
 
-  @Column(nullable = false)
-  private String estado = EstadoPostulacion.ENVIADA.name();
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, columnDefinition = "varchar(20) default 'PENDIENTE'")
+  private EstadoPostulacion estado = EstadoPostulacion.PENDIENTE;
+
+  @Column(name = "fecha_decision")
+  private LocalDateTime fechaDecision;
 
   @Transient
   private Vacante vacante;
@@ -142,26 +145,25 @@ public class Postulacion {
   }
 
   public EstadoPostulacion getEstado() {
-    if (ESTADO_LEGADO_REGISTRADA.equalsIgnoreCase(estado)) {
-      return EstadoPostulacion.ENVIADA;
-    }
-    return EstadoPostulacion.valueOf(estado.toUpperCase(Locale.ROOT));
+    return estado == null ? EstadoPostulacion.PENDIENTE : estado;
   }
 
   public void setEstado(EstadoPostulacion estado) {
-    if (estado != null) {
-      this.estado = estado.name();
-    }
+    this.estado = estado == null ? EstadoPostulacion.PENDIENTE : estado;
   }
 
   public void setEstado(String estado) {
     if (estado == null) {
       return;
     }
-    String estadoNormalizado = estado.trim();
-    this.estado =
-      ESTADO_LEGADO_REGISTRADA.equalsIgnoreCase(estadoNormalizado)
-        ? EstadoPostulacion.ENVIADA.name()
-        : EstadoPostulacion.valueOf(estadoNormalizado.toUpperCase(Locale.ROOT)).name();
+    this.estado = EstadoPostulacion.desdeValor(estado);
+  }
+
+  public LocalDateTime getFechaDecision() {
+    return fechaDecision;
+  }
+
+  public void setFechaDecision(LocalDateTime fechaDecision) {
+    this.fechaDecision = fechaDecision;
   }
 }

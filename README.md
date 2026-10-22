@@ -59,6 +59,8 @@ $ mvn clean jetty:run
 Al iniciar la aplicación, Hibernate crea o actualiza las tablas mapeadas (`hibernate.hbm2ddl.auto=update`) y luego se ejecutan [`schema-update.sql`](src/main/resources/schema-update.sql) y [`data.sql`](src/main/resources/data.sql).
 Esto incluye la tabla `EmpleoGuardado`, que se genera desde su entidad JPA, y datos mínimos para probar postulaciones y empleos guardados:
 
+`schema-update.sql` agrega `Postulacion.fecha_decision` si todavía no existe, migra las postulaciones existentes a `PENDIENTE` y define ese estado como valor predeterminado de `estado`. La migración es idempotente y también se aplica al iniciar sobre bases locales ya existentes.
+
 | Usuario | Rol | Contraseña |
 | --- | --- | --- |
 | `candidato@unlam.edu.ar` | `CANDIDATO` | `test` |

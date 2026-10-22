@@ -46,6 +46,24 @@
         </div>
       </header>
 
+      <section class="applicant-profile-section" aria-labelledby="estado-postulacion-titulo">
+        <h2 id="estado-postulacion-titulo">Estado de la postulación</h2>
+        <div class="postulante-row-actions">
+          <span class="badge estado-postulacion"
+            th:classappend="${' ' + perfilPostulante.estado.claseCss}"
+            th:text="${perfilPostulante.estado.etiqueta}">Pendiente</span>
+          <form th:if="${perfilPostulante.estado.name() != 'ACEPTADA'}" method="post"
+            th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar(ofertaId=${ofertaId}, postulacionId=${postulacionId})}">
+            <button class="btn btn-sm btn-success" type="submit">Aceptar</button>
+          </form>
+          <form th:if="${perfilPostulante.estado.name() != 'RECHAZADA'}" method="post"
+            th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/rechazar(ofertaId=${ofertaId}, postulacionId=${postulacionId})}"
+            onsubmit="return confirm('¿Querés rechazar esta postulación?');">
+            <button class="btn btn-sm btn-danger" type="submit">Rechazar</button>
+          </form>
+        </div>
+      </section>
+
       <section class="applicant-profile-section"
         th:if="${perfilPostulante.tieneCv}" aria-labelledby="perfil-cv-titulo">
         <h2 id="perfil-cv-titulo">Currículum</h2>
