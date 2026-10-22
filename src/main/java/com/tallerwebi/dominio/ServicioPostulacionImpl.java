@@ -90,7 +90,7 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     postulacion.setUsuario(usuario);
     postulacion.setIdOferta(postulacion.getIdOferta().trim());
     postulacion.setFechaPostulacion(LocalDateTime.now());
-    postulacion.setEstado(EstadoPostulacion.ENVIADA);
+    postulacion.setEstado(EstadoPostulacion.PENDIENTE);
     return repositorioPostulacion.guardar(postulacion);
   }
 
@@ -203,6 +203,21 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   @Override
   public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
     return servicioPostulantesOferta.obtenerPostulantes(vacanteId, empleadorId);
+  }
+
+  @Override
+  public Postulacion cambiarEstado(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId,
+    EstadoPostulacion nuevoEstado
+  ) {
+    return servicioPostulantesOferta.cambiarEstado(
+      vacanteId,
+      postulacionId,
+      empleadorId,
+      nuevoEstado
+    );
   }
 
   @Override

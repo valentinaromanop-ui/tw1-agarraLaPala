@@ -31,8 +31,9 @@
         <p th:text="${postulacion.ubicacion ?: 'Ubicación no informada'}">Ubicación</p>
         <p th:text="${postulacion.modalidad ?: 'Modalidad no informada'}">Modalidad</p>
         <p>Estado:
-          <strong class="estado-postulacion" th:classappend="${' estado-' + #strings.toLowerCase(postulacion.estado.name())}"
-            th:text="${postulacion.estado}">ENVIADA</strong>
+          <strong class="badge estado-postulacion"
+            th:classappend="${' ' + postulacion.estado.claseCss}"
+            th:text="${postulacion.estado.etiqueta}">Pendiente</strong>
         </p>
         <p>
           Fecha de postulación:

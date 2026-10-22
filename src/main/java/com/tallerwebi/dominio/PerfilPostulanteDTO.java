@@ -29,6 +29,7 @@ public class PerfilPostulanteDTO {
   private final Map<String, String> idiomas;
   private final String tituloOferta;
   private final LocalDateTime fechaPostulacion;
+  private final EstadoPostulacion estado;
 
   public PerfilPostulanteDTO(
     String nombreCompleto,
@@ -50,7 +51,8 @@ public class PerfilPostulanteDTO {
     List<String> modalidades,
     Map<String, String> idiomas,
     String tituloOferta,
-    LocalDateTime fechaPostulacion
+    LocalDateTime fechaPostulacion,
+    EstadoPostulacion estado
   ) {
     this.nombreCompleto = nombreCompleto;
     this.email = email;
@@ -93,6 +95,7 @@ public class PerfilPostulanteDTO {
         );
     this.tituloOferta = tituloOferta;
     this.fechaPostulacion = fechaPostulacion;
+    this.estado = estado;
   }
 
   public String getNombreCompleto() {
@@ -173,6 +176,10 @@ public class PerfilPostulanteDTO {
 
   public LocalDateTime getFechaPostulacion() {
     return fechaPostulacion;
+  }
+
+  public EstadoPostulacion getEstado() {
+    return estado;
   }
 
   private List<String> copia(List<String> valores) {

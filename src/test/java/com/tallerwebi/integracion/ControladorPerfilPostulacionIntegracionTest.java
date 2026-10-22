@@ -11,10 +11,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tallerwebi.config.CorreoConfig;
+import com.tallerwebi.dominio.EstadoPostulacion;
 import com.tallerwebi.dominio.PerfilPostulante;
 import com.tallerwebi.dominio.Postulacion;
 import com.tallerwebi.dominio.ServicioLogin;
@@ -175,6 +177,7 @@ class ControladorPerfilPostulacionIntegracionTest {
     ModelAndView modelAndView = resultado.getModelAndView();
     assertNotNull(modelAndView);
     assertThat((java.util.List<?>) modelAndView.getModel().get("postulaciones"), hasSize(2));
+    assertTrue(resultado.getResponse().getContentAsString().contains("Pendiente"));
   }
 
   @Test
@@ -233,6 +236,9 @@ class ControladorPerfilPostulacionIntegracionTest {
     assertTrue(html.contains("Ada Lovelace"));
     assertTrue(html.contains("Java"));
     assertTrue(html.contains("Sin CV"));
+    assertTrue(html.contains("Pendiente"));
+    assertTrue(html.contains("Aceptar"));
+    assertTrue(html.contains("Rechazar"));
     assertFalse(html.contains("no-debe-aparecer"));
     assertFalse(html.contains("<input"));
 
@@ -255,6 +261,99 @@ class ControladorPerfilPostulacionIntegracionTest {
           .session(otraEmpresa)
       )
       .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void soloLaEmpresaPropietariaPuedeDecidirYGetNoModificaElEstado() throws Exception {
+    long[] ids = guardarOfertaYPostulacion();
+    MockHttpSession empresaPropietaria = crearSesionEmpresa(ids[0]);
+    MockHttpSession otraEmpresa = crearSesionEmpresa(ids[0] + 10000);
+    MockHttpSession candidato = new MockHttpSession();
+    candidato.setAttribute("ROL", "CANDIDATO");
+    candidato.setAttribute("USUARIO_ID", ids[3]);
+
+    MvcResult lista = mockMvc
+      .perform(get("/ofertas/{ofertaId}/postulantes", ids[1]).session(empresaPropietaria))
+      .andExpect(status().isOk())
+      .andReturn();
+    String htmlLista = lista.getResponse().getContentAsString();
+    assertTrue(htmlLista.contains("Pendientes"));
+    assertTrue(htmlLista.contains("Pendiente"));
+    assertTrue(htmlLista.contains("/aceptar"));
+    assertTrue(htmlLista.contains("/rechazar"));
+
+    MvcResult filtro = mockMvc
+      .perform(
+        get("/ofertas/{ofertaId}/postulantes", ids[1])
+          .session(empresaPropietaria)
+          .param("estado", "ACEPTADA")
+      )
+      .andExpect(status().isOk())
+      .andReturn();
+    assertEquals(
+      0,
+      ((java.util.List<?>) filtro.getModelAndView().getModel().get("postulantes")).size()
+    );
+
+    mockMvc
+      .perform(
+        get("/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar", ids[1], ids[2])
+          .session(empresaPropietaria)
+      )
+      .andExpect(status().isMethodNotAllowed());
+    assertEquals(EstadoPostulacion.PENDIENTE, estadoPostulacion(ids[2]));
+
+    mockMvc
+      .perform(
+        post("/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar", ids[1], ids[2])
+          .session(otraEmpresa)
+      )
+      .andExpect(status().isForbidden());
+    mockMvc
+      .perform(
+        post("/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar", ids[1], ids[2] + 100000)
+          .session(empresaPropietaria)
+      )
+      .andExpect(status().isNotFound());
+    mockMvc
+      .perform(
+        post("/ofertas/{ofertaId}/postulantes/{postulacionId}/rechazar", ids[1], ids[2])
+          .session(candidato)
+      )
+      .andExpect(status().isForbidden());
+    assertEquals(EstadoPostulacion.PENDIENTE, estadoPostulacion(ids[2]));
+
+    mockMvc
+      .perform(
+        post("/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar", ids[1], ids[2])
+          .session(empresaPropietaria)
+      )
+      .andExpect(status().is3xxRedirection())
+      .andExpect(flash().attribute("mensaje", "Postulante aceptado"));
+    assertEquals(EstadoPostulacion.ACEPTADA, estadoPostulacion(ids[2]));
+    assertNotNull(fechaDecision(ids[2]));
+
+    MvcResult filtroAceptadas = mockMvc
+      .perform(
+        get("/ofertas/{ofertaId}/postulantes", ids[1])
+          .session(empresaPropietaria)
+          .param("estado", "ACEPTADA")
+      )
+      .andExpect(status().isOk())
+      .andReturn();
+    assertEquals(
+      1,
+      ((java.util.List<?>) filtroAceptadas.getModelAndView().getModel().get("postulantes")).size()
+    );
+
+    mockMvc
+      .perform(
+        post("/ofertas/{ofertaId}/postulantes/{postulacionId}/rechazar", ids[1], ids[2])
+          .session(empresaPropietaria)
+      )
+      .andExpect(status().is3xxRedirection())
+      .andExpect(flash().attribute("mensaje", "Postulante rechazado"));
+    assertEquals(EstadoPostulacion.RECHAZADA, estadoPostulacion(ids[2]));
   }
 
   private long[] guardarOfertaYPostulacion() {
@@ -315,6 +414,27 @@ class ControladorPerfilPostulacionIntegracionTest {
     session.setAttribute("ROL", "CANDIDATO");
     session.setAttribute("USUARIO_ID", usuario.getId());
     return session;
+  }
+
+  private MockHttpSession crearSesionEmpresa(long usuarioId) {
+    MockHttpSession session = new MockHttpSession();
+    session.setAttribute("ROL", "EMPLEADOR");
+    session.setAttribute("USUARIO_ID", usuarioId);
+    return session;
+  }
+
+  private EstadoPostulacion estadoPostulacion(long postulacionId) {
+    return new TransactionTemplate(transactionManager)
+      .execute(status ->
+        sessionFactory.getCurrentSession().get(Postulacion.class, postulacionId).getEstado()
+      );
+  }
+
+  private LocalDateTime fechaDecision(long postulacionId) {
+    return new TransactionTemplate(transactionManager)
+      .execute(status ->
+        sessionFactory.getCurrentSession().get(Postulacion.class, postulacionId).getFechaDecision()
+      );
   }
 
   private Skill guardarSkill(String nombre) {

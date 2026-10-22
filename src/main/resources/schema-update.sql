@@ -99,3 +99,48 @@ SET @permitir_oferta_id_nulo = IF(
 PREPARE migracion_oferta_id_nula FROM @permitir_oferta_id_nulo;
 EXECUTE migracion_oferta_id_nula;
 DEALLOCATE PREPARE migracion_oferta_id_nula;
+
+SET @agregar_fecha_decision_postulacion = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Postulacion'
+      AND column_name = 'fecha_decision'
+  ) = 0,
+  'ALTER TABLE Postulacion ADD COLUMN fecha_decision DATETIME NULL',
+  'SELECT 1'
+);
+PREPARE migracion_fecha_decision_postulacion FROM @agregar_fecha_decision_postulacion;
+EXECUTE migracion_fecha_decision_postulacion;
+DEALLOCATE PREPARE migracion_fecha_decision_postulacion;
+
+SET @migrar_estado_postulacion = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Postulacion'
+      AND column_name = 'estado'
+  ) > 0,
+  'UPDATE Postulacion SET estado = ''PENDIENTE''',
+  'SELECT 1'
+);
+PREPARE migracion_estado_postulacion FROM @migrar_estado_postulacion;
+EXECUTE migracion_estado_postulacion;
+DEALLOCATE PREPARE migracion_estado_postulacion;
+
+SET @definir_estado_postulacion_default = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Postulacion'
+      AND column_name = 'estado'
+  ) > 0,
+  'ALTER TABLE Postulacion MODIFY COLUMN estado VARCHAR(20) NOT NULL DEFAULT ''PENDIENTE''',
+  'SELECT 1'
+);
+PREPARE migracion_estado_postulacion_default FROM @definir_estado_postulacion_default;
+EXECUTE migracion_estado_postulacion_default;
+DEALLOCATE PREPARE migracion_estado_postulacion_default;
