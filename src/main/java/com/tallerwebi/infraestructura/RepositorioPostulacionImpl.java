@@ -93,4 +93,9 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
       .setParameter("idVacante", String.valueOf(vacanteId))
       .uniqueResult();
   }
+
+  @Override
+  public Postulacion buscarPorId(Long postulacionId) {
+    return sessionFactory.getCurrentSession().get(Postulacion.class, postulacionId);
+  }
 }

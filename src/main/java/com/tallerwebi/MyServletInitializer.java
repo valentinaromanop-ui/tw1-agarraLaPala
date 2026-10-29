@@ -1,9 +1,6 @@
 package com.tallerwebi;
 
-import com.tallerwebi.config.CorreoConfig;
-import com.tallerwebi.config.DatabaseInitializationConfig;
-import com.tallerwebi.config.HibernateConfig;
-import com.tallerwebi.config.SpringWebConfig;
+import com.tallerwebi.config.*;
 import jakarta.servlet.*;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -33,6 +30,7 @@ public class MyServletInitializer extends AbstractAnnotationConfigDispatcherServ
       HibernateConfig.class,
       CorreoConfig.class,
       DatabaseInitializationConfig.class,
+      WebSocketConfig.class,
     };
   }
 

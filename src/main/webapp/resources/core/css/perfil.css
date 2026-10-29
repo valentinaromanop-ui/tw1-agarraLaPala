@@ -231,6 +231,6 @@
 .cv-card-link:hover, .cv-card-link:focus-visible { border-color: rgb(39, 77, 234); }
 .cv-card-link > .bi { margin: auto 0; color: rgb(39, 77, 234); font-size: 2.5rem; }
 .cv-thumb { width: 100%; height: 320px; overflow: hidden; border-radius: 0.5rem; background: #fff; }
-.cv-thumb iframe { width: 100%; height: 100%; overflow: hidden; border: 0; pointer-events: none; }
+.cv-thumb iframe { width: calc(100% + 18px); height: calc(100% + 18px); overflow: hidden; border: 0; pointer-events: none; }
 .cv-entry { display: grid; min-width: 0; gap: 0.5rem; }
 .cv-entry form { display: flex; justify-content: center; }

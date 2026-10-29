@@ -91,6 +91,8 @@
                     th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
                     <i class="bi bi-person-vcard" aria-hidden="true"></i> Ver perfil
                   </a>
+                  <a class="btn btn-sm applicant-profile-button" th:href="@{/chat/{id}(id=${postulante.postulacionId})}"><i class="bi bi-chat-dots" aria-hidden="true"></i>Enviar mensaje</a>
+
                 </div>
               </td>
             </tr>

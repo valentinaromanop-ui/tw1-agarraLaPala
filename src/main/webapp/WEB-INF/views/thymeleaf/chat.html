@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat de Postulación</title>
+    <!-- Enlace al archivo CSS externo -->
+    <link rel="stylesheet" th:href="@{/css/chat.css}">
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- Contenedor de mensajes -->
+    <div id="mensajes">
+        <div th:each="m : ${mensajes}"
+             class="message-row"
+             th:classappend="${m.emisor.id == usuarioId} ? 'mine' : 'other'">
+            <div class="bubble" th:text="${m.texto}"></div>
+        </div>
+    </div>
+
+    <!-- Barra inferior -->
+    <div class="chat-input-area">
+        <input id="texto" maxlength="1000" placeholder="Escribí un mensaje..." autocomplete="off">
+        <button onclick="enviar()">Enviar</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+<script th:inline="javascript">
+    const id = /*[[${postulacionId}]]*/ 0;
+    const yo = /*[[${usuarioId}]]*/ 0;
+
+    const mensajesDiv = document.getElementById('mensajes');
+
+    function scrollToBottom() {
+        mensajesDiv.scrollTop = mensajesDiv.scrollHeight;
+    }
+
+    window.onload = scrollToBottom;
+
+    const client = new StompJs.Client({
+      brokerURL: (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/spring/ws-chat'
+    });
+
+    client.onConnect = () => {
+      client.subscribe('/tema/chat/' + id, r => {
+        const m = JSON.parse(r.body);
+
+        const row = document.createElement('div');
+        row.className = 'message-row ' + (m.emisorId === yo ? 'mine' : 'other');
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = m.texto;
+
+        row.appendChild(bubble);
+        mensajesDiv.appendChild(row);
+
+        scrollToBottom();
+      });
+    };
+
+    client.activate();
+
+    function enviar() {
+      const t = document.getElementById('texto');
+      if (!t.value.trim()) return;
+      client.publish({ destination: '/app/chat/' + id, body: JSON.stringify({ texto: t.value }) });
+      t.value = '';
+    }
+
+    document.getElementById('texto').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            enviar();
+        }
+    });
+</script>
+</body>
+</html>
