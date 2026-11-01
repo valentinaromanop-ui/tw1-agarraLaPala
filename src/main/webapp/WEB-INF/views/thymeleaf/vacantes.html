@@ -142,19 +142,7 @@
       </div>
     </div>
   </main>
-  <footer class="site-footer">
-    <div class="container footer-content">
-      <a class="footer-brand" th:href="@{/home}"><span class="brand-mark"><i class="bi bi-signpost-2-fill" aria-hidden="true"></i></span> Agarra la Pala</a>
-      <p>Menos búsqueda. Más oportunidades.</p>
-      <div class="social-links">
-        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-        <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-        <a href="#" aria-label="Twitter X"><i class="bi bi-twitter-x"></i></a>
-        <a href="#" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
-      </div>
-    </div>
-  </footer>
+  <footer th:replace="~{fragments/footer :: appFooter}"></footer>
   <script type="module" th:src="@{/js/busqueda.js}"></script>
   <script type="module" th:src="@{/js/guardados.js}"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
