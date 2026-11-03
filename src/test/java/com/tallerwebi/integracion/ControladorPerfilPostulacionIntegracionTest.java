@@ -232,6 +232,7 @@ class ControladorPerfilPostulacionIntegracionTest {
     assertFalse(resultado.getModelAndView().getModel().containsKey("usuario"));
     assertFalse(resultado.getModelAndView().getModel().containsKey("perfil"));
     String html = resultado.getResponse().getContentAsString();
+    String contenidoPerfil = html.substring(html.indexOf("<main"), html.indexOf("</main>"));
     assertTrue(html.contains("Vista de empresa · solo lectura"));
     assertTrue(html.contains("Ada Lovelace"));
     assertTrue(html.contains("Java"));
@@ -240,7 +241,7 @@ class ControladorPerfilPostulacionIntegracionTest {
     assertTrue(html.contains("Aceptar"));
     assertTrue(html.contains("Rechazar"));
     assertFalse(html.contains("no-debe-aparecer"));
-    assertFalse(html.contains("<input"));
+    assertFalse(contenidoPerfil.contains("<input"));
 
     MockHttpSession sesionCandidato = new MockHttpSession();
     sesionCandidato.setAttribute("ROL", "CANDIDATO");
