@@ -54,10 +54,28 @@ public class ServicioPostulantesOferta {
           usuario.getEmail(),
           dividirHabilidades(usuario.getHabilidades()),
           postulacion.getFechaPostulacion(),
-          usuarioIdsConCv.contains(usuario.getId())
+          usuarioIdsConCv.contains(usuario.getId()),
+          postulacion.getEstado()
         );
       })
       .toList();
+  }
+
+  public Postulacion cambiarEstado(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId,
+    EstadoPostulacion nuevoEstado
+  ) {
+    Postulacion postulacion = buscarPostulacionPropia(vacanteId, postulacionId, empleadorId);
+    if (nuevoEstado == null) {
+      throw new IllegalArgumentException("El estado de la postulación es obligatorio.");
+    }
+    if (postulacion.getEstado() != nuevoEstado) {
+      postulacion.setEstado(nuevoEstado);
+      postulacion.setFechaDecision(java.time.LocalDateTime.now());
+    }
+    return postulacion;
   }
 
   public ArchivoCvPostulanteDTO obtenerCvPostulante(
@@ -112,7 +130,8 @@ public class ServicioPostulantesOferta {
       perfil == null ? List.of() : perfil.getModalidades(),
       perfil == null ? Map.of() : perfil.getIdiomas(),
       vacante.getTitulo(),
-      postulacion.getFechaPostulacion()
+      postulacion.getFechaPostulacion(),
+      postulacion.getEstado()
     );
   }
 

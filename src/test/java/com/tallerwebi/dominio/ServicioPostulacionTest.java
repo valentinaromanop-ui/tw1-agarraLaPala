@@ -46,7 +46,7 @@ public class ServicioPostulacionTest {
     Postulacion resultado = servicio.registrarEnVacante(1L, oferta);
 
     assertEquals("JOBICY:10", resultado.getOfertaId());
-    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
+    assertEquals(EstadoPostulacion.PENDIENTE, resultado.getEstado());
     assertEquals(oferta.getDescripcion(), resultado.getVacante().getDescripcion());
     assertEquals(oferta.getId(), resultado.getVacante().getIdExterno());
     verify(vacantes).guardar(resultado.getVacante());
@@ -85,6 +85,61 @@ public class ServicioPostulacionTest {
   }
 
   @Test
+  public void deberiaAceptarUnaPostulacionPendienteYRegistrarLaFechaDeDecision() {
+    Postulacion postulacion = new Postulacion();
+    postulacion.setId(20L);
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaDeEmpleador(10L, 42L));
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(postulacion);
+
+    Postulacion resultado = servicio.cambiarEstado(10L, 20L, 42L, EstadoPostulacion.ACEPTADA);
+
+    assertEquals(EstadoPostulacion.ACEPTADA, resultado.getEstado());
+    assertNotNull(resultado.getFechaDecision());
+  }
+
+  @Test
+  public void deberiaPermitirCorregirUnaDecision() {
+    Postulacion postulacion = new Postulacion();
+    postulacion.setId(20L);
+    postulacion.setEstado(EstadoPostulacion.ACEPTADA);
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaDeEmpleador(10L, 42L));
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(postulacion);
+
+    Postulacion resultado = servicio.cambiarEstado(10L, 20L, 42L, EstadoPostulacion.RECHAZADA);
+
+    assertEquals(EstadoPostulacion.RECHAZADA, resultado.getEstado());
+    assertNotNull(resultado.getFechaDecision());
+  }
+
+  @Test
+  public void repetirLaMismaDecisionEsIdempotenteYConservaLaFecha() {
+    java.time.LocalDateTime fechaAnterior = java.time.LocalDateTime.of(2026, 10, 20, 15, 30);
+    Postulacion postulacion = new Postulacion();
+    postulacion.setId(20L);
+    postulacion.setEstado(EstadoPostulacion.ACEPTADA);
+    postulacion.setFechaDecision(fechaAnterior);
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaDeEmpleador(10L, 42L));
+    when(postulaciones.buscarPorIdYVacante(20L, 10L)).thenReturn(postulacion);
+
+    Postulacion resultado = servicio.cambiarEstado(10L, 20L, 42L, EstadoPostulacion.ACEPTADA);
+
+    assertEquals(EstadoPostulacion.ACEPTADA, resultado.getEstado());
+    assertEquals(fechaAnterior, resultado.getFechaDecision());
+  }
+
+  @Test
+  public void noDeberiaCambiarElEstadoDeUnaOfertaAjena() {
+    when(vacantes.obtenerPorId(10L)).thenReturn(ofertaDeEmpleador(10L, 99L));
+
+    assertThrows(
+      AccesoOfertaDenegadoException.class,
+      () -> servicio.cambiarEstado(10L, 20L, 42L, EstadoPostulacion.ACEPTADA)
+    );
+
+    verify(postulaciones, never()).buscarPorIdYVacante(any(), any());
+  }
+
+  @Test
   public void deberiaGuardarUnSnapshotYRechazarLaDuplicada() {
     Postulacion entrada = new Postulacion();
     entrada.setIdOferta("JOBICY:10");
@@ -93,7 +148,7 @@ public class ServicioPostulacionTest {
 
     Postulacion resultado = servicio.registrarPostulacion(1L, entrada);
 
-    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
+    assertEquals(EstadoPostulacion.PENDIENTE, resultado.getEstado());
     assertEquals("Empresa A", resultado.getEmpresa());
     when(postulaciones.buscarPorUsuarioYOferta(1L, "JOBICY:10")).thenReturn(resultado);
 

@@ -152,7 +152,7 @@
   font-weight: 600;
 }
 
-.employer-table.postulantes-table { min-width: 52rem; }
+.employer-table.postulantes-table { min-width: 68rem; }
 .postulantes-table td { overflow-wrap: anywhere; }
 .postulantes-summary {
   display: flex;
@@ -171,6 +171,22 @@
   white-space: nowrap;
 }
 .postulantes-count strong { color: #fff; font-size: 1.1rem; }
+.postulantes-filtros { display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 1rem 0; }
+.postulantes-filtros a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #dcecff;
+  background: #10141f;
+  text-decoration: none;
+}
+.postulantes-filtros a:hover,
+.postulantes-filtros a:focus-visible,
+.postulantes-filtros a.active { border-color: #76baff; color: #fff; background: rgb(40 45 199 / 36%); }
+.postulantes-filtros span { color: #c5cada; font-size: 0.85rem; }
 .postulante-name { display: block; color: var(--text); font-weight: 700; }
 .postulante-name-link { width: fit-content; text-decoration: none; }
 .postulante-name-link:hover,
@@ -205,6 +221,10 @@
 .applicant-action-button:focus-visible,
 .applicant-profile-button:focus-visible { outline: 3px solid rgb(160 208 255 / 65%); outline-offset: 2px; }
 .postulante-no-cv { color: #c5cada; font-size: 0.88rem; }
+.estado-postulacion { white-space: nowrap; }
+.estado-pendiente { color: #ffe19a; background-color: rgb(190 145 25 / 25%); }
+.estado-aceptada { color: #a8f0c4; background-color: rgb(35 150 85 / 25%); }
+.estado-rechazada { color: #ffb1b1; background-color: rgb(180 55 65 / 25%); }
 .postulantes-empty { margin-top: 1.5rem; }
 .postulantes-empty p { margin: 0; color: #c5cada; }
 .applicant-profile-page .employer-panel { display: grid; gap: 1.35rem; }

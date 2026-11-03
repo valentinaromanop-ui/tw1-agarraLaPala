@@ -92,7 +92,7 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     postulacion.setUsuario(usuario);
     postulacion.setIdOferta(postulacion.getIdOferta().trim());
     postulacion.setFechaPostulacion(LocalDateTime.now());
-    postulacion.setEstado(EstadoPostulacion.ENVIADA);
+    postulacion.setEstado(EstadoPostulacion.PENDIENTE);
     return repositorioPostulacion.guardar(postulacion);
   }
 
@@ -208,6 +208,21 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   }
 
   @Override
+  public Postulacion cambiarEstado(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId,
+    EstadoPostulacion nuevoEstado
+  ) {
+    return servicioPostulantesOferta.cambiarEstado(
+      vacanteId,
+      postulacionId,
+      empleadorId,
+      nuevoEstado
+    );
+  }
+
+  @Override
   public ArchivoCvPostulanteDTO obtenerCvPostulante(
     Long vacanteId,
     Long postulacionId,
@@ -236,29 +251,6 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
       postulacionId,
       empleadorId
     );
-  }
-
-  @Override
-  public void actualizarEstado(
-    Long vacanteId,
-    Long postulacionId,
-    EstadoPostulacion estado,
-    Long empleadorId
-  ) {
-    Postulacion postulacion = repositorioPostulacion.buscarPorIdYVacante(postulacionId, vacanteId);
-    if (postulacion == null) {
-      throw new VacanteNoEncontradaException("La postulación no existe.");
-    }
-    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
-    if (vacante == null || !empleadorId.equals(vacante.getEmpleadorId())) {
-      throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "No tienes permiso para modificar esta postulación."
-      );
-    }
-
-    postulacion.setEstado(estado);
-    repositorioPostulacion.guardar(postulacion);
   }
 
   private Vacante obtenerOfertaParaPostularse(VacanteDTO oferta) {

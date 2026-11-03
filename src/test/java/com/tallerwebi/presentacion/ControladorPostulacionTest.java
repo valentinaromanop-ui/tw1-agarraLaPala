@@ -79,7 +79,8 @@ class ControladorPostulacionTest {
       java.util.List.of(),
       java.util.Map.of(),
       "Desarrolladora Java",
-      java.time.LocalDateTime.of(2026, 10, 20, 15, 30)
+      java.time.LocalDateTime.of(2026, 10, 20, 15, 30),
+      com.tallerwebi.dominio.EstadoPostulacion.PENDIENTE
     );
     org.mockito.Mockito.when(servicio.obtenerPerfilPostulante(10L, 20L, 42L)).thenReturn(perfil);
 

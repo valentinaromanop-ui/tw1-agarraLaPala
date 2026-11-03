@@ -43,14 +43,9 @@ public class RepositorioDetalleVacanteTest {
     postulacion.setTitulo("Oferta externa");
     postulacion.setEmpresa("Empresa externa");
     postulacion.setFechaPostulacion(LocalDateTime.now());
-    postulacion.setEstado(EstadoPostulacion.ENVIADA);
+    postulacion.setEstado("Registrada");
     new RepositorioPostulacionImpl(sessionFactory).guardar(postulacion);
     sessionFactory.getCurrentSession().flush();
-    sessionFactory
-      .getCurrentSession()
-      .createNativeMutationQuery("update Postulacion set estado = 'Registrada' where id = :id")
-      .setParameter("id", postulacion.getId())
-      .executeUpdate();
     sessionFactory.getCurrentSession().clear();
 
     Postulacion obtenida = new RepositorioPostulacionImpl(sessionFactory)
@@ -58,7 +53,7 @@ public class RepositorioDetalleVacanteTest {
 
     assertEquals("Oferta externa", obtenida.getTitulo());
     assertEquals("Empresa externa", obtenida.getEmpresa());
-    assertEquals(EstadoPostulacion.ENVIADA, obtenida.getEstado());
+    assertEquals(EstadoPostulacion.PENDIENTE, obtenida.getEstado());
     assertEquals(vacante.getId(), repositorio.buscarPorFuenteEIdExterno("JOBICY", 123L).getId());
   }
 
