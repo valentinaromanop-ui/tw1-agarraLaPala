@@ -18,4 +18,10 @@ public interface ServicioPostulacion {
     Long postulacionId,
     Long empleadorId
   );
+  void actualizarEstado(
+    Long vacanteId,
+    Long postulacionId,
+    EstadoPostulacion estado,
+    Long empleadorId
+  );
 }

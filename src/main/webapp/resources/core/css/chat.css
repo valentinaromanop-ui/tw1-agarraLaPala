@@ -1,4 +1,4 @@
-/* Importación de fuentes */
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
@@ -22,14 +22,11 @@
 }
 
 body {
-  min-width: 320px;
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
   background-color: var(--background);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 8.5rem 20px 20px;
 }
 
 h1, h2, h3 {
@@ -41,7 +38,9 @@ h1, h2, h3 {
 .chat-container {
   width: 100%;
   max-width: 600px;
-  height: 85vh;
+  height: 80vh;
+  max-height: 700px;
+  margin: 0 auto;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.55rem;
@@ -88,13 +87,13 @@ h1, h2, h3 {
 }
 
 .message-row.mine .bubble {
-  background-color: var(--accent); /* Color de acento para tus mensajes */
+  background-color: var(--accent);
   color: var(--highlight);
   border-top-right-radius: 0;
 }
 
 .message-row.other .bubble {
-  background-color: var(--surface-light); /* Superficie clara para los mensajes ajenos */
+  background-color: var(--surface-light);
   color: var(--text);
   border-top-left-radius: 0;
 }

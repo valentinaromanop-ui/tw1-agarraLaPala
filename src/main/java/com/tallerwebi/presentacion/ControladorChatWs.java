@@ -25,7 +25,7 @@ public class ControladorChatWs {
   @MessageMapping("/chat/{postulacionId}")
   @SendTo("/tema/chat/{postulacionId}")
   public MensajeDTO enviar(
-    @DestinationVariable Long postulacionId,
+    @DestinationVariable("postulacionId") Long postulacionId,
     MensajeEntrante entrante,
     SimpMessageHeaderAccessor headers
   ) throws MensajeInvalido, AccesoChatDenegado {

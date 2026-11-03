@@ -117,7 +117,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   public void cerrar(Long vacanteId, Long empleadorId) {
     Vacante vacante = repositorioVacante.obtenerPorIdParaActualizar(vacanteId);
     if (vacante == null) {
-      throw new VacanteNoEncontradaException();
+      throw new VacanteNoEncontradaException("La postulación no existe.");
     }
     if (empleadorId == null || !empleadorId.equals(vacante.getEmpleadorId())) {
       throw new AccesoOfertaDenegadoException();

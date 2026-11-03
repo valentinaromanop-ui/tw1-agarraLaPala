@@ -1,14 +1,6 @@
 package com.tallerwebi.presentacion;
 
-import com.tallerwebi.dominio.ArchivoCvPostulanteDTO;
-import com.tallerwebi.dominio.CupoPostulacionesCompletoException;
-import com.tallerwebi.dominio.FotoPerfilPostulanteDTO;
-import com.tallerwebi.dominio.OfertaCerradaException;
-import com.tallerwebi.dominio.PerfilPostulanteDTO;
-import com.tallerwebi.dominio.PostulanteOfertaDTO;
-import com.tallerwebi.dominio.ServicioPostulacion;
-import com.tallerwebi.dominio.VacanteDTO;
-import com.tallerwebi.dominio.VacanteNoEncontradaException;
+import com.tallerwebi.dominio.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
@@ -24,12 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -223,6 +210,38 @@ public class ControladorPostulacion {
     Map<String, Object> modelo = new ModelMap();
     modelo.put("postulaciones", servicioPostulacion.listarPostulaciones(usuarioId));
     return new ModelAndView("postulaciones", modelo);
+  }
+
+  @PostMapping("/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar")
+  public String aceptarPostulacion(
+    @PathVariable(PATH_VARIABLE_OFERTA_ID) Long ofertaId,
+    @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
+    HttpSession session
+  ) {
+    Long empleadorId = obtenerEmpleadorId(session);
+    servicioPostulacion.actualizarEstado(
+      ofertaId,
+      postulacionId,
+      EstadoPostulacion.ACEPTADA,
+      empleadorId
+    );
+    return "redirect:/ofertas/" + ofertaId + "/postulantes";
+  }
+
+  @PostMapping("/ofertas/{ofertaId}/postulantes/{postulacionId}/rechazar")
+  public String rechazarPostulacion(
+    @PathVariable(PATH_VARIABLE_OFERTA_ID) Long ofertaId,
+    @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
+    HttpSession session
+  ) {
+    Long empleadorId = obtenerEmpleadorId(session);
+    servicioPostulacion.actualizarEstado(
+      ofertaId,
+      postulacionId,
+      EstadoPostulacion.RECHAZADA,
+      empleadorId
+    );
+    return "redirect:/ofertas/" + ofertaId + "/postulantes";
   }
 
   private Map<String, Object> mensaje(String texto) {

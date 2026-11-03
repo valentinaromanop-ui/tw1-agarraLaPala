@@ -4,7 +4,7 @@ public class VacanteNoEncontradaException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 
-  public VacanteNoEncontradaException() {
+  public VacanteNoEncontradaException(String string) {
     super("La vacante no existe o ya no está disponible.");
   }
 }

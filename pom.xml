@@ -463,14 +463,13 @@
                 <artifactId>jetty-ee10-maven-plugin</artifactId>
                 <version>12.0.37</version>
                 <configuration>
-                    Element scanIntervalSeconds is not allowed her
-                    <httpConnector>
-                        <port>8080</port>
-                    </httpConnector>
-                    <webApp>
-                        <contextPath>/spring</contextPath>
-                    </webApp>
-                </configuration>
+                <webApp>
+                    <contextPath>/spring</contextPath>
+                </webApp>
+                <httpConnector>
+                    <port>8080</port>
+                </httpConnector>
+              </configuration>
             </plugin>
 
         </plugins>

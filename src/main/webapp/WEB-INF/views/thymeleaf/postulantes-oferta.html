@@ -95,6 +95,20 @@
 
                 </div>
               </td>
+              <td class="acciones-postulante">
+                <form th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}"
+                  method="post">
+                  <button type="submit" class="btn btn-sm applicant-action-button">
+                    <i class="bi bi-check-circle"></i> Aceptar
+                  </button>
+                </form>
+                <form th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/rechazar(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}"
+                  method="post">
+                  <button type="submit" class="btn btn-sm applicant-action-button">
+                    <i class="bi bi-x-circle"></i> Rechazar
+                  </button>
+                </form>
+              </td>
             </tr>
           </tbody>
         </table>
