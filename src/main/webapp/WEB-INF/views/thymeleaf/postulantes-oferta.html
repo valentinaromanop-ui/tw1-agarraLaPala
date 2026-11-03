@@ -127,12 +127,12 @@
                 <div class="postulante-row-actions">
                   <form th:if="${postulante.estado.name() != 'ACEPTADA'}" method="post"
                     th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
-                    <button class="btn btn-sm btn-success" type="submit">Aceptar</button>
+                    <button class="btn btn-sm applicant-profile-button" type="submit">Aceptar</button>
                   </form>
                   <form th:if="${postulante.estado.name() != 'RECHAZADA'}" method="post"
                     th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/rechazar(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}"
                     onsubmit="return confirm('¿Querés rechazar esta postulación?');">
-                    <button class="btn btn-sm btn-danger" type="submit">Rechazar</button>
+                    <button class="btn btn-sm applicant-profile-button" type="submit">Rechazar</button>
                   </form>
                   <a class="btn btn-sm applicant-profile-button"
                     th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
