@@ -3,8 +3,10 @@ package com.tallerwebi.dominio;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
@@ -272,7 +274,7 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   private Vacante obtenerLocalActiva(Long id) {
     Vacante local = repositorioVacante.obtenerPorId(id);
     if (local == null || (local.getFuente() != null && !FUENTE_LOCAL.equals(local.getFuente()))) {
-      throw new VacanteNoEncontradaException();
+      throw new VacanteNoEncontradaException("La postulación no existe.");
     }
     if (!Boolean.TRUE.equals(local.getActiva())) {
       throw new IllegalArgumentException("Esta vacante ya no está disponible.");
