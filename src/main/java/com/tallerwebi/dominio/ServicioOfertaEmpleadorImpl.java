@@ -1,10 +1,14 @@
 package com.tallerwebi.dominio;
 
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +25,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   private final RepositorioUsuario repositorioUsuario;
   private final RepositorioVacante repositorioVacante;
   private final RepositorioPostulacion repositorioPostulacion;
+  private final RepositorioSuscripcion repositorioSuscripcion;
   private final ServicioPerfil servicioPerfil;
   private final ApplicationEventPublisher eventos;
   private final String urlBase;
@@ -30,6 +35,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     RepositorioUsuario repositorioUsuario,
     RepositorioVacante repositorioVacante,
     RepositorioPostulacion repositorioPostulacion,
+    RepositorioSuscripcion repositorioSuscripcion,
     ServicioPerfil servicioPerfil,
     ApplicationEventPublisher eventos,
     @Value("${app.url:http://localhost:8080/spring}") String urlBase
@@ -37,6 +43,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioVacante = repositorioVacante;
     this.repositorioPostulacion = repositorioPostulacion;
+    this.repositorioSuscripcion = repositorioSuscripcion;
     this.servicioPerfil = servicioPerfil;
     this.eventos = eventos;
     this.urlBase = urlBase;
@@ -110,7 +117,31 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
 
   @Override
   public List<Vacante> listarOfertasPublicadas() {
-    return repositorioVacante.buscarOfertasPublicadasPorEmpleadores();
+    List<Vacante> ofertas = new ArrayList<>(
+      repositorioVacante.buscarOfertasPublicadasPorEmpleadores()
+    );
+    LocalDateTime ahora = LocalDateTime.now();
+    Map<Long, Boolean> estadoPremiumPorEmpleador = new HashMap<>();
+    for (Vacante oferta : ofertas) {
+      Long empleadorId = oferta.getEmpleadorId();
+      boolean empresaPremium =
+        empleadorId != null &&
+        estadoPremiumPorEmpleador.computeIfAbsent(
+          empleadorId,
+          id -> repositorioSuscripcion.estaActiva(id, ahora)
+        );
+      oferta.setEmpresaPremium(empresaPremium);
+    }
+    ofertas.sort(
+      Comparator
+        .comparing(Vacante::isEmpresaPremium)
+        .reversed()
+        .thenComparing(
+          Vacante::getFechaPublicacion,
+          Comparator.nullsLast(Comparator.reverseOrder())
+        )
+    );
+    return ofertas;
   }
 
   @Override

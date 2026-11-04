@@ -212,9 +212,14 @@
         <h2>Impulsá tu búsqueda laboral.</h2>
         <p>Accedé a una experiencia destacada para encontrar tu próxima oportunidad.</p>
       </div>
-      <a class="premium-button" th:href="@{/premium/pagar}">
+      <a th:if="${premiumHasta == null}" class="premium-button"
+        th:href="${session.USUARIO_ID == null} ? @{/login} : @{/premium/pagar}">
         <i class="bi bi-star-fill" aria-hidden="true"></i> Hacete Premium
       </a>
+      <p th:if="${premiumHasta != null}" class="premium-active-message home-premium-active-message">
+        <i class="bi bi-star-fill" aria-hidden="true"></i> Premium activo hasta
+        <strong th:text="${#temporals.format(premiumHasta, 'dd/MM/yyyy')}">fecha de vencimiento</strong>
+      </p>
     </section>
 
     <section id="ofertas" class="offers-section">
@@ -228,6 +233,18 @@
             th:text="|Mostrando ${10 + #lists.size(ofertasEmpleadores)} ofertas|">Mostrando 10 ofertas</span>
         </div>
         <div class="offers-grid">
+          <article class="offer-card" th:each="oferta : ${ofertasEmpleadores}" th:if="${oferta.empresaPremium}" th:attr="data-oferta-id=${oferta.id}">
+            <div class="company-logo logo-blue" th:text="${#strings.substring(oferta.empresa, 0, 1)}">E</div>
+            <div class="offer-info">
+              <h3><span th:text="${oferta.titulo}">Título del cargo</span>
+                <span class="premium-badge employer-company-badge">Destacada</span>
+              </h3>
+              <p><span th:text="${oferta.empresa}">Empresa</span> <span class="premium-badge employer-company-badge"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium</span></p>
+              <div class="offer-meta"><span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span><span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span></div>
+            </div>
+            <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+            <button type="button" class="apply-button home-offer-redirect" th:attr="data-oferta-id=${oferta.id}">Postularme</button>
+          </article>
           <article class="offer-card"><div class="company-logo logo-blue">N</div><div class="offer-info"><h3>Product Designer</h3><p>Estudio Norte</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Product Designer"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
           <article class="offer-card"><div class="company-logo logo-sage">A</div><div class="offer-info"><h3>Frontend Developer</h3><p>Andes Digital</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Buenos Aires</span><span><i class="bi bi-clock"></i> Híbrido</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Frontend Developer"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
           <article class="offer-card"><div class="company-logo logo-sand">M</div><div class="offer-info"><h3>Analista de Marketing</h3><p>Mercado Sur</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Córdoba</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Analista de Marketing"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
@@ -238,7 +255,7 @@
           <article class="offer-card"><div class="company-logo logo-olive">R</div><div class="offer-info"><h3>Asistente Administrativo</h3><p>Río Consultores</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Rosario</span><span><i class="bi bi-clock"></i> Híbrido</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Asistente Administrativo"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
           <article class="offer-card"><div class="company-logo logo-blue">P</div><div class="offer-info"><h3>Ejecutivo/a de Ventas</h3><p>Prisma Comercial</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Buenos Aires</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Ejecutivo o Ejecutiva de Ventas"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
           <article class="offer-card"><div class="company-logo logo-sage">E</div><div class="offer-info"><h3>Diseñador/a Gráfico</h3><p>Estudio Estela</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Part time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Diseñador o Diseñadora Gráfico"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
-          <article class="offer-card" th:each="oferta : ${ofertasEmpleadores}" th:attr="data-oferta-id=${oferta.id}">
+          <article class="offer-card" th:each="oferta : ${ofertasEmpleadores}" th:if="${!oferta.empresaPremium}" th:attr="data-oferta-id=${oferta.id}">
             <div class="company-logo logo-blue" th:text="${#strings.substring(oferta.empresa, 0, 1)}">E</div>
             <div class="offer-info">
               <h3 th:text="${oferta.titulo}">Título del cargo</h3>

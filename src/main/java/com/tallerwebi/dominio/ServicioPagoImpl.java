@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class ServicioPagoImpl implements ServicioPago {
 
   private static final BigDecimal MONTO = new BigDecimal("5.00");
+  private static final BigDecimal MONTO_EMPLEADOR = new BigDecimal(PRECIO_PREMIUM_EMPLEADOR);
   private static final int DIAS = 30;
   private static final String MONEDA = "USD";
   private static final String NUMERO_RECHAZADO = "4000000000000002";
@@ -46,13 +47,36 @@ public class ServicioPagoImpl implements ServicioPago {
     String vencimiento,
     String cvv
   ) {
+    return pagarConRol(usuarioId, numero, vencimiento, cvv, false);
+  }
+
+  @Override
+  public Suscripcion pagarEmpleador(
+    Long usuarioId,
+    String titular,
+    String numero,
+    String vencimiento,
+    String cvv
+  ) {
+    return pagarConRol(usuarioId, numero, vencimiento, cvv, true);
+  }
+
+  private Suscripcion pagarConRol(
+    Long usuarioId,
+    String numero,
+    String vencimiento,
+    String cvv,
+    boolean empleador
+  ) {
     Usuario usuario = repositorioUsuario.buscarPorId(usuarioId);
-    if (usuario == null || !esPostulante(usuario.getRol())) {
-      throw new IllegalArgumentException("Iniciá sesión como postulante.");
+    if (usuario == null || !tieneRol(usuario.getRol(), empleador)) {
+      throw new IllegalArgumentException(
+        empleador ? "Iniciá sesión como empleador." : "Iniciá sesión como postulante."
+      );
     }
     validar(numero, vencimiento, cvv);
 
-    Pago pago = crearPago(usuario, numero);
+    Pago pago = crearPago(usuario, numero, empleador ? MONTO_EMPLEADOR : MONTO);
     if (NUMERO_RECHAZADO.equals(numero)) {
       pago.setEstado(EstadoPago.RECHAZADO);
       repositorioPago.guardar(pago);
@@ -64,10 +88,10 @@ public class ServicioPagoImpl implements ServicioPago {
     return activarSuscripcion(usuario, usuarioId);
   }
 
-  private Pago crearPago(Usuario usuario, String numero) {
+  private Pago crearPago(Usuario usuario, String numero, BigDecimal monto) {
     Pago pago = new Pago();
     pago.setUsuario(usuario);
-    pago.setMonto(MONTO);
+    pago.setMonto(monto);
     pago.setMoneda(MONEDA);
     pago.setFecha(LocalDateTime.now());
     pago.setUltimosCuatro(numero.substring(12));
@@ -148,5 +172,9 @@ public class ServicioPagoImpl implements ServicioPago {
 
   private boolean esPostulante(String rol) {
     return "CANDIDATO".equalsIgnoreCase(rol) || "POSTULANTE".equalsIgnoreCase(rol);
+  }
+
+  private boolean tieneRol(String rol, boolean empleador) {
+    return empleador ? "EMPLEADOR".equalsIgnoreCase(rol) : esPostulante(rol);
   }
 }
