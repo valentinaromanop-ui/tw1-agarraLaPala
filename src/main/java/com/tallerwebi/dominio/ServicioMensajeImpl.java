@@ -3,6 +3,7 @@ package com.tallerwebi.dominio;
 import com.tallerwebi.dominio.excepcion.AccesoChatDenegado;
 import com.tallerwebi.dominio.excepcion.MensajeInvalido;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,12 +47,14 @@ public class ServicioMensajeImpl implements ServicioMensaje {
     mensaje.setPostulacion(postulacion);
     mensaje.setEmisor(emisor);
     mensaje.setTexto(textoLimpio);
+    mensaje.setReceptor(obtenerReceptor(postulacion, usuarioId));
     return repositorioMensaje.guardarMensaje(mensaje);
   }
 
   @Override
   public List<Mensaje> listar(Long postulacionId, Long usuarioId) throws AccesoChatDenegado {
     obtenerYValidar(postulacionId, usuarioId);
+    repositorioMensaje.marcarLeidos(postulacionId, usuarioId);
     return repositorioMensaje.listarPorPostulacion(postulacionId);
   }
 
@@ -71,13 +74,48 @@ public class ServicioMensajeImpl implements ServicioMensaje {
     return postulacion;
   }
 
-  private boolean esEmpleadorDeOferta(String idOferta, Long usuarioId) {
-    try {
-      Long vacanteId = Long.valueOf(idOferta.replace("LOCAL:", ""));
-      Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
-      return vacante != null && usuarioId.equals(vacante.getEmpleadorId());
-    } catch (NumberFormatException e) {
-      return false;
+  @Override
+  public List<NotificacionMensaje> listarNoLeidos(Long usuarioId) {
+    List<NotificacionMensaje> resultado = new ArrayList<>();
+    for (Mensaje m : repositorioMensaje.listarNoLeidos(usuarioId)) {
+      resultado.add(
+        new NotificacionMensaje(m.getPostulacion().getId(), nombreDe(m.getEmisor()), m.getTexto())
+      );
     }
+    return resultado;
+  }
+
+  private Usuario obtenerReceptor(Postulacion postulacion, Long emisorId) {
+    if (!postulacion.getUsuario().getId().equals(emisorId)) {
+      return postulacion.getUsuario();
+    }
+    Long empleadorId = obtenerEmpleadorId(postulacion.getIdOferta());
+    return empleadorId == null ? null : repositorioUsuario.buscarPorId(empleadorId);
+  }
+
+  private Long obtenerEmpleadorId(String idOferta) {
+    try {
+      Vacante vacante = repositorioVacante.obtenerPorId(
+        Long.valueOf(idOferta.replace("LOCAL:", ""))
+      );
+      return vacante == null ? null : vacante.getEmpleadorId();
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  private boolean esEmpleadorDeOferta(String idOferta, Long usuarioId) {
+    return usuarioId.equals(obtenerEmpleadorId(idOferta));
+  }
+
+  private String nombreDe(Usuario usuario) {
+    if (usuario.getEmpresa() != null && !usuario.getEmpresa().isBlank()) {
+      return usuario.getEmpresa();
+    }
+    return (
+      (usuario.getNombre() == null ? "" : usuario.getNombre()) +
+      " " +
+      (usuario.getApellido() == null ? "" : usuario.getApellido())
+    ).trim();
   }
 }

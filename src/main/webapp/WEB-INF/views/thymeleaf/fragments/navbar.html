@@ -71,30 +71,6 @@
                 </a></li>
               </ul>
             </li>
-            <li class="nav-item dropdown"
-              th:if="${authenticated and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')}">
-              <button class="nav-link dropdown-toggle" id="notifications-dropdown-toggle" type="button"
-                data-bs-toggle="dropdown" aria-controls="notifications-dropdown" aria-haspopup="true"
-                aria-expanded="false" aria-label="Notificaciones"
-                th:classappend="${activePage == 'notifications'} ? ' active' : ''">
-                <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
-                aria-label="Notificaciones recientes">
-                <li><h2 class="dropdown-header">Notificaciones recientes</h2></li>
-                <li>
-                  <a class="dropdown-item notification-item" th:href="@{/postulaciones}">
-                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>
-                    <span class="notification-content">
-                      <span class="notification-sender">Agarra la Pala</span>
-                      <span class="notification-text">Consultá el estado de tus postulaciones</span>
-                    </span>
-                  </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-center" th:href="@{/postulaciones}">Ver mis postulaciones</a></li>
-              </ul>
-            </li>
             <li class="nav-item dropdown" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
               <button class="nav-link dropdown-toggle" id="business-dropdown-toggle" type="button"
                 data-bs-toggle="dropdown" aria-controls="business-dropdown" aria-haspopup="true"
@@ -108,6 +84,46 @@
                 <li><a class="dropdown-item" th:href="@{/busquedas-Empleador}">
                   <i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas
                 </a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown" th:if="${authenticated}">
+              <button class="nav-link dropdown-toggle" id="notifications-dropdown-toggle" type="button"
+                data-bs-toggle="dropdown" aria-controls="notifications-dropdown" aria-haspopup="true"
+                aria-expanded="false" aria-label="Notificaciones"
+                th:classappend="${activePage == 'notifications'} ? ' active' : ''">
+                <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
+                <span class="badge bg-danger" th:if="${!#lists.isEmpty(mensajesNoLeidos)}"
+                      th:text="${#lists.size(mensajesNoLeidos)}">1</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
+                  aria-label="Notificaciones recientes">
+                <li><h2 class="dropdown-header">Notificaciones recientes</h2></li>
+                <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
+                  <a class="dropdown-item notification-item" th:href="@{/postulaciones}">
+                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>
+                    <span class="notification-content">
+                      <span class="notification-sender">Agarra la Pala</span>
+                      <span class="notification-text">Consultá el estado de tus postulaciones</span>
+                    </span>
+                  </a>
+                </li>
+                <li th:each="n : ${mensajesNoLeidos}">
+                  <a class="dropdown-item notification-item" th:href="@{/chat/{id}(id=${n.postulacionId})}">
+                    <span class="notification-avatar notification-avatar-company" aria-hidden="true"
+                      th:text="${n.inicial}">A</span>
+                    <span class="notification-content">
+                      <span class="notification-sender" th:text="${n.emisorNombre}">Alguien</span>
+                      <span class="notification-text" th:text="${n.texto}">Te envió un mensaje</span>
+                    </span>
+                  </a>
+                </li>
+                <li th:if="${#lists.isEmpty(mensajesNoLeidos)}">
+                  <span class="dropdown-item text-muted">No tenés mensajes nuevos</span>
+                </li>
+                <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
+                  <hr class="dropdown-divider">
+                  <a class="dropdown-item text-center" th:href="@{/postulaciones}">Ver mis postulaciones</a>
+                </li>
               </ul>
             </li>
             <li class="nav-item" th:unless="${authenticated}">

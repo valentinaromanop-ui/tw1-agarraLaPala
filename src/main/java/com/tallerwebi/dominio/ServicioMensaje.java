@@ -8,4 +8,5 @@ public interface ServicioMensaje {
   Mensaje enviar(Long postulacionId, Long usuarioId, String texto)
     throws MensajeInvalido, AccesoChatDenegado;
   List<Mensaje> listar(Long postulacionId, Long usuarioId) throws AccesoChatDenegado;
+  List<NotificacionMensaje> listarNoLeidos(Long usuarioId);
 }

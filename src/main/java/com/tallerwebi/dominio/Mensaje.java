@@ -16,6 +16,27 @@ public class Mensaje {
   @ManyToOne(optional = false)
   private Usuario emisor;
 
+  public Usuario getReceptor() {
+    return receptor;
+  }
+
+  public void setReceptor(Usuario receptor) {
+    this.receptor = receptor;
+  }
+
+  @ManyToOne
+  private Usuario receptor;
+
+  public boolean isLeido() {
+    return leido;
+  }
+
+  public void setLeido(boolean leido) {
+    this.leido = leido;
+  }
+
+  private boolean leido = false;
+
   @Column(length = 1000, nullable = false)
   private String texto;
 

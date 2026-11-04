@@ -33,4 +33,29 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
       .setParameter("id", id)
       .getResultList();
   }
+
+  @Override
+  public List<Mensaje> listarNoLeidos(Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "FROM Mensaje mensaje where mensaje.receptor.id = :id AND mensaje.leido = false ORDER BY mensaje.fecha DESC",
+        Mensaje.class
+      )
+      .setParameter("id", usuarioId)
+      .getResultList();
+  }
+
+  @Override
+  public void marcarLeidos(Long postulacionId, Long usuarioId) {
+    sessionFactory
+      .getCurrentSession()
+      .createMutationQuery(
+        "UPDATE Mensaje mensaje SET mensaje.leido = true " +
+        "WHERE mensaje.postulacion.id = :postulacionId AND mensaje.receptor.id = :usuarioId AND mensaje.leido = false"
+      )
+      .setParameter("postulacionId", postulacionId)
+      .setParameter("usuarioId", usuarioId)
+      .executeUpdate();
+  }
 }
