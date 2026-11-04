@@ -22,10 +22,24 @@ public class AtributosNavbarAdvice {
     this.servicioMensaje = servicioMensaje;
   }
 
+  @ModelAttribute("rutaInicio")
+  public String rutaInicio(HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    return (
+        session != null && "EMPLEADOR".equalsIgnoreCase(String.valueOf(session.getAttribute("ROL")))
+      )
+      ? "/home-empleador"
+      : "/home";
+  }
+
   @ModelAttribute("premiumHasta")
   public LocalDateTime premiumHasta(HttpServletRequest request) {
     HttpSession session = request.getSession(false);
-    if (session == null || !esPostulante(session.getAttribute("ROL"))) {
+    if (
+      session == null ||
+      (!esPostulante(session.getAttribute("ROL")) &&
+        !"EMPLEADOR".equalsIgnoreCase(String.valueOf(session.getAttribute("ROL"))))
+    ) {
       return null;
     }
     Object id = session.getAttribute("USUARIO_ID");

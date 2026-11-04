@@ -34,8 +34,9 @@
           </form>
 
           <div class="app-navbar-page-actions"
-            th:if="${showPremium and authenticated and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')}">
-            <a class="premium-button" th:href="@{/premium/pagar}">
+            th:if="${authenticated and ((showPremium and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')) or session.ROL == 'EMPLEADOR')}">
+            <a class="premium-button"
+              th:href="${session.ROL == 'EMPLEADOR'} ? @{/premium/empleador/pagar} : @{/premium/pagar}">
               <i class="bi bi-star-fill" aria-hidden="true"></i>
               <span th:if="${premiumHasta == null}">Hacete Premium</span>
               <span th:if="${premiumHasta != null}">Premium activo</span>
@@ -43,8 +44,8 @@
           </div>
 
           <ul class="navbar-nav app-navbar-links">
-            <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
-              <a class="nav-link" th:href="@{/home}"
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{${rutaInicio}}"
                 th:classappend="${activePage == 'home'} ? ' active' : ''"
                 th:attr="aria-current=${activePage == 'home'} ? 'page' : null">
                 <i class="bi bi-house" aria-hidden="true"></i> Inicio

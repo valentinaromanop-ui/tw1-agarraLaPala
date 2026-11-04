@@ -73,8 +73,12 @@ public class ControladorOfertaEmpleadorIntegracionTest {
       listaVacia.getResponse().getContentAsString(),
       containsString("Todavía no creaste postulaciones")
     );
-    String homeAntesDePublicar = mockMvc
+    mockMvc
       .perform(get("/home").session(session))
+      .andExpect(status().is3xxRedirection())
+      .andExpect(redirectedUrl("/home-empleador"));
+    String homeAntesDePublicar = mockMvc
+      .perform(get("/home"))
       .andExpect(status().isOk())
       .andReturn()
       .getResponse()
@@ -106,10 +110,7 @@ public class ControladorOfertaEmpleadorIntegracionTest {
     assertThat(contenidoListado, containsString("1150000.50"));
     assertThat(contenidoListado, containsString("La postulación se publicó correctamente."));
 
-    MvcResult home = mockMvc
-      .perform(get("/home").session(session))
-      .andExpect(status().isOk())
-      .andReturn();
+    MvcResult home = mockMvc.perform(get("/home")).andExpect(status().isOk()).andReturn();
     String contenidoHome = home.getResponse().getContentAsString();
     assertThat(contenidoHome, containsString("Product Designer"));
     assertThat(contenidoHome, containsString("Analista de Integración"));

@@ -23,6 +23,7 @@ class ServicioOfertaEmpleadorTest {
   private RepositorioUsuario repositorioUsuario;
   private RepositorioVacante repositorioVacante;
   private RepositorioPostulacion repositorioPostulacion;
+  private RepositorioSuscripcion repositorioSuscripcion;
   private ServicioPerfil servicioPerfil;
   private ApplicationEventPublisher eventos;
   private ServicioOfertaEmpleadorImpl servicio;
@@ -33,6 +34,7 @@ class ServicioOfertaEmpleadorTest {
     repositorioUsuario = mock(RepositorioUsuario.class);
     repositorioVacante = mock(RepositorioVacante.class);
     repositorioPostulacion = mock(RepositorioPostulacion.class);
+    repositorioSuscripcion = mock(RepositorioSuscripcion.class);
     servicioPerfil = mock(ServicioPerfil.class);
     eventos = mock(ApplicationEventPublisher.class);
     servicio = crearServicio(eventos);
@@ -170,11 +172,32 @@ class ServicioOfertaEmpleadorTest {
     assertEquals(5L, resumen.getPostulacionesRecibidas());
   }
 
+  @Test
+  void ofertasPremiumAparecenAntesYSeMarcanConLaInsignia() {
+    Vacante normal = new Vacante();
+    normal.setEmpleadorId(1L);
+    normal.setFechaPublicacion(java.time.LocalDateTime.now());
+    Vacante premium = new Vacante();
+    premium.setEmpleadorId(2L);
+    premium.setFechaPublicacion(java.time.LocalDateTime.now().minusDays(3));
+    when(repositorioVacante.buscarOfertasPublicadasPorEmpleadores())
+      .thenReturn(List.of(normal, premium));
+    when(repositorioSuscripcion.estaActiva(org.mockito.ArgumentMatchers.eq(2L), any()))
+      .thenReturn(true);
+
+    List<Vacante> ofertas = servicio.listarOfertasPublicadas();
+
+    assertEquals(premium, ofertas.getFirst());
+    assertEquals(true, premium.isEmpresaPremium());
+    assertEquals(false, normal.isEmpresaPremium());
+  }
+
   private ServicioOfertaEmpleadorImpl crearServicio(ApplicationEventPublisher publicador) {
     return new ServicioOfertaEmpleadorImpl(
       repositorioUsuario,
       repositorioVacante,
       repositorioPostulacion,
+      repositorioSuscripcion,
       servicioPerfil,
       publicador,
       "http://localhost:8080/spring"
