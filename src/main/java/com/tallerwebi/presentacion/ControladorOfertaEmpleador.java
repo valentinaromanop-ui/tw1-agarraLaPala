@@ -1,6 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.EstadoVacante;
+import com.tallerwebi.dominio.LimiteOfertasAlcanzadoException;
 import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPostulacion;
@@ -83,7 +84,12 @@ public class ControladorOfertaEmpleador {
     }
 
     Vacante vacante = crearVacante(datos, empleador);
-    servicioOfertaEmpleador.publicar(vacante);
+    try {
+      servicioOfertaEmpleador.publicar(vacante);
+    } catch (LimiteOfertasAlcanzadoException excepcion) {
+      errores.add(excepcion.getMessage());
+      return mostrarFormularioConErrores(datos, empleador, errores);
+    }
     return new ModelAndView("redirect:" + RUTA_BUSQUEDAS + "?publicada=true");
   }
 

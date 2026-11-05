@@ -23,8 +23,9 @@ class ServicioOfertaEmpleadorTest {
   private RepositorioUsuario repositorioUsuario;
   private RepositorioVacante repositorioVacante;
   private RepositorioPostulacion repositorioPostulacion;
-  private RepositorioSuscripcion repositorioSuscripcion;
   private ServicioPerfil servicioPerfil;
+  private ServicioPago servicioPago;
+  private ServicioNotificacionOferta servicioNotificacionOferta;
   private ApplicationEventPublisher eventos;
   private ServicioOfertaEmpleadorImpl servicio;
   private Vacante vacante;
@@ -34,8 +35,9 @@ class ServicioOfertaEmpleadorTest {
     repositorioUsuario = mock(RepositorioUsuario.class);
     repositorioVacante = mock(RepositorioVacante.class);
     repositorioPostulacion = mock(RepositorioPostulacion.class);
-    repositorioSuscripcion = mock(RepositorioSuscripcion.class);
     servicioPerfil = mock(ServicioPerfil.class);
+    servicioPago = mock(ServicioPago.class);
+    servicioNotificacionOferta = mock(ServicioNotificacionOferta.class);
     eventos = mock(ApplicationEventPublisher.class);
     servicio = crearServicio(eventos);
     vacante = new Vacante();
@@ -146,6 +148,23 @@ class ServicioOfertaEmpleadorTest {
   }
 
   @Test
+  void notificaAQuienesTienenPremiumYUnaSkillCoincidente() {
+    Usuario usuario = crearUsuario(1L, "premium@gmail.com");
+    when(repositorioUsuario.buscarPostulantes()).thenReturn(List.of(usuario));
+    when(servicioPerfil.obtenerHabilidades(1L)).thenReturn(List.of("java"));
+    when(servicioPago.esPremiumActivo(1L)).thenReturn(true);
+
+    servicio.publicar(vacante);
+
+    verify(servicioNotificacionOferta)
+      .notificar(
+        usuario,
+        "Nueva oferta acorde a tus habilidades: Desarrollador Java",
+        "/vacantes/detalle?fuente=LOCAL&id=10"
+      );
+  }
+
+  @Test
   void noAvisaSiFallaElGuardado() {
     doThrow(new IllegalStateException()).when(repositorioVacante).guardar(vacante);
 
@@ -182,8 +201,7 @@ class ServicioOfertaEmpleadorTest {
     premium.setFechaPublicacion(java.time.LocalDateTime.now().minusDays(3));
     when(repositorioVacante.buscarOfertasPublicadasPorEmpleadores())
       .thenReturn(List.of(normal, premium));
-    when(repositorioSuscripcion.estaActiva(org.mockito.ArgumentMatchers.eq(2L), any()))
-      .thenReturn(true);
+    when(servicioPago.esPremiumActivo(2L)).thenReturn(true);
 
     List<Vacante> ofertas = servicio.listarOfertasPublicadas();
 
@@ -192,16 +210,53 @@ class ServicioOfertaEmpleadorTest {
     assertEquals(false, normal.isEmpresaPremium());
   }
 
+  @Test
+  void limitaOfertasActivasGratuitasATres() {
+    vacante.setEmpleadorId(42L);
+    when(repositorioVacante.buscarPorEmpleador(42L))
+      .thenReturn(List.of(new Vacante(), new Vacante(), new Vacante()));
+    when(servicioPago.esPremiumActivo(42L)).thenReturn(false);
+
+    LimiteOfertasAlcanzadoException excepcion = assertThrows(
+      LimiteOfertasAlcanzadoException.class,
+      () -> servicio.publicar(vacante)
+    );
+
+    assertThat(excepcion.getMessage(), containsString("3 ofertas activas"));
+    verify(repositorioVacante, never()).guardar(vacante);
+  }
+
+  @Test
+  void permiteHastaQuinceOfertasActivasPremium() {
+    vacante.setEmpleadorId(42L);
+    when(repositorioVacante.buscarPorEmpleador(42L))
+      .thenReturn(crearOfertas(ServicioOfertaEmpleadorImpl.LIMITE_OFERTAS_PREMIUM - 1));
+    when(servicioPago.esPremiumActivo(42L)).thenReturn(true);
+
+    servicio.publicar(vacante);
+
+    verify(repositorioVacante).guardar(vacante);
+  }
+
   private ServicioOfertaEmpleadorImpl crearServicio(ApplicationEventPublisher publicador) {
     return new ServicioOfertaEmpleadorImpl(
       repositorioUsuario,
       repositorioVacante,
       repositorioPostulacion,
-      repositorioSuscripcion,
       servicioPerfil,
+      servicioPago,
+      servicioNotificacionOferta,
       publicador,
       "http://localhost:8080/spring"
     );
+  }
+
+  private List<Vacante> crearOfertas(int cantidad) {
+    List<Vacante> ofertas = new ArrayList<>();
+    for (int indice = 0; indice < cantidad; indice++) {
+      ofertas.add(new Vacante());
+    }
+    return ofertas;
   }
 
   private Usuario crearUsuario(Long id, String email) {

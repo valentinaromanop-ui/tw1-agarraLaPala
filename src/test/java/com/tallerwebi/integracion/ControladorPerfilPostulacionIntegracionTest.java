@@ -21,6 +21,7 @@ import com.tallerwebi.dominio.PerfilPostulante;
 import com.tallerwebi.dominio.Postulacion;
 import com.tallerwebi.dominio.ServicioLogin;
 import com.tallerwebi.dominio.Skill;
+import com.tallerwebi.dominio.Suscripcion;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.excepcion.UsuarioExistente;
@@ -267,6 +268,7 @@ class ControladorPerfilPostulacionIntegracionTest {
   @Test
   void soloLaEmpresaPropietariaPuedeDecidirYGetNoModificaElEstado() throws Exception {
     long[] ids = guardarOfertaYPostulacion();
+    activarPremiumEmpleador(ids[0]);
     MockHttpSession empresaPropietaria = crearSesionEmpresa(ids[0]);
     MockHttpSession otraEmpresa = crearSesionEmpresa(ids[0] + 10000);
     MockHttpSession candidato = new MockHttpSession();
@@ -398,6 +400,18 @@ class ControladorPerfilPostulacionIntegracionTest {
           postulacion.getId(),
           candidato.getId(),
         };
+      });
+  }
+
+  private void activarPremiumEmpleador(long empleadorId) {
+    new TransactionTemplate(transactionManager)
+      .executeWithoutResult(status -> {
+        Usuario empleador = sessionFactory.getCurrentSession().get(Usuario.class, empleadorId);
+        Suscripcion suscripcion = new Suscripcion();
+        suscripcion.setUsuario(empleador);
+        suscripcion.setFechaInicio(LocalDateTime.now().minusDays(1));
+        suscripcion.setFechaFin(LocalDateTime.now().plusDays(30));
+        sessionFactory.getCurrentSession().persist(suscripcion);
       });
   }
 

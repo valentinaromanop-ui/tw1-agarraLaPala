@@ -1,7 +1,6 @@
 package com.tallerwebi.dominio;
 
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,12 +20,15 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
 
   private static final String FUENTE_LOCAL = "LOCAL";
   private static final int PORCENTAJE_MINIMO = 75;
+  public static final int LIMITE_OFERTAS_GRATUITAS = 3;
+  public static final int LIMITE_OFERTAS_PREMIUM = 15;
 
   private final RepositorioUsuario repositorioUsuario;
   private final RepositorioVacante repositorioVacante;
   private final RepositorioPostulacion repositorioPostulacion;
-  private final RepositorioSuscripcion repositorioSuscripcion;
   private final ServicioPerfil servicioPerfil;
+  private final ServicioPago servicioPago;
+  private final ServicioNotificacionOferta servicioNotificacionOferta;
   private final ApplicationEventPublisher eventos;
   private final String urlBase;
 
@@ -35,16 +37,18 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     RepositorioUsuario repositorioUsuario,
     RepositorioVacante repositorioVacante,
     RepositorioPostulacion repositorioPostulacion,
-    RepositorioSuscripcion repositorioSuscripcion,
     ServicioPerfil servicioPerfil,
+    ServicioPago servicioPago,
+    ServicioNotificacionOferta servicioNotificacionOferta,
     ApplicationEventPublisher eventos,
     @Value("${app.url:http://localhost:8080/spring}") String urlBase
   ) {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioVacante = repositorioVacante;
     this.repositorioPostulacion = repositorioPostulacion;
-    this.repositorioSuscripcion = repositorioSuscripcion;
     this.servicioPerfil = servicioPerfil;
+    this.servicioPago = servicioPago;
+    this.servicioNotificacionOferta = servicioNotificacionOferta;
     this.eventos = eventos;
     this.urlBase = urlBase;
   }
@@ -60,10 +64,74 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
 
   @Override
   public void publicar(Vacante vacante) {
+    validarLimiteOfertas(vacante);
     repositorioVacante.guardar(vacante);
     if (FUENTE_LOCAL.equals(vacante.getFuente())) {
+      notificarCandidatosPremium(vacante);
       avisarPostulantes(vacante);
     }
+  }
+
+  private void validarLimiteOfertas(Vacante vacante) {
+    Long empleadorId = vacante.getEmpleadorId();
+    if (empleadorId == null) {
+      return;
+    }
+    long activas = repositorioVacante
+      .buscarPorEmpleador(empleadorId)
+      .stream()
+      .filter(oferta -> oferta.getEstado() == EstadoVacante.ABIERTA)
+      .filter(oferta -> !Boolean.FALSE.equals(oferta.getActiva()))
+      .count();
+    int limite = servicioPago.esPremiumActivo(empleadorId)
+      ? LIMITE_OFERTAS_PREMIUM
+      : LIMITE_OFERTAS_GRATUITAS;
+    if (activas >= limite) {
+      throw new LimiteOfertasAlcanzadoException(
+        "Alcanzaste el límite de " +
+        limite +
+        " ofertas activas. Cerrá una oferta o hacete Premium para publicar más."
+      );
+    }
+  }
+
+  private void notificarCandidatosPremium(Vacante vacante) {
+    Set<String> skills = obtenerSkills(vacante);
+    if (skills.isEmpty()) {
+      return;
+    }
+    String enlace = "/vacantes/detalle?fuente=LOCAL&id=" + vacante.getId();
+    for (Usuario usuario : repositorioUsuario.buscarPostulantes()) {
+      if (
+        servicioPago.esPremiumActivo(usuario.getId()) &&
+        coincideSkill(servicioPerfil.obtenerHabilidades(usuario.getId()), skills)
+      ) {
+        servicioNotificacionOferta.notificar(
+          usuario,
+          "Nueva oferta acorde a tus habilidades: " + vacante.getTitulo(),
+          enlace
+        );
+      }
+    }
+  }
+
+  private Set<String> obtenerSkills(Vacante vacante) {
+    Set<String> skills = new HashSet<>();
+    for (VacanteSkill relacion : vacante.getVacanteSkills()) {
+      if (relacion.getSkill() != null && relacion.getSkill().getNombre() != null) {
+        skills.add(relacion.getSkill().getNombre().trim().toLowerCase(Locale.ROOT));
+      }
+    }
+    return skills;
+  }
+
+  private boolean coincideSkill(List<String> habilidades, Set<String> skillsOferta) {
+    for (String habilidad : habilidades) {
+      if (habilidad != null && skillsOferta.contains(habilidad.trim().toLowerCase(Locale.ROOT))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void avisarPostulantes(Vacante vacante) {
@@ -120,16 +188,12 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     List<Vacante> ofertas = new ArrayList<>(
       repositorioVacante.buscarOfertasPublicadasPorEmpleadores()
     );
-    LocalDateTime ahora = LocalDateTime.now();
     Map<Long, Boolean> estadoPremiumPorEmpleador = new HashMap<>();
     for (Vacante oferta : ofertas) {
       Long empleadorId = oferta.getEmpleadorId();
       boolean empresaPremium =
         empleadorId != null &&
-        estadoPremiumPorEmpleador.computeIfAbsent(
-          empleadorId,
-          id -> repositorioSuscripcion.estaActiva(id, ahora)
-        );
+        estadoPremiumPorEmpleador.computeIfAbsent(empleadorId, servicioPago::esPremiumActivo);
       oferta.setEmpresaPremium(empresaPremium);
     }
     ofertas.sort(
@@ -173,5 +237,32 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
       postulaciones += repositorioPostulacion.contarPorVacante(vacante.getId());
     }
     return new ResumenEmpleador(activas, cerradas, postulaciones);
+  }
+
+  @Override
+  public void registrarVista(Long vacanteId) {
+    repositorioVacante.incrementarVistas(vacanteId);
+  }
+
+  @Override
+  public void registrarClickPostular(Long vacanteId) {
+    repositorioVacante.incrementarClicksPostular(vacanteId);
+  }
+
+  @Override
+  public long obtenerVistas(Long vacanteId) {
+    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+    return vacante == null ? 0 : vacante.getVistas();
+  }
+
+  @Override
+  public long obtenerClicksPostular(Long vacanteId) {
+    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+    return vacante == null ? 0 : vacante.getClicksPostular();
+  }
+
+  @Override
+  public long obtenerPostulaciones(Long vacanteId) {
+    return repositorioPostulacion.contarPorVacante(vacanteId);
   }
 }

@@ -27,6 +27,7 @@ public class VacanteMapper {
     dto.setHorario(vacante.getHorario());
     dto.setFuente("LOCAL");
     dto.setOfertaEmpleador(vacante.getEmpleadorId() != null);
+    dto.setEmpresaPremium(vacante.isEmpresaPremium());
     dto.setEstado(vacante.getEstado().name());
     dto.setLimitePostulaciones(vacante.getLimitePostulaciones());
     List<String> coincidencias = new ArrayList<>();

@@ -11,6 +11,7 @@ public class PostulanteOfertaDTO {
   private final List<String> habilidades;
   private final LocalDateTime fechaPostulacion;
   private final boolean tieneCv;
+  private final boolean premium;
   private final EstadoPostulacion estado;
 
   public PostulanteOfertaDTO(
@@ -20,6 +21,7 @@ public class PostulanteOfertaDTO {
     List<String> habilidades,
     LocalDateTime fechaPostulacion,
     boolean tieneCv,
+    boolean premium,
     EstadoPostulacion estado
   ) {
     this.postulacionId = postulacionId;
@@ -28,6 +30,7 @@ public class PostulanteOfertaDTO {
     this.habilidades = List.copyOf(habilidades);
     this.fechaPostulacion = fechaPostulacion;
     this.tieneCv = tieneCv;
+    this.premium = premium;
     this.estado = estado;
   }
 
@@ -53,6 +56,10 @@ public class PostulanteOfertaDTO {
 
   public boolean isTieneCv() {
     return tieneCv;
+  }
+
+  public boolean isPremium() {
+    return premium;
   }
 
   public EstadoPostulacion getEstado() {
