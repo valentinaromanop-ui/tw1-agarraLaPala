@@ -33,6 +33,13 @@
       <p th:if="${premiumHasta != null}" class="premium-active-message">
         Premium activo hasta <strong th:text="${#temporals.format(premiumHasta, 'dd/MM/yyyy')}"></strong>
       </p>
+      <a th:if="${premiumHasta == null}" class="btn btn-primary" th:href="@{/premium/empleador/pagar}">
+        Activar Empresa Premium
+      </a>
+      <a th:if="${premiumHasta != null}" class="btn btn-outline-primary"
+        th:href="@{/premium/empleador/pagar(extender=true)}">
+        Extender Empresa Premium
+      </a>
 
       <h2 class="h4 mt-4">Resumen</h2>
       <div class="employer-summary">

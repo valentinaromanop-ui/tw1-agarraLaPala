@@ -123,7 +123,7 @@ SET @migrar_estado_postulacion = IF(
       AND table_name = 'Postulacion'
       AND column_name = 'estado'
   ) > 0,
-  'UPDATE Postulacion SET estado = ''PENDIENTE''',
+  'UPDATE Postulacion SET estado = ''PENDIENTE'' WHERE estado IS NULL OR estado NOT IN (''PENDIENTE'', ''ENVIADA'', ''EN_REVISION'', ''ENTREVISTA'', ''REGISTRADA'', ''ACEPTADA'', ''RECHAZADA'')',
   'SELECT 1'
 );
 PREPARE migracion_estado_postulacion FROM @migrar_estado_postulacion;
@@ -144,3 +144,18 @@ SET @definir_estado_postulacion_default = IF(
 PREPARE migracion_estado_postulacion_default FROM @definir_estado_postulacion_default;
 EXECUTE migracion_estado_postulacion_default;
 DEALLOCATE PREPARE migracion_estado_postulacion_default;
+
+SET @agregar_leido_mensaje = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Mensaje'
+      AND column_name = 'leido'
+  ) = 0,
+  'ALTER TABLE Mensaje ADD COLUMN leido BOOLEAN NOT NULL DEFAULT FALSE',
+  'SELECT 1'
+);
+PREPARE agregar_leido_mensaje FROM @agregar_leido_mensaje;
+EXECUTE agregar_leido_mensaje;
+DEALLOCATE PREPARE agregar_leido_mensaje;

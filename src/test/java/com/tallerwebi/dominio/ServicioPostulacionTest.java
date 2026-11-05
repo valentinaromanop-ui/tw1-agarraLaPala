@@ -46,7 +46,7 @@ public class ServicioPostulacionTest {
     Postulacion resultado = servicio.registrarEnVacante(1L, oferta);
 
     assertEquals("JOBICY:10", resultado.getOfertaId());
-    assertEquals(EstadoPostulacion.PENDIENTE, resultado.getEstado());
+    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
     assertEquals(oferta.getDescripcion(), resultado.getVacante().getDescripcion());
     assertEquals(oferta.getId(), resultado.getVacante().getIdExterno());
     verify(vacantes).guardar(resultado.getVacante());
@@ -148,7 +148,7 @@ public class ServicioPostulacionTest {
 
     Postulacion resultado = servicio.registrarPostulacion(1L, entrada);
 
-    assertEquals(EstadoPostulacion.PENDIENTE, resultado.getEstado());
+    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
     assertEquals("Empresa A", resultado.getEmpresa());
     when(postulaciones.buscarPorUsuarioYOferta(1L, "JOBICY:10")).thenReturn(resultado);
 
