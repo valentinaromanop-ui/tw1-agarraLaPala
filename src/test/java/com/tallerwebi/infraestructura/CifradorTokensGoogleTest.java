@@ -3,6 +3,7 @@ package com.tallerwebi.infraestructura;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.tallerwebi.config.GoogleCalendarConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ public class CifradorTokensGoogleTest {
 
   @BeforeEach
   public void init() {
-    ConfiguracionGoogleCalendar configuracion = mock(ConfiguracionGoogleCalendar.class);
+    GoogleCalendarConfig configuracion = mock(GoogleCalendarConfig.class);
     when(configuracion.getClave()).thenReturn(new byte[32]);
     cifrador = new CifradorTokensGoogle(configuracion);
   }

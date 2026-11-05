@@ -1,11 +1,17 @@
 package com.tallerwebi.infraestructura;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
+import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.ClienteGoogleCalendar;
+import com.tallerwebi.dominio.IntervaloHorario;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -16,9 +22,12 @@ import org.springframework.web.client.RestClient;
 
 public class ClienteGoogleCalendarTest {
 
+  private static final Instant DESDE = Instant.parse("2026-11-02T11:00:00Z");
+  private static final Instant HASTA = Instant.parse("2026-11-16T03:00:00Z");
+
   private MockRestServiceServer servidor;
   private ClienteGoogleCalendarImpl cliente;
-  private ConfiguracionGoogleCalendar configuracion;
+  private GoogleCalendarConfig configuracion;
 
   @BeforeEach
   public void preparar() {
@@ -29,7 +38,7 @@ public class ClienteGoogleCalendarTest {
         "google.calendar.redirect-uri",
         "http://localhost:8080/spring/google-calendar/callback"
       );
-    configuracion = new ConfiguracionGoogleCalendar(entorno);
+    configuracion = new GoogleCalendarConfig(entorno);
     RestClient.Builder builder = RestClient.builder();
     servidor = MockRestServiceServer.bindTo(builder).build();
     cliente = new ClienteGoogleCalendarImpl(configuracion, builder.build());
@@ -132,6 +141,154 @@ public class ClienteGoogleCalendarTest {
     assertFalse(error.toString().contains("dato-sensible"));
     assertNull(error.getCause());
     servidor.verify();
+  }
+
+  @Test
+  public void deberiaConsultarElCalendarioPrincipalConElTokenYElPeriodoSolicitado() {
+    // preparacion
+    servidor
+      .expect(requestTo("https://www.googleapis.com/calendar/v3/freeBusy"))
+      .andExpect(method(HttpMethod.POST))
+      .andExpect(header("Authorization", "Bearer acceso"))
+      .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.timeMin").value(DESDE.toString()))
+      .andExpect(jsonPath("$.timeMax").value(HASTA.toString()))
+      .andExpect(jsonPath("$.items[0].id").value("primary"))
+      .andRespond(
+        withSuccess(
+          """
+          {
+            "calendars": {
+              "primary": {
+                "busy": [
+                  {"start": "2026-11-02T09:15:00-03:00", "end": "2026-11-02T10:00:00-03:00"}
+                ]
+              }
+            }
+          }
+          """,
+          MediaType.APPLICATION_JSON
+        )
+      );
+
+    // ejecucion
+    List<IntervaloHorario> ocupados = cuandoConsultoLosPeriodosOcupados();
+
+    // validacion
+    assertThat(ocupados.size(), equalTo(1));
+    assertThat(ocupados.getFirst().getInicio(), equalTo(Instant.parse("2026-11-02T12:15:00Z")));
+    assertThat(ocupados.getFirst().getFin(), equalTo(Instant.parse("2026-11-02T13:00:00Z")));
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaDevolverUnaListaVaciaSiGoogleNoTienePeriodosOcupados() {
+    // preparacion
+    dadoQueGoogleRespondeDisponibilidad(
+      """
+      {"busy": []}
+      """
+    );
+
+    // ejecucion
+    List<IntervaloHorario> ocupados = cuandoConsultoLosPeriodosOcupados();
+
+    // validacion
+    assertThat(ocupados.isEmpty(), equalTo(true));
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarUnErrorDelCalendarioAunqueGoogleRespondaHttp200() {
+    // preparacion
+    dadoQueGoogleRespondeDisponibilidad(
+      """
+      {"errors": [{"reason": "internalError"}], "busy": []}
+      """
+    );
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarUnaRespuestaSinElCalendarioPrincipal() {
+    // preparacion
+    servidor
+      .expect(requestTo("https://www.googleapis.com/calendar/v3/freeBusy"))
+      .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarUnaRespuestaSinLosPeriodosOcupados() {
+    // preparacion
+    dadoQueGoogleRespondeDisponibilidad("{}");
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarPeriodosConFechasInvalidas() {
+    // preparacion
+    dadoQueGoogleRespondeDisponibilidad(
+      """
+      {"busy": [{"start": "fecha-invalida", "end": "2026-11-02T13:00:00Z"}]}
+      """
+    );
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarPeriodosConFinAnteriorAlInicio() {
+    // preparacion
+    dadoQueGoogleRespondeDisponibilidad(
+      """
+      {"busy": [{"start": "2026-11-02T14:00:00Z", "end": "2026-11-02T13:00:00Z"}]}
+      """
+    );
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaDevolverUnErrorSiFallaLaConsultaHttpDeDisponibilidad() {
+    // preparacion
+    servidor
+      .expect(requestTo("https://www.googleapis.com/calendar/v3/freeBusy"))
+      .andRespond(withServerError());
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
+    servidor.verify();
+  }
+
+  private List<IntervaloHorario> cuandoConsultoLosPeriodosOcupados() {
+    return cliente.consultarPeriodosOcupados("acceso", DESDE, HASTA);
+  }
+
+  private void dadoQueGoogleRespondeDisponibilidad(String calendario) {
+    servidor
+      .expect(requestTo("https://www.googleapis.com/calendar/v3/freeBusy"))
+      .andRespond(
+        withSuccess(
+          """
+          {"calendars": {"primary": %s}}
+          """.formatted(calendario),
+          MediaType.APPLICATION_JSON
+        )
+      );
   }
 
   private void dadoQueGoogleResponde(String respuesta) {

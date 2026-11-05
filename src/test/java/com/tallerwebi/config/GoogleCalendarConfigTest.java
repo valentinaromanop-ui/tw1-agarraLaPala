@@ -1,4 +1,4 @@
-package com.tallerwebi.infraestructura;
+package com.tallerwebi.config;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
-public class ConfiguracionGoogleCalendarTest {
+public class GoogleCalendarConfigTest {
 
   @Test
   public void deberiaEstarDisponibleConTodasLasPropiedades() {
@@ -18,15 +18,13 @@ public class ConfiguracionGoogleCalendarTest {
         "google.calendar.encryption-key",
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
       );
-    ConfiguracionGoogleCalendar configuracion = new ConfiguracionGoogleCalendar(entorno);
+    GoogleCalendarConfig configuracion = new GoogleCalendarConfig(entorno);
     assertTrue(configuracion.estaDisponible());
   }
 
   @Test
   public void noDeberiaEstarDisponibleSinConfiguracion() {
-    ConfiguracionGoogleCalendar configuracion = new ConfiguracionGoogleCalendar(
-      new MockEnvironment()
-    );
+    GoogleCalendarConfig configuracion = new GoogleCalendarConfig(new MockEnvironment());
     assertFalse(configuracion.estaDisponible());
   }
 }

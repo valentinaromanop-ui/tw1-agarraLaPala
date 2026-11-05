@@ -1,11 +1,20 @@
 package com.tallerwebi.infraestructura;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.ClienteGoogleCalendar;
+import com.tallerwebi.dominio.IntervaloHorario;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
+import java.time.DateTimeException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -17,15 +26,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
 
-  private final ConfiguracionGoogleCalendar configuracion;
+  private final GoogleCalendarConfig configuracion;
   private final RestClient cliente;
 
   @Autowired
-  public ClienteGoogleCalendarImpl(ConfiguracionGoogleCalendar configuracion) {
+  public ClienteGoogleCalendarImpl(GoogleCalendarConfig configuracion) {
     this(configuracion, crearCliente());
   }
 
-  public ClienteGoogleCalendarImpl(ConfiguracionGoogleCalendar configuracion, RestClient cliente) {
+  public ClienteGoogleCalendarImpl(GoogleCalendarConfig configuracion, RestClient cliente) {
     this.configuracion = configuracion;
     this.cliente = cliente;
   }
@@ -73,6 +82,58 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
     parametros.add("grant_type", "refresh_token");
     parametros.add("refresh_token", refreshToken);
     return campoObligatorio(solicitarToken(parametros), "access_token");
+  }
+
+  @Override
+  @SuppressWarnings("PMD.PreserveStackTrace")
+  public List<IntervaloHorario> consultarPeriodosOcupados(
+    String tokenAcceso,
+    Instant desde,
+    Instant hasta
+  ) {
+    Map<String, Object> consulta = Map.of(
+      "timeMin",
+      desde.toString(),
+      "timeMax",
+      hasta.toString(),
+      "items",
+      List.of(Map.of("id", "primary"))
+    );
+    try {
+      JsonNode respuesta = cliente
+        .post()
+        .uri("https://www.googleapis.com/calendar/v3/freeBusy")
+        .headers(headers -> headers.setBearerAuth(tokenAcceso))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(consulta)
+        .retrieve()
+        .body(JsonNode.class);
+      return leerPeriodosOcupados(respuesta);
+    } catch (RestClientException | DateTimeException | IllegalArgumentException excepcion) {
+      throw new ConexionGoogleException();
+    }
+  }
+
+  private List<IntervaloHorario> leerPeriodosOcupados(JsonNode respuesta) {
+    if (respuesta == null) {
+      throw new ConexionGoogleException();
+    }
+    JsonNode calendario = respuesta.path("calendars").path("primary");
+    JsonNode ocupados = calendario.path("busy");
+
+    if (!ocupados.isArray() || !calendario.path("errors").isEmpty()) {
+      throw new ConexionGoogleException();
+    }
+    List<IntervaloHorario> periodos = new ArrayList<>();
+    for (JsonNode ocupado : ocupados) {
+      periodos.add(
+        new IntervaloHorario(
+          OffsetDateTime.parse(ocupado.path("start").asText()).toInstant(),
+          OffsetDateTime.parse(ocupado.path("end").asText()).toInstant()
+        )
+      );
+    }
+    return periodos;
   }
 
   private MultiValueMap<String, String> credenciales() {

@@ -1,8 +1,8 @@
 package com.tallerwebi.dominio;
 
+import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
 import com.tallerwebi.infraestructura.CifradorTokensGoogle;
-import com.tallerwebi.infraestructura.ConfiguracionGoogleCalendar;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ public class ServicioConexionGoogleImpl implements ServicioConexionGoogle {
   private final RepositorioConexionGoogle repositorioConexionGoogle;
   private final ClienteGoogleCalendar cliente;
   private final CifradorTokensGoogle cifrador;
-  private final ConfiguracionGoogleCalendar configuracion;
+  private final GoogleCalendarConfig configuracion;
 
   @Autowired
   public ServicioConexionGoogleImpl(
@@ -23,7 +23,7 @@ public class ServicioConexionGoogleImpl implements ServicioConexionGoogle {
     RepositorioConexionGoogle repositorioConexionGoogle,
     ClienteGoogleCalendar cliente,
     CifradorTokensGoogle cifrador,
-    ConfiguracionGoogleCalendar configuracion
+    GoogleCalendarConfig configuracion
   ) {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioConexionGoogle = repositorioConexionGoogle;

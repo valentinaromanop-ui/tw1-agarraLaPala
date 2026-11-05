@@ -1,5 +1,6 @@
 package com.tallerwebi.infraestructura;
 
+import com.tallerwebi.config.GoogleCalendarConfig;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -15,10 +16,10 @@ public class CifradorTokensGoogle {
 
   private static final int PARTES_TOKEN = 2;
 
-  private final ConfiguracionGoogleCalendar configuracion;
+  private final GoogleCalendarConfig configuracion;
 
   @Autowired
-  public CifradorTokensGoogle(ConfiguracionGoogleCalendar configuracion) {
+  public CifradorTokensGoogle(GoogleCalendarConfig configuracion) {
     this.configuracion = configuracion;
   }
 

@@ -5,9 +5,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
 import com.tallerwebi.infraestructura.CifradorTokensGoogle;
-import com.tallerwebi.infraestructura.ConfiguracionGoogleCalendar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,10 +26,8 @@ public class ServicioConexionGoogleTest {
     repositorioUsuarioMock = mock(RepositorioUsuario.class);
     repositorioConexionGoogleMock = mock(RepositorioConexionGoogle.class);
     cliente = mock(ClienteGoogleCalendar.class);
-    ConfiguracionGoogleCalendar configuracionGoogleCalendarMock = mock(
-      ConfiguracionGoogleCalendar.class
-    );
-    when(configuracionGoogleCalendarMock.estaDisponible()).thenReturn(true);
+    GoogleCalendarConfig googleCalendarConfigMock = mock(GoogleCalendarConfig.class);
+    when(googleCalendarConfigMock.estaDisponible()).thenReturn(true);
     cifrador = mock(CifradorTokensGoogle.class);
     servicioConexionGoogle =
       new ServicioConexionGoogleImpl(
@@ -37,7 +35,7 @@ public class ServicioConexionGoogleTest {
         repositorioConexionGoogleMock,
         cliente,
         cifrador,
-        configuracionGoogleCalendarMock
+        googleCalendarConfigMock
       );
     empleador = new Usuario();
     empleador.setId(7L);

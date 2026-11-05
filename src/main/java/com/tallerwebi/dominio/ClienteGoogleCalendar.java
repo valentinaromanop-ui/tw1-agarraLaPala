@@ -1,5 +1,8 @@
 package com.tallerwebi.dominio;
 
+import java.time.Instant;
+import java.util.List;
+
 public interface ClienteGoogleCalendar {
   String SCOPES =
     "https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.freebusy";
@@ -7,4 +10,9 @@ public interface ClienteGoogleCalendar {
   String urlAutorizacion(String state);
   String intercambiarCodigo(String codigo);
   String renovarAcceso(String refreshToken);
+  List<IntervaloHorario> consultarPeriodosOcupados(
+    String tokenAcceso,
+    Instant desde,
+    Instant hasta
+  );
 }

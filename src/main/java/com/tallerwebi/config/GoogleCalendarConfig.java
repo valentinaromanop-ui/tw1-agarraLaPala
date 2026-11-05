@@ -1,4 +1,4 @@
-package com.tallerwebi.infraestructura;
+package com.tallerwebi.config;
 
 import java.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,12 +6,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConfiguracionGoogleCalendar {
+public class GoogleCalendarConfig {
 
   private final Environment entorno;
 
   @Autowired
-  public ConfiguracionGoogleCalendar(Environment entorno) {
+  public GoogleCalendarConfig(Environment entorno) {
     this.entorno = entorno;
   }
 

@@ -147,11 +147,7 @@ public class ServicioPostulantesOferta {
     return new FotoPerfilPostulanteDTO(usuario.getFotoPerfilTipo(), usuario.getFotoPerfil());
   }
 
-  private Postulacion buscarPostulacionPropia(
-    Long vacanteId,
-    Long postulacionId,
-    Long empleadorId
-  ) {
+  public Postulacion buscarPostulacionPropia(Long vacanteId, Long postulacionId, Long empleadorId) {
     validarPropiedadOferta(vacanteId, empleadorId);
     Postulacion postulacion = repositorioPostulacion.buscarPorIdYVacante(postulacionId, vacanteId);
     if (postulacion == null) {
