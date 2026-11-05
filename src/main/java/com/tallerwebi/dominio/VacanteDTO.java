@@ -23,6 +23,7 @@ public class VacanteDTO {
   private String jornada;
   private String moneda;
   private boolean ofertaEmpleador;
+  private boolean empresaPremium;
   private String estado = "ABIERTA";
   private Integer limitePostulaciones;
 
@@ -152,6 +153,14 @@ public class VacanteDTO {
 
   public void setOfertaEmpleador(boolean ofertaEmpleador) {
     this.ofertaEmpleador = ofertaEmpleador;
+  }
+
+  public boolean isEmpresaPremium() {
+    return empresaPremium;
+  }
+
+  public void setEmpresaPremium(boolean empresaPremium) {
+    this.empresaPremium = empresaPremium;
   }
 
   public String getEstado() {

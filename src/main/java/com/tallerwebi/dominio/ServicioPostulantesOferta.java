@@ -2,6 +2,7 @@ package com.tallerwebi.dominio;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,18 +20,36 @@ public class ServicioPostulantesOferta {
   private final RepositorioVacante repositorioVacante;
   private final RepositorioCurriculumGenerado repositorioCurriculum;
   private final RepositorioPerfilPostulante repositorioPerfil;
+  private final ServicioPago servicioPago;
 
   @Autowired
   public ServicioPostulantesOferta(
     RepositorioPostulacion repositorioPostulacion,
     RepositorioVacante repositorioVacante,
     RepositorioCurriculumGenerado repositorioCurriculum,
-    RepositorioPerfilPostulante repositorioPerfil
+    RepositorioPerfilPostulante repositorioPerfil,
+    ServicioPago servicioPago
   ) {
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
     this.repositorioCurriculum = repositorioCurriculum;
     this.repositorioPerfil = repositorioPerfil;
+    this.servicioPago = servicioPago;
+  }
+
+  public ServicioPostulantesOferta(
+    RepositorioPostulacion repositorioPostulacion,
+    RepositorioVacante repositorioVacante,
+    RepositorioCurriculumGenerado repositorioCurriculum,
+    RepositorioPerfilPostulante repositorioPerfil
+  ) {
+    this(
+      repositorioPostulacion,
+      repositorioVacante,
+      repositorioCurriculum,
+      repositorioPerfil,
+      null
+    );
   }
 
   public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
@@ -55,9 +74,19 @@ public class ServicioPostulantesOferta {
           dividirHabilidades(usuario.getHabilidades()),
           postulacion.getFechaPostulacion(),
           usuarioIdsConCv.contains(usuario.getId()),
+          servicioPago != null && servicioPago.esPremiumActivo(usuario.getId()),
           postulacion.getEstado()
         );
       })
+      .sorted(
+        Comparator
+          .comparing(PostulanteOfertaDTO::isPremium)
+          .reversed()
+          .thenComparing(
+            PostulanteOfertaDTO::getFechaPostulacion,
+            Comparator.nullsLast(Comparator.reverseOrder())
+          )
+      )
       .toList();
   }
 

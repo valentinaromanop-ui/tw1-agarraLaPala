@@ -36,11 +36,24 @@
         </p>
       </div>
 
+      <section class="premium-plan-card" aria-labelledby="metricas-title">
+        <h2 id="metricas-title" class="h4">Métricas</h2>
+        <div th:if="${premium}" class="employer-summary">
+          <article class="employer-summary-card"><span>Vistas</span><strong th:text="${vistas}">0</strong></article>
+          <article class="employer-summary-card"><span>Clics en Postularme</span><strong th:text="${clicksPostular}">0</strong></article>
+          <article class="employer-summary-card"><span>Postulaciones</span><strong th:text="${cantidadPostulacionesOferta}">0</strong></article>
+        </div>
+        <p th:unless="${premium}">
+          Desbloqueá métricas de esta oferta con
+          <a th:href="@{/premium/empleador/pagar}">Empresa Premium</a>.
+        </p>
+      </section>
+
 
       <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
       <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
-      <nav class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
+      <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
         <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
           th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
           Todos <span th:text="${cantidadPostulantes}">0</span>
@@ -58,6 +71,32 @@
           Rechazados <span th:text="${cantidadRechazadas}">0</span>
         </a>
       </nav>
+      <form th:if="${premium}" class="premium-payment-form mb-3" method="get"
+        th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
+        <label class="form-label">Skill
+          <input class="form-control" type="search" name="skill" th:value="${skillFiltro}">
+        </label>
+        <label class="form-label">Fecha desde
+          <input class="form-control" type="date" name="fechaDesde" th:value="${fechaDesde}">
+        </label>
+        <label class="form-label">Fecha hasta
+          <input class="form-control" type="date" name="fechaHasta" th:value="${fechaHasta}">
+        </label>
+        <label class="form-label">Estado
+          <select class="form-select" name="estado">
+            <option value="TODOS" th:selected="${estadoFiltro == 'TODOS'}">Todos</option>
+            <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendientes</option>
+            <option value="ACEPTADA" th:selected="${estadoFiltro == 'ACEPTADA'}">Aceptados</option>
+            <option value="RECHAZADA" th:selected="${estadoFiltro == 'RECHAZADA'}">Rechazados</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+      </form>
+      <p th:unless="${premium}" class="alert alert-info">
+        Los filtros avanzados de postulantes están disponibles con
+        <a th:href="@{/premium/empleador/pagar}">Empresa Premium</a>.
+      </p>
+      <p th:if="${errorFiltro != null}" th:text="${errorFiltro}" class="alert alert-danger" role="alert"></p>
 
       <div th:if="${cantidadPostulantes == 0}" class="empty-searches postulantes-empty" role="status">
         <i class="bi bi-inbox" aria-hidden="true"></i>
@@ -96,6 +135,7 @@
                 <a class="postulante-name postulante-name-link"
                   th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}"
                   th:text="${postulante.nombreCompleto}">Nombre Apellido</a>
+                <span th:if="${postulante.premium}" class="premium-badge">Premium</span>
                 <span class="postulante-email" th:text="${postulante.email}">candidato@correo.com</span>
               </td>
               <td data-label="Habilidades">

@@ -154,6 +154,7 @@ public class ControladorPerfil {
     }
     perfil.setNombre(usuario.getNombre());
     perfil.setApellido(usuario.getApellido());
+    modelo.put("esPremium", servicioPago != null && servicioPago.esPremiumActivo(usuarioId));
     modelo.put("tieneFotoPerfil", usuario.tieneFotoPerfil());
     modelo.put(ATRIBUTO_PERFIL, perfil);
     modelo.put("skills", servicioPerfil.obtenerSkills());
@@ -222,6 +223,7 @@ public class ControladorPerfil {
     modelo.put("curriculumGenerado", servicioCurriculum.obtener(usuarioId));
     modelo.put("usuario", usuario);
     modelo.put("tieneFotoPerfil", usuario.tieneFotoPerfil());
+    modelo.put("esPremium", servicioPago != null && servicioPago.esPremiumActivo(usuarioId));
     modelo.put(
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)

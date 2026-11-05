@@ -16,4 +16,5 @@ public interface ServicioPago {
   );
   List<Pago> listarPagos(Long usuarioId);
   LocalDateTime fechaFinPremium(Long usuarioId);
+  boolean esPremiumActivo(Long usuarioId);
 }

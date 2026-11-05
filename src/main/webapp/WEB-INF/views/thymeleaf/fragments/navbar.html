@@ -93,8 +93,9 @@
                 aria-expanded="false" aria-label="Notificaciones"
                 th:classappend="${activePage == 'notifications'} ? ' active' : ''">
                 <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
-                <span class="badge bg-danger" th:if="${!#lists.isEmpty(mensajesNoLeidos)}"
-                      th:text="${#lists.size(mensajesNoLeidos)}">1</span>
+                <span class="badge bg-danger"
+                  th:if="${!#lists.isEmpty(mensajesNoLeidos) or !#lists.isEmpty(alertasOfertasNoLeidas)}"
+                  th:text="${#lists.size(mensajesNoLeidos) + #lists.size(alertasOfertasNoLeidas)}">1</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
                   aria-label="Notificaciones recientes">
@@ -118,7 +119,17 @@
                     </span>
                   </a>
                 </li>
-                <li th:if="${#lists.isEmpty(mensajesNoLeidos)}">
+                <li th:each="n : ${alertasOfertasNoLeidas}">
+                  <a class="dropdown-item notification-item"
+                    th:href="@{/notificaciones/ofertas/{id}/abrir(id=${n.id})}">
+                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>
+                    <span class="notification-content">
+                      <span class="notification-sender">Agarra la Pala</span>
+                      <span class="notification-text" th:text="${n.mensaje}">Nueva oferta acorde a tus habilidades</span>
+                    </span>
+                  </a>
+                </li>
+                <li th:if="${#lists.isEmpty(mensajesNoLeidos) and #lists.isEmpty(alertasOfertasNoLeidas)}">
                   <span class="dropdown-item text-muted">No tenés mensajes nuevos</span>
                 </li>
                 <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">

@@ -26,7 +26,10 @@
     </div>
     <div th:unless="${#lists.isEmpty(postulaciones)}">
       <article class="profile-section" th:each="postulacion : ${postulaciones}">
-        <h2 class="h5" th:text="${postulacion.titulo ?: postulacion.ofertaId}">Oferta</h2>
+        <h2 class="h5">
+          <span th:text="${postulacion.titulo ?: postulacion.ofertaId}">Oferta</span>
+          <span th:if="${esPremium}" class="premium-badge">Premium</span>
+        </h2>
         <p th:text="${postulacion.empresa ?: 'Empresa no informada'}">Empresa</p>
         <p th:text="${postulacion.ubicacion ?: 'Ubicación no informada'}">Ubicación</p>
         <p th:text="${postulacion.modalidad ?: 'Modalidad no informada'}">Modalidad</p>

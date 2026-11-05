@@ -26,6 +26,7 @@
       <p class="employer-eyebrow"><i class="bi bi-building" aria-hidden="true"></i> Cuenta empleadora</p>
       <h1 id="perfil-empresa-title">Perfil de la empresa</h1>
       <p class="employer-intro">Datos registrados y actividad de tus búsquedas.</p>
+      <p th:if="${mensaje != null}" th:text="${mensaje}" class="alert alert-success" role="status"></p>
       <p th:if="${premiumHasta != null}" class="premium-badge employer-premium-profile-badge">
         <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium
       </p>
