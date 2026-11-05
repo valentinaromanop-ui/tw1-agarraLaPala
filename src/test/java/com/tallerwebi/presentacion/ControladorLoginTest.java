@@ -62,7 +62,7 @@ public class ControladorLoginTest {
   }
 
   @Test
-  public void loginConUsuarioYPasswordCorrectosDeberiaLlevarAVacantesRecomendadas() {
+  public void loginConUsuarioYPasswordCorrectosDeberiaLlevarAlHome() {
     // preparacion
     Usuario usuarioEncontradoMock = mock(Usuario.class);
     when(usuarioEncontradoMock.getRol()).thenReturn("ADMIN");
@@ -75,12 +75,12 @@ public class ControladorLoginTest {
     ModelAndView modelAndView = controladorLogin.validarLogin(datosLoginMock, requestMock);
 
     // validacion
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/vacantes/recomendadas"));
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/home"));
     verify(sessionMock, times(1)).setAttribute("ROL", usuarioEncontradoMock.getRol());
   }
 
   @Test
-  public void loginDeEmpleadorDeberiaLlevarASusBusquedas() {
+  public void loginDeEmpleadorDeberiaLlevarAlHome() {
     Usuario empleador = mock(Usuario.class);
     when(empleador.getRol()).thenReturn("EMPLEADOR");
     when(requestMock.getSession()).thenReturn(sessionMock);
@@ -88,7 +88,7 @@ public class ControladorLoginTest {
 
     ModelAndView respuesta = controladorLogin.validarLogin(datosLoginMock, requestMock);
 
-    assertThat(respuesta.getViewName(), equalToIgnoringCase("redirect:/busquedas-Empleador"));
+    assertThat(respuesta.getViewName(), equalToIgnoringCase("redirect:/home"));
     verify(sessionMock).setAttribute("ROL", "EMPLEADOR");
   }
 
@@ -156,7 +156,7 @@ public class ControladorLoginTest {
 
     ModelAndView modelAndView = controladorLogin.registrarEmpleador(datos);
 
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/busquedas-Empleador"));
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/home"));
     verify(servicioLoginMock)
       .registrar(
         argThat(usuario ->
@@ -242,7 +242,7 @@ public class ControladorLoginTest {
 
     ModelAndView modelAndView = controladorLogin.registrarCandidato(datos);
 
-    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/vacantes/recomendadas"));
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/home"));
     verify(servicioLoginMock)
       .registrar(
         argThat(usuario ->

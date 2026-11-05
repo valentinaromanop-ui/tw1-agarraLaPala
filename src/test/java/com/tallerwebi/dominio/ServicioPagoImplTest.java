@@ -45,6 +45,7 @@ public class ServicioPagoImplTest {
     org.mockito.ArgumentCaptor<Pago> captor = org.mockito.ArgumentCaptor.forClass(Pago.class);
     verify(repositorioPago).guardar(captor.capture());
     assertEquals(EstadoPago.APROBADO, captor.getValue().getEstado());
+    assertEquals(new java.math.BigDecimal("5.00"), captor.getValue().getMonto());
     assertEquals("1111", captor.getValue().getUltimosCuatro());
   }
 
@@ -73,5 +74,32 @@ public class ServicioPagoImplTest {
     Suscripcion actual = servicio.pagar(1L, "Titular", "4111111111111111", "12/99", "123");
 
     assertEquals(fechaEsperada, actual.getFechaFin());
+  }
+
+  @Test
+  void apruebaPagoPremiumDeEmpleadorPorQuinceDolares() {
+    usuario.setRol("EMPLEADOR");
+
+    Suscripcion suscripcion = servicio.pagarEmpleador(
+      1L,
+      "Titular",
+      "4111111111111111",
+      "12/99",
+      "123"
+    );
+
+    assertEquals(true, suscripcion.getFechaFin().isAfter(LocalDateTime.now().plusDays(29)));
+    org.mockito.ArgumentCaptor<Pago> captor = org.mockito.ArgumentCaptor.forClass(Pago.class);
+    verify(repositorioPago).guardar(captor.capture());
+    assertEquals(new java.math.BigDecimal("15"), captor.getValue().getMonto());
+    verify(repositorioSuscripcion).guardar(any(Suscripcion.class));
+  }
+
+  @Test
+  void candidatoNoPuedePagarPremiumDeEmpleador() {
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.pagarEmpleador(1L, "Titular", "4111111111111111", "12/99", "123")
+    );
   }
 }

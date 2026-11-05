@@ -152,8 +152,21 @@
   font-weight: 600;
 }
 
-.employer-table.postulantes-table { min-width: 68rem; }
-.postulantes-table td { overflow-wrap: anywhere; }
+.employer-table.postulantes-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+.postulantes-col-candidato { width: 20%; }
+.postulantes-col-habilidades { width: 18%; }
+.postulantes-col-fecha { width: 14%; }
+.postulantes-col-estado { width: 11%; }
+.postulantes-col-cv { width: 14%; }
+.postulantes-col-acciones { width: 23%; }
+.postulantes-table th,
+.postulantes-table td { padding: 0.8rem 0.65rem; overflow-wrap: anywhere; }
+.postulantes-table tbody tr { border-color: var(--border); }
+.postulantes-table tbody tr:hover { background-color: rgb(118 186 255 / 5%); }
 .postulantes-summary {
   display: flex;
   align-items: center;
@@ -193,7 +206,7 @@
 .postulante-name-link:focus-visible { color: #b8dcff; text-decoration: underline; text-underline-offset: 0.18em; }
 .postulante-email,
 .postulante-secondary { display: block; margin-top: 0.2rem; color: #c5cada; font-size: 0.88rem; }
-.postulante-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; min-width: 10rem; }
+.postulante-skills { display: flex; min-width: 0; flex-wrap: wrap; gap: 0.4rem; }
 .skill-chip {
   display: inline-flex;
   padding: 0.2rem 0.55rem;
@@ -207,7 +220,18 @@
 .postulante-row-actions,
 .postulante-cv-actions,
 .applicant-profile-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; }
-.postulante-cv-actions .btn { white-space: nowrap; }
+.postulante-row-actions form { margin: 0; }
+.postulante-action-groups { display: grid; gap: 0.55rem; }
+.postulante-decision-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.postulante-contact-actions { display: flex; align-items: center; gap: 0.45rem; }
+.postulante-decision-actions form { min-width: 0; }
+.postulante-decision-actions .btn { width: 100%; }
+.postulante-cv-actions { display: grid; gap: 0.4rem; }
+.postulante-cv-actions .btn { width: 100%; white-space: normal; }
 .applicant-action-button,
 .applicant-profile-button {
   border: 1px solid #76baff;
@@ -220,6 +244,30 @@
 .applicant-profile-button:hover { border-color: #a0d0ff; color: #fff; background: rgb(40 45 199 / 52%); }
 .applicant-action-button:focus-visible,
 .applicant-profile-button:focus-visible { outline: 3px solid rgb(160 208 255 / 65%); outline-offset: 2px; }
+.applicant-decision-button,
+.applicant-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid #76baff;
+  border-radius: 0.4rem;
+  color: #e8f4ff;
+  background: rgb(40 45 199 / 24%);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.applicant-decision-button { padding: 0.4rem 0.65rem; }
+.applicant-decision-accept { border-color: #686ce3; background: var(--accent); }
+.applicant-decision-reject { border-color: rgb(255 145 145 / 45%); color: #ffd1d1; background: rgb(180 55 65 / 14%); }
+.applicant-icon-button { width: 2.2rem; height: 2.2rem; padding: 0; font-size: 0.95rem; }
+.applicant-decision-button:hover,
+.applicant-icon-button:hover { border-color: #a0d0ff; color: #fff; background: rgb(40 45 199 / 52%); }
+.applicant-decision-reject:hover { border-color: #ff9a9a; background: rgb(180 55 65 / 36%); }
+.applicant-decision-button:focus-visible,
+.applicant-icon-button:focus-visible { outline: 3px solid rgb(160 208 255 / 65%); outline-offset: 2px; }
 .postulante-no-cv { color: #c5cada; font-size: 0.88rem; }
 .estado-postulacion { white-space: nowrap; }
 .estado-pendiente { color: #ffe19a; background-color: rgb(190 145 25 / 25%); }
@@ -302,4 +350,44 @@
   .employer-actions .btn {
     width: 100%;
   }
+}
+
+@media (max-width: 991.98px) {
+  .postulantes-table,
+  .postulantes-table tbody { display: block; }
+  .postulantes-table thead { display: none; }
+  .postulantes-responsive { overflow: visible; }
+  .postulantes-table tbody { display: grid; gap: 0.75rem; }
+  .postulantes-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 0.7rem;
+    background: rgb(16 20 31 / 55%);
+  }
+  .postulantes-table tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0.55rem;
+    border: 0;
+  }
+  .postulantes-table tbody td::before {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #c5cada;
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .postulantes-table tbody td:nth-child(1),
+  .postulantes-table tbody td:nth-child(2),
+  .postulantes-table tbody td:nth-child(5),
+  .postulantes-table tbody td:nth-child(6) { grid-column: 1 / -1; }
+  .postulante-action-groups { gap: 0.65rem; }
+  .postulante-decision-actions { max-width: 22rem; }
 }

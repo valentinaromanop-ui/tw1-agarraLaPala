@@ -151,7 +151,7 @@ public class ServicioPostulantesOferta {
     validarPropiedadOferta(vacanteId, empleadorId);
     Postulacion postulacion = repositorioPostulacion.buscarPorIdYVacante(postulacionId, vacanteId);
     if (postulacion == null) {
-      throw new VacanteNoEncontradaException();
+      throw new VacanteNoEncontradaException("La postulación no existe.");
     }
     return postulacion;
   }

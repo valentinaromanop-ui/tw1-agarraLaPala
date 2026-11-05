@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -81,6 +82,9 @@ public class Vacante {
 
   @OneToMany(mappedBy = "vacante")
   private Set<VacanteSkill> vacanteSkills = new HashSet<>();
+
+  @Transient
+  private boolean empresaPremium;
 
   public Long getId() {
     return id;
@@ -196,6 +200,14 @@ public class Vacante {
 
   public void setVacanteSkills(Set<VacanteSkill> vacanteSkills) {
     this.vacanteSkills = vacanteSkills;
+  }
+
+  public boolean isEmpresaPremium() {
+    return empresaPremium;
+  }
+
+  public void setEmpresaPremium(boolean empresaPremium) {
+    this.empresaPremium = empresaPremium;
   }
 
   public String getSeniority() {

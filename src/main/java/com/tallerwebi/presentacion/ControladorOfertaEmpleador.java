@@ -122,6 +122,33 @@ public class ControladorOfertaEmpleador {
     return new ModelAndView(VISTA_BUSQUEDAS, modelo);
   }
 
+  @RequestMapping(path = "/empleadores/home", method = RequestMethod.GET)
+  public ModelAndView mostrarHomeEmpleador(HttpServletRequest request) {
+    Usuario empleador = obtenerEmpleador(request);
+    if (empleador == null) {
+      return new ModelAndView(REDIRECT_LOGIN);
+    }
+
+    List<Vacante> ofertasActivas = servicioOfertaEmpleador
+      .listarPorEmpleador(empleador.getId())
+      .stream()
+      .filter(vacante -> vacante.getEstado() == EstadoVacante.ABIERTA)
+      .toList();
+    Map<Long, Long> cantidadesPostulaciones = new LinkedHashMap<>();
+    for (Vacante vacante : ofertasActivas) {
+      cantidadesPostulaciones.put(
+        vacante.getId(),
+        servicioPostulacion.contarPorOferta(vacante.getId())
+      );
+    }
+
+    Map<String, Object> modelo = new ModelMap();
+    modelo.put("empresa", empleador.getEmpresa());
+    modelo.put("ofertasActivas", ofertasActivas);
+    modelo.put("cantidadesPostulaciones", cantidadesPostulaciones);
+    return new ModelAndView("home-empleador", modelo);
+  }
+
   @RequestMapping(path = "/vacantes/{id}/cerrar", method = RequestMethod.POST)
   public ModelAndView cerrarOferta(
     @PathVariable("id") Long vacanteId,
