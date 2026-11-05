@@ -18,10 +18,13 @@ public class ServicioPagoImpl implements ServicioPago {
   private static final BigDecimal MONTO = new BigDecimal("5.00");
   private static final BigDecimal MONTO_EMPLEADOR = new BigDecimal(PRECIO_PREMIUM_EMPLEADOR);
   private static final int DIAS = 30;
+  private static final int MAX_TITULAR_LENGTH = 255;
   private static final String MONEDA = "USD";
   private static final String NUMERO_RECHAZADO = "4000000000000002";
   private static final Pattern NUMERO_VALIDO = Pattern.compile("^\\d{16}$");
-  private static final Pattern CVV_VALIDO = Pattern.compile("^\\d{3}$");
+  private static final Pattern CVV_VALIDO = Pattern.compile("^\\d{3,4}$");
+  private static final Pattern TITULAR_VALIDO = Pattern.compile(".*\\S.*");
+  private static final Pattern VENCIMIENTO_VALIDO = Pattern.compile("^\\d{2}/\\d{2}$");
   private static final DateTimeFormatter FORMATO_VENCIMIENTO = DateTimeFormatter.ofPattern("MM/yy");
 
   private final RepositorioUsuario repositorioUsuario;
@@ -47,7 +50,7 @@ public class ServicioPagoImpl implements ServicioPago {
     String vencimiento,
     String cvv
   ) {
-    return pagarConRol(usuarioId, numero, vencimiento, cvv, false);
+    return pagarConRol(usuarioId, titular, numero, vencimiento, cvv, false);
   }
 
   @Override
@@ -58,11 +61,12 @@ public class ServicioPagoImpl implements ServicioPago {
     String vencimiento,
     String cvv
   ) {
-    return pagarConRol(usuarioId, numero, vencimiento, cvv, true);
+    return pagarConRol(usuarioId, titular, numero, vencimiento, cvv, true);
   }
 
   private Suscripcion pagarConRol(
     Long usuarioId,
+    String titular,
     String numero,
     String vencimiento,
     String cvv,
@@ -74,9 +78,9 @@ public class ServicioPagoImpl implements ServicioPago {
         empleador ? "Iniciá sesión como empleador." : "Iniciá sesión como postulante."
       );
     }
-    validar(numero, vencimiento, cvv);
+    validar(titular, numero, vencimiento, cvv);
 
-    Pago pago = crearPago(usuario, numero, empleador ? MONTO_EMPLEADOR : MONTO);
+    Pago pago = crearPago(usuario, titular, numero, empleador ? MONTO_EMPLEADOR : MONTO);
     if (NUMERO_RECHAZADO.equals(numero)) {
       pago.setEstado(EstadoPago.RECHAZADO);
       repositorioPago.guardar(pago);
@@ -88,13 +92,14 @@ public class ServicioPagoImpl implements ServicioPago {
     return activarSuscripcion(usuario, usuarioId);
   }
 
-  private Pago crearPago(Usuario usuario, String numero, BigDecimal monto) {
+  private Pago crearPago(Usuario usuario, String titular, String numero, BigDecimal monto) {
     Pago pago = new Pago();
     pago.setUsuario(usuario);
     pago.setMonto(monto);
     pago.setMoneda(MONEDA);
     pago.setFecha(LocalDateTime.now());
     pago.setUltimosCuatro(numero.substring(12));
+    pago.setTitular(titular.trim());
     return pago;
   }
 
@@ -140,10 +145,25 @@ public class ServicioPagoImpl implements ServicioPago {
     return suscripcion.getFechaFin();
   }
 
-  private void validar(String numero, String vencimiento, String cvv) {
+  @Override
+  public boolean esPremiumActivo(Long usuarioId) {
+    return fechaFinPremium(usuarioId) != null;
+  }
+
+  private void validar(String titular, String numero, String vencimiento, String cvv) {
+    validarTitular(titular);
     validarNumero(numero);
     validarCvv(cvv);
     validarVencimiento(vencimiento);
+  }
+
+  private void validarTitular(String titular) {
+    if (titular == null || !TITULAR_VALIDO.matcher(titular).matches()) {
+      throw new IllegalArgumentException("El titular es obligatorio.");
+    }
+    if (titular.trim().length() > MAX_TITULAR_LENGTH) {
+      throw new IllegalArgumentException("El titular no puede superar 255 caracteres.");
+    }
   }
 
   private void validarNumero(String numero) {
@@ -154,11 +174,14 @@ public class ServicioPagoImpl implements ServicioPago {
 
   private void validarCvv(String cvv) {
     if (cvv == null || !CVV_VALIDO.matcher(cvv).matches()) {
-      throw new IllegalArgumentException("El CVV debe tener 3 dígitos.");
+      throw new IllegalArgumentException("El CVV debe tener 3 o 4 dígitos.");
     }
   }
 
   private void validarVencimiento(String vencimiento) {
+    if (vencimiento == null || !VENCIMIENTO_VALIDO.matcher(vencimiento).matches()) {
+      throw new IllegalArgumentException("El vencimiento debe tener formato MM/AA.");
+    }
     YearMonth fecha;
     try {
       fecha = YearMonth.parse(vencimiento, FORMATO_VENCIMIENTO);

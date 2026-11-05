@@ -5,6 +5,7 @@ import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.infraestructura.VacanteMapper;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,14 +78,24 @@ public class ControladorBusquedaVacantes {
         ofertasPublicadas.add(vacanteMapper.toDTO(vacante));
       }
     }
-    for (VacanteDTO vacante : catalogo.buscar(
+    List<VacanteDTO> vacantes = catalogo.buscar(
       texto,
       zona,
       modalidad,
       skills,
       fecha,
       ofertasPublicadas
-    )) {
+    );
+    vacantes.sort(
+      Comparator
+        .comparing(VacanteDTO::isEmpresaPremium)
+        .reversed()
+        .thenComparing(
+          VacanteDTO::getFechaPublicacion,
+          Comparator.nullsLast(Comparator.reverseOrder())
+        )
+    );
+    for (VacanteDTO vacante : vacantes) {
       resultados.add(new VacanteResultadoBusqueda(vacante));
     }
     return resultados;

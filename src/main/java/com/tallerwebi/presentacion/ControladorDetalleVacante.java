@@ -2,6 +2,7 @@ package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
 import com.tallerwebi.dominio.ServicioEmpleoGuardado;
+import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteDTO;
@@ -25,23 +26,34 @@ public class ControladorDetalleVacante {
   private static final String VACANTES = "vacantes";
   private static final String USUARIO_ID = "USUARIO_ID";
   private static final String ERROR = "error";
+  private static final String FUENTE_LOCAL = "LOCAL";
   private static final String VISTA_DETALLE = "detalle-vacante";
 
   private static final String VOLVER = "redirect:/vacantes/resultados";
   private final ServicioPostulacion servicioPostulacion;
   private final ServicioEmpleoGuardado servicioEmpleoGuardado;
+  private final ServicioOfertaEmpleador servicioOfertaEmpleador;
 
   @Autowired
   public ControladorDetalleVacante(
     ServicioPostulacion servicioPostulacion,
-    ServicioEmpleoGuardado servicioEmpleoGuardado
+    ServicioEmpleoGuardado servicioEmpleoGuardado,
+    ServicioOfertaEmpleador servicioOfertaEmpleador
   ) {
     this.servicioPostulacion = servicioPostulacion;
     this.servicioEmpleoGuardado = servicioEmpleoGuardado;
+    this.servicioOfertaEmpleador = servicioOfertaEmpleador;
+  }
+
+  public ControladorDetalleVacante(
+    ServicioPostulacion servicioPostulacion,
+    ServicioEmpleoGuardado servicioEmpleoGuardado
+  ) {
+    this(servicioPostulacion, servicioEmpleoGuardado, null);
   }
 
   public ControladorDetalleVacante(ServicioPostulacion servicioPostulacion) {
-    this(servicioPostulacion, null);
+    this(servicioPostulacion, null, null);
   }
 
   @RequestMapping(path = "/vacantes/detalle", method = RequestMethod.GET)
@@ -53,6 +65,11 @@ public class ControladorDetalleVacante {
     Object oferta = buscarEnResultados(fuente, id, session);
     if (oferta == null) {
       oferta = servicioPostulacion.obtenerVacante(fuente, id);
+    }
+    if (
+      servicioOfertaEmpleador != null && FUENTE_LOCAL.equals(fuente) && esOfertaEmpleador(oferta)
+    ) {
+      servicioOfertaEmpleador.registrarVista(id);
     }
     Map<String, Object> modelo = new ModelMap();
     if (oferta == null) {
@@ -78,6 +95,7 @@ public class ControladorDetalleVacante {
   }
 
   @RequestMapping(path = "/vacantes/postular", method = RequestMethod.POST)
+  @SuppressWarnings("PMD.CyclomaticComplexity")
   public ModelAndView postular(
     @ModelAttribute("datosPostulacion") DatosPostulacion datosPostulacion,
     HttpSession session,
@@ -99,6 +117,11 @@ public class ControladorDetalleVacante {
     if (oferta == null) {
       mensajes.addFlashAttribute(ERROR, "Volvé a buscar la oferta antes de postularte.");
       return new ModelAndView(VOLVER);
+    }
+    if (
+      servicioOfertaEmpleador != null && FUENTE_LOCAL.equals(fuente) && esOfertaEmpleador(oferta)
+    ) {
+      servicioOfertaEmpleador.registrarClickPostular(id);
     }
     try {
       servicioPostulacion.registrarEnVacante((Long) session.getAttribute(USUARIO_ID), oferta);

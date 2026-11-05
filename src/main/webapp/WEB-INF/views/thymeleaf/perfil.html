@@ -44,6 +44,7 @@
         </details>
       </span>
       <h2 class="profile-name-display" th:hidden="${editarPerfil}" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Apellido</h2>
+      <span th:if="${esPremium}" class="premium-badge">Premium</span>
       <div class="profile-name-fields">
         <input
           id="nombre"

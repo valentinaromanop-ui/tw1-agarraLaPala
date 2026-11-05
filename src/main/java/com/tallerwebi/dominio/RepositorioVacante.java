@@ -20,4 +20,8 @@ public interface RepositorioVacante {
   List<Vacante> buscarPorEmpleador(Long empleadorId);
 
   List<Vacante> buscarOfertasPublicadasPorEmpleadores();
+
+  void incrementarVistas(Long vacanteId);
+
+  void incrementarClicksPostular(Long vacanteId);
 }

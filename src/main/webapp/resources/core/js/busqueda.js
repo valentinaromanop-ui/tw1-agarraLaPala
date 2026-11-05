@@ -377,8 +377,20 @@ function iniciarResultados() {
     informacion.className = "offer-info";
     const titulo = document.createElement("h3");
     titulo.textContent = oferta.titulo || "Cargo sin título";
+    if (oferta.empresaPremium) {
+      const badge = document.createElement("span");
+      badge.className = "premium-badge employer-company-badge";
+      badge.textContent = "Destacada";
+      titulo.append(" ", badge);
+    }
     const empresa = document.createElement("p");
     empresa.textContent = oferta.empresa || "Empresa no informada";
+    if (oferta.empresaPremium) {
+      const badge = document.createElement("span");
+      badge.className = "premium-badge employer-company-badge";
+      badge.textContent = "Empresa Premium";
+      empresa.append(" ", badge);
+    }
     const detalles = document.createElement("p");
     detalles.className = "result-details";
     const fecha = oferta.fechaPublicacion

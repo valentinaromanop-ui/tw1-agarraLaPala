@@ -61,6 +61,12 @@ public class Vacante {
   @Column(name = "limite_postulaciones")
   private Integer limitePostulaciones;
 
+  @Column
+  private Long vistas = 0L;
+
+  @Column(name = "clicks_postular")
+  private Long clicksPostular = 0L;
+
   @Enumerated(EnumType.STRING)
   @Column
   private EstadoVacante estado = EstadoVacante.ABIERTA;
@@ -180,6 +186,22 @@ public class Vacante {
 
   public void setLimitePostulaciones(Integer limitePostulaciones) {
     this.limitePostulaciones = limitePostulaciones;
+  }
+
+  public Long getVistas() {
+    return vistas == null ? 0L : vistas;
+  }
+
+  public void setVistas(Long vistas) {
+    this.vistas = vistas;
+  }
+
+  public Long getClicksPostular() {
+    return clicksPostular == null ? 0L : clicksPostular;
+  }
+
+  public void setClicksPostular(Long clicksPostular) {
+    this.clicksPostular = clicksPostular;
   }
 
   public EstadoVacante getEstado() {
