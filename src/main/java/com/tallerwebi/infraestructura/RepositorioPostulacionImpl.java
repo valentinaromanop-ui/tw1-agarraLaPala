@@ -37,6 +37,11 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
   }
 
   @Override
+  public Postulacion buscarPorId(Long id) {
+    return sessionFactory.getCurrentSession().get(Postulacion.class, id);
+  }
+
+  @Override
   public List<Postulacion> buscarPorUsuarioId(Long usuarioId) {
     return sessionFactory
       .getCurrentSession()
@@ -92,10 +97,5 @@ public class RepositorioPostulacionImpl implements RepositorioPostulacion {
       .setParameter("ofertaLocal", "LOCAL:" + vacanteId)
       .setParameter("idVacante", String.valueOf(vacanteId))
       .uniqueResult();
-  }
-
-  @Override
-  public Postulacion buscarPorId(Long postulacionId) {
-    return sessionFactory.getCurrentSession().get(Postulacion.class, postulacionId);
   }
 }

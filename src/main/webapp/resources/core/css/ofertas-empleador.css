@@ -154,7 +154,7 @@
 
 .employer-table.postulantes-table {
   width: 100%;
-  min-width: 0;
+  min-width: 68rem;
   table-layout: fixed;
 }
 .postulantes-col-candidato { width: 20%; }
@@ -353,6 +353,7 @@
 }
 
 @media (max-width: 991.98px) {
+  .employer-table.postulantes-table { min-width: 0; }
   .postulantes-table,
   .postulantes-table tbody { display: block; }
   .postulantes-table thead { display: none; }

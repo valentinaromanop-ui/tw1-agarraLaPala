@@ -49,20 +49,23 @@
         </p>
       </section>
 
-      <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
-        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
+      <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
+      <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+
+      <nav class="postulantes-filtros nav nav-pills" aria-label="Filtrar postulantes por estado">
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
           th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
           Todos <span th:text="${cantidadPostulantes}">0</span>
         </a>
-        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='PENDIENTE')}"
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='PENDIENTE')}"
           th:classappend="${estadoFiltro == 'PENDIENTE' ? ' active' : ''}">
           Pendientes <span th:text="${cantidadPendientes}">0</span>
         </a>
-        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='ACEPTADA')}"
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='ACEPTADA')}"
           th:classappend="${estadoFiltro == 'ACEPTADA' ? ' active' : ''}">
           Aceptados <span th:text="${cantidadAceptadas}">0</span>
         </a>
-        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='RECHAZADA')}"
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='RECHAZADA')}"
           th:classappend="${estadoFiltro == 'RECHAZADA' ? ' active' : ''}">
           Rechazados <span th:text="${cantidadRechazadas}">0</span>
         </a>
@@ -93,7 +96,6 @@
         <a th:href="@{/premium/empleador/pagar}">Empresa Premium</a>.
       </p>
       <p th:if="${errorFiltro != null}" th:text="${errorFiltro}" class="alert alert-danger" role="alert"></p>
-
       <div th:if="${cantidadPostulantes == 0}" class="empty-searches postulantes-empty" role="status">
         <i class="bi bi-inbox" aria-hidden="true"></i>
         <h2>Aún no hay postulantes</h2>
@@ -195,6 +197,12 @@
                       th:href="@{/chat/{id}(id=${postulante.postulacionId})}">
                       <i class="bi bi-chat-dots" aria-hidden="true"></i>
                     </a>
+                    <button th:if="${postulante.estado.name() == 'ACEPTADA'}"
+                      class="btn btn-sm applicant-icon-button chat-open-conversation"
+                      type="button" title="Abrir chat" aria-label="Abrir chat"
+                      th:data-conversation-id="${postulante.postulacionId}">
+                      <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+                    </button>
                   </div>
                 </div>
               </td>

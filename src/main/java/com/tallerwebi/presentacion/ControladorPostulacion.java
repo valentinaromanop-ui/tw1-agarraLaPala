@@ -46,6 +46,7 @@ public class ControladorPostulacion {
 
   private static final String RUTA_POSTULACIONES = "/postulaciones";
   private static final String FILTRO_TODOS = "TODOS";
+  private static final String FILTRO_PENDIENTE = "PENDIENTE";
   private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
   private static final String PATH_VARIABLE_OFERTA_ID = "ofertaId";
   private static final String PATH_VARIABLE_POSTULACION_ID = "postulacionId";
@@ -163,10 +164,47 @@ public class ControladorPostulacion {
       vacanteId,
       empleadorId
     );
-    long pendientes = contarEstado(todasLasPostulaciones, EstadoPostulacion.PENDIENTE);
-    long aceptadas = contarEstado(todasLasPostulaciones, EstadoPostulacion.ACEPTADA);
-    long rechazadas = contarEstado(todasLasPostulaciones, EstadoPostulacion.RECHAZADA);
-    String filtroNormalizado = premium ? normalizarFiltroEstado(estadoFiltro) : FILTRO_TODOS;
+    Map<String, Object> modelo = new ModelMap();
+    agregarResumenPostulantes(modelo, todasLasPostulaciones);
+    modelo.put(
+      "postulantes",
+      filtrarPostulantes(
+        todasLasPostulaciones,
+        premium,
+        estadoFiltro,
+        skillFiltro,
+        fechaDesde,
+        fechaHasta,
+        modelo
+      )
+    );
+    modelo.put("premium", premium);
+    var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
+    modelo.put("vacante", vacante);
+    agregarMetricas(modelo, vacanteId, vacante, premium);
+    return new ModelAndView("postulantes-oferta", modelo);
+  }
+
+  private void agregarResumenPostulantes(
+    Map<String, Object> modelo,
+    List<PostulanteOfertaDTO> postulantes
+  ) {
+    modelo.put("cantidadPostulantes", postulantes.size());
+    modelo.put("cantidadPendientes", contarEstado(postulantes, EstadoPostulacion.PENDIENTE));
+    modelo.put("cantidadAceptadas", contarEstado(postulantes, EstadoPostulacion.ACEPTADA));
+    modelo.put("cantidadRechazadas", contarEstado(postulantes, EstadoPostulacion.RECHAZADA));
+  }
+
+  private List<PostulanteOfertaDTO> filtrarPostulantes(
+    List<PostulanteOfertaDTO> postulantes,
+    boolean premium,
+    String estadoFiltro,
+    String skillFiltro,
+    String fechaDesde,
+    String fechaHasta,
+    Map<String, Object> modelo
+  ) {
+    String estado = premium ? normalizarFiltroEstado(estadoFiltro) : FILTRO_TODOS;
     LocalDate desde = null;
     LocalDate hasta = null;
     String errorFiltro = null;
@@ -181,52 +219,65 @@ public class ControladorPostulacion {
         errorFiltro = "Ingresá las fechas con un formato válido.";
       }
     }
-    LocalDate fechaDesdeAplicada = desde;
-    LocalDate fechaHastaAplicada = hasta;
-    boolean filtroFechaInvalido = errorFiltro != null;
-    String skillNormalizada = premium && skillFiltro != null
-      ? skillFiltro.trim().toLowerCase(Locale.ROOT)
-      : "";
-    List<PostulanteOfertaDTO> postulantes = todasLasPostulaciones
-      .stream()
-      .filter(postulante ->
-        FILTRO_TODOS.equals(filtroNormalizado) ||
-        postulante.getEstado().name().equals(filtroNormalizado)
-      )
-      .filter(postulante ->
-        skillNormalizada.isEmpty() ||
-        postulante
-          .getHabilidades()
-          .stream()
-          .anyMatch(habilidad -> habilidad.toLowerCase(Locale.ROOT).contains(skillNormalizada))
-      )
-      .filter(postulante ->
-        filtroFechaInvalido ||
-        fechaDesdeAplicada == null ||
-        !postulante.getFechaPostulacion().toLocalDate().isBefore(fechaDesdeAplicada)
-      )
-      .filter(postulante ->
-        filtroFechaInvalido ||
-        fechaHastaAplicada == null ||
-        !postulante.getFechaPostulacion().toLocalDate().isAfter(fechaHastaAplicada)
-      )
-      .toList();
-    Map<String, Object> modelo = new ModelMap();
-    modelo.put("postulantes", postulantes);
-    modelo.put("cantidadPostulantes", todasLasPostulaciones.size());
-    modelo.put("cantidadPendientes", pendientes);
-    modelo.put("cantidadAceptadas", aceptadas);
-    modelo.put("cantidadRechazadas", rechazadas);
-    modelo.put("estadoFiltro", filtroNormalizado);
-    modelo.put("premium", premium);
+    modelo.put("estadoFiltro", estado);
     modelo.put("skillFiltro", skillFiltro);
     modelo.put("fechaDesde", fechaDesde);
     modelo.put("fechaHasta", fechaHasta);
     if (errorFiltro != null) {
       modelo.put("errorFiltro", errorFiltro);
     }
-    var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
-    modelo.put("vacante", vacante);
+    return filtrarPorValores(
+      postulantes,
+      estado,
+      premium ? skillFiltro : null,
+      desde,
+      hasta,
+      errorFiltro != null
+    );
+  }
+
+  private List<PostulanteOfertaDTO> filtrarPorValores(
+    List<PostulanteOfertaDTO> postulantes,
+    String estado,
+    String skillFiltro,
+    LocalDate desde,
+    LocalDate hasta,
+    boolean filtroFechaInvalido
+  ) {
+    String skill = skillFiltro == null ? "" : skillFiltro.trim().toLowerCase(Locale.ROOT);
+    return postulantes
+      .stream()
+      .filter(postulante ->
+        FILTRO_TODOS.equals(estado) ||
+        estadoPendiente(postulante.getEstado(), estado) ||
+        postulante.getEstado().name().equals(estado)
+      )
+      .filter(postulante ->
+        skill.isEmpty() ||
+        postulante
+          .getHabilidades()
+          .stream()
+          .anyMatch(habilidad -> habilidad.toLowerCase(Locale.ROOT).contains(skill))
+      )
+      .filter(postulante ->
+        filtroFechaInvalido ||
+        desde == null ||
+        !postulante.getFechaPostulacion().toLocalDate().isBefore(desde)
+      )
+      .filter(postulante ->
+        filtroFechaInvalido ||
+        hasta == null ||
+        !postulante.getFechaPostulacion().toLocalDate().isAfter(hasta)
+      )
+      .toList();
+  }
+
+  private void agregarMetricas(
+    Map<String, Object> modelo,
+    Long vacanteId,
+    com.tallerwebi.dominio.Vacante vacante,
+    boolean premium
+  ) {
     if (servicioOfertaEmpleador != null && vacante != null && premium) {
       modelo.put("vistas", servicioOfertaEmpleador.obtenerVistas(vacanteId));
       modelo.put("clicksPostular", servicioOfertaEmpleador.obtenerClicksPostular(vacanteId));
@@ -235,7 +286,6 @@ public class ControladorPostulacion {
         servicioOfertaEmpleador.obtenerPostulaciones(vacanteId)
       );
     }
-    return new ModelAndView("postulantes-oferta", modelo);
   }
 
   private LocalDate parsearFecha(String fecha) {
@@ -291,7 +341,25 @@ public class ControladorPostulacion {
   }
 
   private long contarEstado(List<PostulanteOfertaDTO> postulantes, EstadoPostulacion estado) {
-    return postulantes.stream().filter(postulante -> postulante.getEstado() == estado).count();
+    return postulantes
+      .stream()
+      .filter(postulante ->
+        estado == EstadoPostulacion.PENDIENTE
+          ? estadoPendiente(postulante.getEstado(), FILTRO_PENDIENTE)
+          : postulante.getEstado() == estado
+      )
+      .count();
+  }
+
+  private boolean estadoPendiente(EstadoPostulacion estado, String filtro) {
+    return (
+      FILTRO_PENDIENTE.equals(filtro) &&
+      (estado == EstadoPostulacion.PENDIENTE ||
+        estado == EstadoPostulacion.ENVIADA ||
+        estado == EstadoPostulacion.EN_REVISION ||
+        estado == EstadoPostulacion.ENTREVISTA ||
+        estado == EstadoPostulacion.REGISTRADA)
+    );
   }
 
   private String normalizarFiltroEstado(String estadoFiltro) {

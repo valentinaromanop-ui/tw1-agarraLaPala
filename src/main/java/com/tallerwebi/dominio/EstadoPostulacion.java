@@ -1,13 +1,17 @@
 package com.tallerwebi.dominio;
 
 public enum EstadoPostulacion {
+  ENVIADA,
+  EN_REVISION,
+  ENTREVISTA,
+  REGISTRADA,
   PENDIENTE,
   ACEPTADA,
   RECHAZADA;
 
   public String getEtiqueta() {
     return switch (this) {
-      case PENDIENTE -> "Pendiente";
+      case ENVIADA, EN_REVISION, ENTREVISTA, REGISTRADA, PENDIENTE -> "Pendiente";
       case ACEPTADA -> "Aceptada";
       case RECHAZADA -> "Rechazada";
     };

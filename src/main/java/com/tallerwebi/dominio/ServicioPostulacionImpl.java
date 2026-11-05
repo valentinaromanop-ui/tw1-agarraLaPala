@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
+@SuppressWarnings("PMD.CyclomaticComplexity")
 public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   private static final String FUENTE_LOCAL = "LOCAL";
@@ -32,6 +33,14 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
     this.servicioPostulantesOferta = servicioPostulantesOferta;
+  }
+
+  public ServicioPostulacionImpl(
+    RepositorioUsuario repositorioUsuario,
+    RepositorioPostulacion repositorioPostulacion,
+    RepositorioVacante repositorioVacante
+  ) {
+    this(repositorioUsuario, repositorioPostulacion, repositorioVacante, null);
   }
 
   @Override
@@ -92,7 +101,7 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     postulacion.setUsuario(usuario);
     postulacion.setIdOferta(postulacion.getIdOferta().trim());
     postulacion.setFechaPostulacion(LocalDateTime.now());
-    postulacion.setEstado(EstadoPostulacion.PENDIENTE);
+    postulacion.setEstado(EstadoPostulacion.ENVIADA);
     return repositorioPostulacion.guardar(postulacion);
   }
 
@@ -204,6 +213,13 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   @Override
   public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
+    if (servicioPostulantesOferta == null) {
+      Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+      if (vacante == null || empleadorId == null || !empleadorId.equals(vacante.getEmpleadorId())) {
+        throw new AccesoOfertaDenegadoException();
+      }
+      return List.of();
+    }
     return servicioPostulantesOferta.obtenerPostulantes(vacanteId, empleadorId);
   }
 

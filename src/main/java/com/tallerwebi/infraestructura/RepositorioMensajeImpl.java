@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-@Repository
+@Repository("repositorioMensaje")
 @Transactional
 public class RepositorioMensajeImpl implements RepositorioMensaje {
 
@@ -26,11 +26,19 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
   }
 
   @Override
-  public List<Mensaje> listarPorPostulacion(Long id) {
+  public Mensaje guardar(Mensaje mensaje) {
+    return guardarMensaje(mensaje);
+  }
+
+  @Override
+  public List<Mensaje> listarPorPostulacion(Long postulacionId) {
     return sessionFactory
       .getCurrentSession()
-      .createQuery("FROM Mensaje m WHERE m.postulacion.id = :id", Mensaje.class)
-      .setParameter("id", id)
+      .createQuery(
+        "from Mensaje where postulacion.id = :postulacionId order by fecha asc, id asc",
+        Mensaje.class
+      )
+      .setParameter("postulacionId", postulacionId)
       .getResultList();
   }
 
@@ -39,11 +47,26 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "FROM Mensaje mensaje where mensaje.receptor.id = :id AND mensaje.leido = false ORDER BY mensaje.fecha DESC",
+        "from Mensaje mensaje where mensaje.receptor.id = :usuarioId " +
+        "and mensaje.leido = false order by mensaje.fecha desc",
         Mensaje.class
       )
-      .setParameter("id", usuarioId)
+      .setParameter("usuarioId", usuarioId)
       .getResultList();
+  }
+
+  @Override
+  public long contarNoLeidos(Long postulacionId, Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select count(m.id) from Mensaje m " +
+        "where m.postulacion.id = :postulacionId and m.emisor.id <> :usuarioId and m.leido = false",
+        Long.class
+      )
+      .setParameter("postulacionId", postulacionId)
+      .setParameter("usuarioId", usuarioId)
+      .getSingleResult();
   }
 
   @Override
@@ -51,8 +74,8 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     sessionFactory
       .getCurrentSession()
       .createMutationQuery(
-        "UPDATE Mensaje mensaje SET mensaje.leido = true " +
-        "WHERE mensaje.postulacion.id = :postulacionId AND mensaje.receptor.id = :usuarioId AND mensaje.leido = false"
+        "update Mensaje m set m.leido = true " +
+        "where m.postulacion.id = :postulacionId and m.emisor.id <> :usuarioId and m.leido = false"
       )
       .setParameter("postulacionId", postulacionId)
       .setParameter("usuarioId", usuarioId)
