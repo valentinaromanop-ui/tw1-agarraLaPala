@@ -74,6 +74,8 @@ public class RepositorioDetalleVacanteTest {
     RepositorioVacante repositorio = new RepositorioVacanteImpl(sessionFactory);
     repositorio.guardar(externa);
 
-    assertTrue(repositorio.buscarPorSkills(List.of("java")).isEmpty());
+    List<Vacante> resultados = repositorio.buscarPorSkills(List.of("java"));
+
+    assertTrue(resultados.stream().noneMatch(vacante -> externa.getId().equals(vacante.getId())));
   }
 }

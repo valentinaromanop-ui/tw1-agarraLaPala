@@ -26,3 +26,4 @@ replay_pid*.log
 # Reportes de codigo limpio y cobertura de pruebas
 .calidad-de-codigo/
 /correo-local.properties
+/application.properties

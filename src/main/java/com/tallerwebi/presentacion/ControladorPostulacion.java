@@ -155,6 +155,7 @@ public class ControladorPostulacion {
     @RequestParam(value = "skill", required = false) String skillFiltro,
     @RequestParam(value = "fechaDesde", required = false) String fechaDesde,
     @RequestParam(value = "fechaHasta", required = false) String fechaHasta,
+    @RequestParam(value = "soloPremium", defaultValue = "false") boolean soloPremium,
     HttpSession session
   ) {
     Long empleadorId = obtenerEmpleadorId(session);
@@ -175,6 +176,7 @@ public class ControladorPostulacion {
         skillFiltro,
         fechaDesde,
         fechaHasta,
+        soloPremium,
         modelo
       )
     );
@@ -202,6 +204,7 @@ public class ControladorPostulacion {
     String skillFiltro,
     String fechaDesde,
     String fechaHasta,
+    boolean soloPremium,
     Map<String, Object> modelo
   ) {
     String estado = premium ? normalizarFiltroEstado(estadoFiltro) : FILTRO_TODOS;
@@ -223,6 +226,7 @@ public class ControladorPostulacion {
     modelo.put("skillFiltro", skillFiltro);
     modelo.put("fechaDesde", fechaDesde);
     modelo.put("fechaHasta", fechaHasta);
+    modelo.put("soloPremium", premium && soloPremium);
     if (errorFiltro != null) {
       modelo.put("errorFiltro", errorFiltro);
     }
@@ -232,6 +236,7 @@ public class ControladorPostulacion {
       premium ? skillFiltro : null,
       desde,
       hasta,
+      premium && soloPremium,
       errorFiltro != null
     );
   }
@@ -242,6 +247,7 @@ public class ControladorPostulacion {
     String skillFiltro,
     LocalDate desde,
     LocalDate hasta,
+    boolean soloPremium,
     boolean filtroFechaInvalido
   ) {
     String skill = skillFiltro == null ? "" : skillFiltro.trim().toLowerCase(Locale.ROOT);
@@ -259,6 +265,7 @@ public class ControladorPostulacion {
           .stream()
           .anyMatch(habilidad -> habilidad.toLowerCase(Locale.ROOT).contains(skill))
       )
+      .filter(postulante -> !soloPremium || postulante.isPremium())
       .filter(postulante ->
         filtroFechaInvalido ||
         desde == null ||

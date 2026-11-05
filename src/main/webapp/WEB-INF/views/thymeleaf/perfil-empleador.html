@@ -33,6 +33,13 @@
       <p th:if="${premiumHasta != null}" class="premium-active-message">
         Premium activo hasta <strong th:text="${#temporals.format(premiumHasta, 'dd/MM/yyyy')}"></strong>
       </p>
+      <a th:if="${premiumHasta == null}" class="btn btn-primary" th:href="@{/premium/empleador/pagar}">
+        Activar Empresa Premium
+      </a>
+      <a th:if="${premiumHasta != null}" class="btn btn-outline-primary"
+        th:href="@{/premium/empleador/pagar(extender=true)}">
+        Extender Empresa Premium
+      </a>
 
       <h2 class="h4 mt-4">Resumen</h2>
       <div class="employer-summary">
@@ -49,6 +56,16 @@
           <strong th:text="${resumen.postulacionesRecibidas}">0</strong>
         </article>
       </div>
+
+      <h2 class="h4 mt-4">Google Calendar</h2>
+      <div class="alert alert-success" role="status" th:if="${googleMensaje}" th:text="${googleMensaje}"></div>
+      <div class="alert alert-danger" role="alert" th:if="${googleError}" th:text="${googleError}"></div>
+      <p th:text="${googleConectado ? 'Calendario conectado' : 'Calendario sin conectar'}">Calendario sin conectar</p>
+      <p th:unless="${googleDisponible}">La conexión con Google Calendar todavía no está configurada.</p>
+      <form th:if="${googleDisponible}" th:action="@{/google-calendar/conectar}" method="post">
+        <button class="btn btn-primary" type="submit"
+          th:text="${googleConectado ? 'Volver a conectar Google Calendar' : 'Conectar Google Calendar'}">Conectar Google Calendar</button>
+      </form>
 
       <h2 class="h4 mt-4">Datos de la cuenta</h2>
       <dl class="employer-profile-details">

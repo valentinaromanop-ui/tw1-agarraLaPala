@@ -49,11 +49,12 @@
         </p>
       </section>
 
+
       <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
       <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
-      <nav class="postulantes-filtros nav nav-pills" aria-label="Filtrar postulantes por estado">
-        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
+      <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
+        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
           th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
           Todos <span th:text="${cantidadPostulantes}">0</span>
         </a>
@@ -80,6 +81,11 @@
         </label>
         <label class="form-label">Fecha hasta
           <input class="form-control" type="date" name="fechaHasta" th:value="${fechaHasta}">
+        </label>
+        <label class="form-check">
+          <input class="form-check-input" type="checkbox" name="soloPremium" value="true"
+            th:checked="${soloPremium}">
+          <span class="form-check-label">Solo candidatos Premium</span>
         </label>
         <label class="form-label">Estado
           <select class="form-select" name="estado">
@@ -188,6 +194,12 @@
                       </button>
                     </form>
                   </div>
+                  <form th:if="${postulante.estado.name() != 'RECHAZADA'}" method="post"
+                    th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/entrevista(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
+                    <button class="btn btn-sm applicant-action-button" type="submit">
+                      <i class="bi bi-calendar-plus" aria-hidden="true"></i> Citar a entrevista
+                    </button>
+                  </form>
                   <div class="postulante-contact-actions">
                     <a class="btn btn-sm applicant-icon-button" title="Ver perfil" aria-label="Ver perfil"
                       th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
