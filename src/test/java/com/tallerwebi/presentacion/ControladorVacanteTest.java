@@ -10,6 +10,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
 import com.tallerwebi.dominio.ServicioPerfil;
@@ -43,6 +45,7 @@ public class ControladorVacanteTest {
     servicioPerfilMock = mock(ServicioPerfil.class);
     session = new MockHttpSession();
     session.setAttribute("USUARIO_ID", 1L);
+    session.setAttribute("ROL", "CANDIDATO");
     when(servicioPerfilMock.obtenerHabilidades(1L)).thenReturn(Arrays.asList("Python", "Docker"));
     controladorVacante =
       new ControladorVacante(
@@ -189,6 +192,23 @@ public class ControladorVacanteTest {
 
     assertThat(vista.getViewName(), equalTo("redirect:/login"));
     verify(servicioVacanteMock, times(0)).obtenerVacantesPorSkills(any());
+  }
+
+  @Test
+  public void empleadorNoDeberiaAccederAVacantesRecomendadas() throws Exception {
+    session.setAttribute("ROL", "EMPLEADOR");
+
+    ModelAndView vista = controladorVacante.mostrarVacantesRecomendadas(session);
+
+    assertThat(vista.getViewName(), equalTo("redirect:/home"));
+    verify(servicioVacanteMock, times(0)).obtenerVacantesPorSkills(any());
+
+    MockMvcBuilders
+      .standaloneSetup(controladorVacante)
+      .build()
+      .perform(get("/vacantes/recomendadas").session(session))
+      .andExpect(status().is3xxRedirection())
+      .andExpect(redirectedUrl("/home"));
   }
 
   @Test

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@SuppressWarnings("PMD.CyclomaticComplexity")
 public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   private static final String FUENTE_LOCAL = "LOCAL";
@@ -17,16 +18,27 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   private final RepositorioUsuario repositorioUsuario;
   private final RepositorioPostulacion repositorioPostulacion;
   private final RepositorioVacante repositorioVacante;
+  private final ServicioPostulantesOferta servicioPostulantesOferta;
 
   @Autowired
   public ServicioPostulacionImpl(
     RepositorioUsuario repositorioUsuario,
     RepositorioPostulacion repositorioPostulacion,
-    RepositorioVacante repositorioVacante
+    RepositorioVacante repositorioVacante,
+    ServicioPostulantesOferta servicioPostulantesOferta
   ) {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
+    this.servicioPostulantesOferta = servicioPostulantesOferta;
+  }
+
+  public ServicioPostulacionImpl(
+    RepositorioUsuario repositorioUsuario,
+    RepositorioPostulacion repositorioPostulacion,
+    RepositorioVacante repositorioVacante
+  ) {
+    this(repositorioUsuario, repositorioPostulacion, repositorioVacante, null);
   }
 
   @Override
@@ -199,21 +211,60 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   @Override
   public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
-    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
-    if (vacante == null || !empleadorId.equals(vacante.getEmpleadorId())) {
-      throw new AccesoOfertaDenegadoException();
+    if (servicioPostulantesOferta == null) {
+      Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+      if (vacante == null || empleadorId == null || !empleadorId.equals(vacante.getEmpleadorId())) {
+        throw new AccesoOfertaDenegadoException();
+      }
+      return List.of();
     }
-    return repositorioPostulacion
-      .buscarPorVacante(vacanteId)
-      .stream()
-      .map(postulacion ->
-        new PostulanteOfertaDTO(
-          postulacion.getUsuario().getEmail(),
-          postulacion.getUsuario().getHabilidades(),
-          postulacion.getFechaPostulacion()
-        )
-      )
-      .toList();
+    return servicioPostulantesOferta.obtenerPostulantes(vacanteId, empleadorId);
+  }
+
+  @Override
+  public Postulacion cambiarEstado(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId,
+    EstadoPostulacion nuevoEstado
+  ) {
+    return servicioPostulantesOferta.cambiarEstado(
+      vacanteId,
+      postulacionId,
+      empleadorId,
+      nuevoEstado
+    );
+  }
+
+  @Override
+  public ArchivoCvPostulanteDTO obtenerCvPostulante(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId
+  ) {
+    return servicioPostulantesOferta.obtenerCvPostulante(vacanteId, postulacionId, empleadorId);
+  }
+
+  @Override
+  public PerfilPostulanteDTO obtenerPerfilPostulante(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId
+  ) {
+    return servicioPostulantesOferta.obtenerPerfilPostulante(vacanteId, postulacionId, empleadorId);
+  }
+
+  @Override
+  public FotoPerfilPostulanteDTO obtenerFotoPerfilPostulante(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId
+  ) {
+    return servicioPostulantesOferta.obtenerFotoPerfilPostulante(
+      vacanteId,
+      postulacionId,
+      empleadorId
+    );
   }
 
   private Vacante obtenerOfertaParaPostularse(VacanteDTO oferta) {

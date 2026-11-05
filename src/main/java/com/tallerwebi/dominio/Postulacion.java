@@ -50,6 +50,9 @@ public class Postulacion {
   @Column(nullable = false)
   private String estado = EstadoPostulacion.ENVIADA.name();
 
+  @Column(name = "fecha_decision")
+  private LocalDateTime fechaDecision;
+
   @Transient
   private Vacante vacante;
 
@@ -163,5 +166,13 @@ public class Postulacion {
       ESTADO_LEGADO_REGISTRADA.equalsIgnoreCase(estadoNormalizado)
         ? EstadoPostulacion.ENVIADA.name()
         : EstadoPostulacion.valueOf(estadoNormalizado.toUpperCase(Locale.ROOT)).name();
+  }
+
+  public LocalDateTime getFechaDecision() {
+    return fechaDecision;
+  }
+
+  public void setFechaDecision(LocalDateTime fechaDecision) {
+    this.fechaDecision = fechaDecision;
   }
 }

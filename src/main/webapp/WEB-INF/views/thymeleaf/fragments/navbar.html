@@ -44,13 +44,6 @@
 
           <ul class="navbar-nav app-navbar-links">
             <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
-              <a class="nav-link" th:href="@{/busquedas-Empleador}"
-                th:classappend="${activePage == 'searches'} ? ' active' : ''"
-                th:attr="aria-current=${activePage == 'searches'} ? 'page' : null">
-                <i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas
-              </a>
-            </li>
-            <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
               <a class="nav-link" th:href="@{/home}"
                 th:classappend="${activePage == 'home'} ? ' active' : ''"
                 th:attr="aria-current=${activePage == 'home'} ? 'page' : null">
@@ -157,6 +150,32 @@
         </div>
       </div>
     </nav>
+    <th:block th:if="${authenticated}">
+      <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
+      <div id="chat-widget" th:data-base-url="@{/}" class="chat-widget"
+        th:data-user-id="${session.USUARIO_ID}">
+        <button id="chat-widget-toggle" class="chat-widget-toggle" type="button"
+          aria-label="Abrir chat" aria-expanded="false">
+          <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+          <span id="chat-widget-badge" class="chat-widget-badge" hidden></span>
+        </button>
+        <section id="chat-widget-panel" class="chat-widget-panel"
+          style="max-width: calc(100vw - 40px)" hidden
+          aria-label="Conversaciones">
+          <header class="chat-widget-header">
+            <button id="chat-widget-back" class="chat-widget-back" type="button" hidden
+              aria-label="Volver a conversaciones">
+              <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            </button>
+            <h2 id="chat-widget-title">Mensajes</h2>
+            <button id="chat-widget-close" class="chat-widget-close" type="button"
+              aria-label="Cerrar chat">&times;</button>
+          </header>
+          <div id="chat-widget-content" class="chat-widget-content"></div>
+        </section>
+      </div>
+      <script th:src="@{/js/chat-widget.js}" defer></script>
+    </th:block>
   </th:block>
 </body>
 </html>

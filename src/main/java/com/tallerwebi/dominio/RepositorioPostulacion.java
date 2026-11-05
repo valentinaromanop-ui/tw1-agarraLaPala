@@ -5,7 +5,9 @@ import java.util.List;
 public interface RepositorioPostulacion {
   Postulacion guardar(Postulacion postulacion);
   Postulacion buscarPorUsuarioYOferta(Long usuarioId, String ofertaId);
+  Postulacion buscarPorId(Long id);
   List<Postulacion> buscarPorUsuarioId(Long usuarioId);
   long contarPorVacante(Long vacanteId);
   List<Postulacion> buscarPorVacante(Long vacanteId);
+  Postulacion buscarPorIdYVacante(Long postulacionId, Long vacanteId);
 }
