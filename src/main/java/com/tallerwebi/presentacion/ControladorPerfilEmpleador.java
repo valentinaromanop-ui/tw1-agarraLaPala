@@ -1,10 +1,12 @@
 package com.tallerwebi.presentacion;
 
+import com.tallerwebi.dominio.ServicioConexionGoogle;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.Usuario;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -17,9 +19,15 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorPerfilEmpleador {
 
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
+  private final ServicioConexionGoogle servicioConexionGoogle;
 
-  public ControladorPerfilEmpleador(ServicioOfertaEmpleador servicioOfertaEmpleador) {
+  @Autowired
+  public ControladorPerfilEmpleador(
+    ServicioOfertaEmpleador servicioOfertaEmpleador,
+    ServicioConexionGoogle servicioConexionGoogle
+  ) {
     this.servicioOfertaEmpleador = servicioOfertaEmpleador;
+    this.servicioConexionGoogle = servicioConexionGoogle;
   }
 
   @RequestMapping(path = "/empleador/perfil", method = RequestMethod.GET)
@@ -42,6 +50,8 @@ public class ControladorPerfilEmpleador {
     }
     Map<String, Object> modelo = new ModelMap();
     modelo.put("empleador", empleador);
+    modelo.put("googleDisponible", servicioConexionGoogle.estaDisponible());
+    modelo.put("googleConectado", servicioConexionGoogle.conectado(empleadorId));
     modelo.put("resumen", servicioOfertaEmpleador.obtenerResumen(empleadorId));
     return new ModelAndView("perfil-empleador", modelo);
   }

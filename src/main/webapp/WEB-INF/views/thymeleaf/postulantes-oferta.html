@@ -49,6 +49,10 @@
         </p>
       </section>
 
+
+      <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
+      <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+
       <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
         <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
           th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
@@ -186,6 +190,12 @@
                       </button>
                     </form>
                   </div>
+                  <form th:if="${postulante.estado.name() != 'RECHAZADA'}" method="post"
+                    th:action="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/entrevista(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
+                    <button class="btn btn-sm applicant-action-button" type="submit">
+                      <i class="bi bi-calendar-plus" aria-hidden="true"></i> Citar a entrevista
+                    </button>
+                  </form>
                   <div class="postulante-contact-actions">
                     <a class="btn btn-sm applicant-icon-button" title="Ver perfil" aria-label="Ver perfil"
                       th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">
