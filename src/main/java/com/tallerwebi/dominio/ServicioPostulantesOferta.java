@@ -156,6 +156,30 @@ public class ServicioPostulantesOferta {
     return postulacion;
   }
 
+  public Vacante obtenerVacanteDePostulacion(Postulacion postulacion) {
+    String idOferta = postulacion.getIdOferta();
+    if (idOferta == null) {
+      throw new IllegalArgumentException("La postulación no tiene una oferta asociada.");
+    }
+    String identificador = idOferta.startsWith("LOCAL:") ? idOferta.substring(6) : idOferta;
+    Long vacanteId;
+    try {
+      vacanteId = Long.valueOf(identificador);
+    } catch (NumberFormatException excepcion) {
+      throw new IllegalArgumentException(
+        "Solo se pueden agendar entrevistas de ofertas locales.",
+        excepcion
+      );
+    }
+    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+    if (vacante == null || vacante.getEmpleadorId() == null) {
+      throw new IllegalArgumentException(
+        "La oferta ya no está disponible para agendar entrevistas."
+      );
+    }
+    return vacante;
+  }
+
   private boolean tieneCv(Long usuarioId) {
     CurriculumGenerado curriculum = repositorioCurriculum.buscarPorUsuarioId(usuarioId);
     return (

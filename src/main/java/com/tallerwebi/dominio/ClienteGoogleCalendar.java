@@ -15,4 +15,12 @@ public interface ClienteGoogleCalendar {
     Instant desde,
     Instant hasta
   );
+  EventoGoogleCalendar crearEventoConMeet(
+    String tokenAcceso,
+    String eventoId,
+    String titulo,
+    String emailCandidato,
+    IntervaloHorario horario
+  );
+  String obtenerEnlaceMeet(String tokenAcceso, String eventoId);
 }

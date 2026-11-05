@@ -9,6 +9,7 @@ import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -24,6 +25,7 @@ public class ServicioEntrevistaImplTest {
   private ServicioConexionGoogle servicioConexionGoogleMock;
   private ClienteGoogleCalendar clienteGoogleCalendarMock;
   private RepositorioEntrevista repositorioEntrevistaMock;
+  private RepositorioUsuario repositorioUsuarioMock;
   private ServicioPostulantesOferta servicioPostulantesOfertaMock;
   private ApplicationEventPublisher eventosMock;
 
@@ -32,6 +34,7 @@ public class ServicioEntrevistaImplTest {
     servicioConexionGoogleMock = mock(ServicioConexionGoogle.class);
     clienteGoogleCalendarMock = mock(ClienteGoogleCalendar.class);
     repositorioEntrevistaMock = mock(RepositorioEntrevista.class);
+    repositorioUsuarioMock = mock(RepositorioUsuario.class);
     servicioPostulantesOfertaMock = mock(ServicioPostulantesOferta.class);
     eventosMock = mock(ApplicationEventPublisher.class);
     when(servicioConexionGoogleMock.obtenerTokenAcceso(7L)).thenReturn("acceso");
@@ -146,6 +149,7 @@ public class ServicioEntrevistaImplTest {
         clienteGoogleCalendarMock,
         repositorioEntrevistaMock,
         servicioPostulantesOfertaMock,
+        repositorioUsuarioMock,
         eventosMock,
         "http://localhost:8080/spring",
         relojUtc
@@ -330,6 +334,278 @@ public class ServicioEntrevistaImplTest {
     );
   }
 
+  @Test
+  public void confirmarDeberiaGuardarElHorarioYElEventoConMeet() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    when(
+      clienteGoogleCalendarMock.crearEventoConMeet(
+        anyString(),
+        anyString(),
+        anyString(),
+        anyString(),
+        any()
+      )
+    )
+      .thenReturn(
+        new EventoGoogleCalendar("evento-google", "https://meet.google.com/abc-defg-hij")
+      );
+
+    // ejecucion
+    Entrevista resultado = servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T09:00"));
+
+    // validacion
+    assertThat(resultado, equalTo(entrevista));
+    assertThat(resultado.getEstado(), equalTo(EstadoEntrevista.AGENDADA));
+    assertThat(resultado.getInicio(), equalTo(hora("2026-11-02T09:00")));
+    assertThat(resultado.getFin(), equalTo(hora("2026-11-02T09:30")));
+    assertThat(resultado.getGoogleEventId(), equalTo("evento-google"));
+    assertThat(resultado.getUrlMeet(), equalTo("https://meet.google.com/abc-defg-hij"));
+    verify(repositorioUsuarioMock).buscarPorIdParaActualizar(7L);
+    ArgumentCaptor<IntervaloHorario> horario = ArgumentCaptor.forClass(IntervaloHorario.class);
+    verify(clienteGoogleCalendarMock)
+      .crearEventoConMeet(
+        eq("acceso"),
+        anyString(),
+        eq("Entrevista: Desarrollador Java"),
+        eq("candidato@test.com"),
+        horario.capture()
+      );
+    assertThat(horario.getValue().getFin(), equalTo(hora("2026-11-02T09:30")));
+  }
+
+  @Test
+  public void unaConfirmacionRepetidaNoDeberiaCrearOtroEvento() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    when(
+      clienteGoogleCalendarMock.crearEventoConMeet(
+        anyString(),
+        anyString(),
+        anyString(),
+        anyString(),
+        any()
+      )
+    )
+      .thenReturn(
+        new EventoGoogleCalendar("evento-google", "https://meet.google.com/abc-defg-hij")
+      );
+    servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T09:00"));
+
+    // ejecucion
+    servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T10:00"));
+
+    // validacion
+    assertThat(entrevista.getInicio(), equalTo(hora("2026-11-02T09:00")));
+    verify(clienteGoogleCalendarMock, times(1))
+      .crearEventoConMeet(anyString(), anyString(), anyString(), anyString(), any());
+  }
+
+  @Test
+  public void noDeberiaConfirmarElHorarioQueGoogleMarcaOcupado() {
+    // preparacion
+    dadoQueExisteUnaInvitacion();
+    dadoQueGoogleDevuelveOcupados(
+      new IntervaloHorario(hora("2026-11-02T09:00"), hora("2026-11-02T10:00"))
+    );
+
+    // ejecucion y validacion
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T09:00"))
+    );
+    verify(clienteGoogleCalendarMock, never())
+      .crearEventoConMeet(anyString(), anyString(), anyString(), anyString(), any());
+  }
+
+  @Test
+  public void noDeberiaConfirmarUnHorarioFueraDeLaFranjaLaboral() {
+    // preparacion
+    dadoQueExisteUnaInvitacion();
+
+    // ejecucion y validacion
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T18:00"))
+    );
+    verify(clienteGoogleCalendarMock, never())
+      .crearEventoConMeet(anyString(), anyString(), anyString(), anyString(), any());
+  }
+
+  @Test
+  public void noDeberiaConfirmarUnHorarioQueNoRespetaLosBloquesDeTreintaMinutos() {
+    // preparacion
+    dadoQueExisteUnaInvitacion();
+
+    // ejecucion y validacion
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T09:15"))
+    );
+  }
+
+  @Test
+  public void noDeberiaConfirmarUnaFechaFueraDeLosCatorceDias() {
+    // preparacion
+    dadoQueExisteUnaInvitacion();
+
+    // ejecucion y validacion
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-16T09:00"))
+    );
+  }
+
+  @Test
+  public void noDeberiaConfirmarLaInvitacionDeOtroPostulante() {
+    // preparacion
+    dadoQueExisteUnaInvitacion();
+
+    // ejecucion y validacion
+    assertThrows(
+      AccesoOfertaDenegadoException.class,
+      () -> servicioEntrevista.confirmar(30L, 99L, hora("2026-11-02T09:00"))
+    );
+    verifyNoInteractions(clienteGoogleCalendarMock);
+  }
+
+  @Test
+  public void noDeberiaConfirmarUnaPostulacionQueFueRechazadaDespuesDeInvitar() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    entrevista.getPostulacion().setEstado(EstadoPostulacion.RECHAZADA);
+
+    // ejecucion y validacion
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T09:00"))
+    );
+    verifyNoInteractions(clienteGoogleCalendarMock);
+  }
+
+  @Test
+  public void unErrorDeGoogleNoDeberiaMarcarLaEntrevistaComoAgendada() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    when(
+      clienteGoogleCalendarMock.crearEventoConMeet(
+        anyString(),
+        anyString(),
+        anyString(),
+        anyString(),
+        any()
+      )
+    )
+      .thenThrow(new ConexionGoogleException());
+
+    // ejecucion y validacion
+    assertThrows(
+      ConexionGoogleException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-02T09:00"))
+    );
+    assertThat(entrevista.getEstado(), equalTo(EstadoEntrevista.INVITADA));
+    assertThat(entrevista.getGoogleEventId(), equalTo(null));
+  }
+
+  @Test
+  public void losTurnosDeberianExcluirLasEntrevistasYaGuardadasAunqueGoogleNoLasDevuelva() {
+    // preparacion
+    Entrevista agendada = dadoQueExisteUnaInvitacion();
+    agendada.agendar(
+      new IntervaloHorario(hora("2026-11-02T09:00"), hora("2026-11-02T09:30")),
+      new EventoGoogleCalendar("anterior", null)
+    );
+    when(repositorioEntrevistaMock.buscarAgendadas(eq(7L), any(), any()))
+      .thenReturn(List.of(agendada));
+
+    // ejecucion
+    List<IntervaloHorario> turnos = servicioEntrevista.obtenerTurnosDisponibles(7L);
+
+    // validacion
+    assertThat(turnos.getFirst().getInicio(), equalTo(hora("2026-11-02T09:30")));
+    assertThat(turnos.size(), equalTo(179));
+  }
+
+  @Test
+  public void deberiaConservarLaCompatibilidadConInvitacionesSinEmpleadorGuardado() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    entrevista.setEmpleadorId(null);
+    Vacante vacante = new Vacante();
+    vacante.setEmpleadorId(7L);
+    when(servicioPostulantesOfertaMock.obtenerVacanteDePostulacion(entrevista.getPostulacion()))
+      .thenReturn(vacante);
+
+    // ejecucion
+    var turnosPorDia = servicioEntrevista.obtenerTurnosParaInvitacion(30L, 12L);
+
+    // validacion
+    verify(servicioConexionGoogleMock).obtenerTokenAcceso(7L);
+    assertThat(turnosPorDia.size(), equalTo(10));
+    assertThat(turnosPorDia.values().stream().mapToInt(List::size).sum(), equalTo(180));
+  }
+
+  @Test
+  public void deberiaMostrarUnDiaAunqueTodosSusTurnosEstenOcupados() {
+    // preparacion
+    dadoQueExisteUnaInvitacion();
+    dadoQueGoogleDevuelveOcupados(
+      new IntervaloHorario(hora("2026-11-02T09:00"), hora("2026-11-02T18:00"))
+    );
+
+    // ejecucion
+    var turnosPorDia = servicioEntrevista.obtenerTurnosParaInvitacion(30L, 12L);
+
+    // validacion
+    assertThat(turnosPorDia.get(LocalDate.of(2026, 11, 2)), equalTo(List.of()));
+    assertThat(turnosPorDia.get(LocalDate.of(2026, 11, 3)).size(), equalTo(18));
+  }
+
+  @Test
+  public void deberiaRecuperarElEnlaceDeMeetSinCrearOtroEvento() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    entrevista.agendar(
+      new IntervaloHorario(hora("2026-11-02T09:00"), hora("2026-11-02T09:30")),
+      new EventoGoogleCalendar("evento-google", null)
+    );
+    when(clienteGoogleCalendarMock.obtenerEnlaceMeet("acceso", "evento-google"))
+      .thenReturn("https://meet.google.com/abc-defg-hij");
+
+    // ejecucion
+    servicioEntrevista.actualizarEnlaceMeet(30L, 12L);
+
+    // validacion
+    assertThat(entrevista.getUrlMeet(), equalTo("https://meet.google.com/abc-defg-hij"));
+    verify(clienteGoogleCalendarMock, never())
+      .crearEventoConMeet(anyString(), anyString(), anyString(), anyString(), any());
+  }
+
+  @Test
+  public void noDeberiaConsultarGoogleSiElEnlaceDeMeetYaEstaGuardado() {
+    // preparacion
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    entrevista.agendar(
+      new IntervaloHorario(hora("2026-11-02T09:00"), hora("2026-11-02T09:30")),
+      new EventoGoogleCalendar("evento-google", "https://meet.google.com/abc-defg-hij")
+    );
+
+    // ejecucion
+    servicioEntrevista.actualizarEnlaceMeet(30L, 12L);
+
+    // validacion
+    verifyNoInteractions(clienteGoogleCalendarMock);
+  }
+
+  private Entrevista dadoQueExisteUnaInvitacion() {
+    Postulacion postulacion = dadoQueExisteUnaPostulacionParaInvitar();
+    Entrevista entrevista = new Entrevista(postulacion, LocalDateTime.parse("2026-11-02T08:00"));
+    entrevista.setEmpleadorId(7L);
+    when(repositorioEntrevistaMock.buscarPorPostulacionPorId(30L)).thenReturn(entrevista);
+    when(repositorioEntrevistaMock.buscarPorPostulacionParaActualizar(30L)).thenReturn(entrevista);
+    return entrevista;
+  }
+
   private Postulacion dadoQueExisteUnaPostulacionParaInvitar() {
     Usuario candidato = new Usuario();
     candidato.setId(12L);
@@ -351,6 +627,7 @@ public class ServicioEntrevistaImplTest {
         clienteGoogleCalendarMock,
         repositorioEntrevistaMock,
         servicioPostulantesOfertaMock,
+        repositorioUsuarioMock,
         eventosMock,
         "http://localhost:8080/spring",
         reloj

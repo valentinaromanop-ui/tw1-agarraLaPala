@@ -3,6 +3,7 @@ package com.tallerwebi.infraestructura;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.ClienteGoogleCalendar;
+import com.tallerwebi.dominio.EventoGoogleCalendar;
 import com.tallerwebi.dominio.IntervaloHorario;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
 import java.time.DateTimeException;
@@ -24,10 +25,12 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
+@SuppressWarnings("PMD.PreserveStackTrace")
 public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
 
   private final GoogleCalendarConfig configuracion;
   private final RestClient cliente;
+  private static final String TIPO_VIDEO = "video";
 
   @Autowired
   public ClienteGoogleCalendarImpl(GoogleCalendarConfig configuracion) {
@@ -85,7 +88,6 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
   }
 
   @Override
-  @SuppressWarnings("PMD.PreserveStackTrace")
   public List<IntervaloHorario> consultarPeriodosOcupados(
     String tokenAcceso,
     Instant desde,
@@ -136,6 +138,86 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
     return periodos;
   }
 
+  @Override
+  public EventoGoogleCalendar crearEventoConMeet(
+    String tokenAcceso,
+    String eventoId,
+    String titulo,
+    String emailCandidato,
+    IntervaloHorario horario
+  ) {
+    Map<String, Object> evento = Map.of(
+      "id",
+      eventoId,
+      "summary",
+      titulo,
+      "start",
+      Map.of("dateTime", horario.getInicio().toString()),
+      "end",
+      Map.of("dateTime", horario.getFin().toString()),
+      "attendees",
+      List.of(Map.of("email", emailCandidato)),
+      "conferenceData",
+      Map.of(
+        "createRequest",
+        Map.of("requestId", eventoId, "conferenceSolutionKey", Map.of("type", "hangoutsMeet"))
+      )
+    );
+    try {
+      JsonNode respuesta = cliente
+        .post()
+        .uri(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all"
+        )
+        .headers(headers -> headers.setBearerAuth(tokenAcceso))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(evento)
+        .retrieve()
+        .body(JsonNode.class);
+      return new EventoGoogleCalendar(eventoId, leerEnlaceMeet(respuesta, eventoId));
+    } catch (RestClientException excepcion) {
+      throw new ConexionGoogleException();
+    }
+  }
+
+  @Override
+  public String obtenerEnlaceMeet(String tokenAcceso, String eventoId) {
+    try {
+      JsonNode respuesta = cliente
+        .get()
+        .uri("https://www.googleapis.com/calendar/v3/calendars/primary/events/{eventoId}", eventoId)
+        .headers(headers -> headers.setBearerAuth(tokenAcceso))
+        .retrieve()
+        .body(JsonNode.class);
+      return leerEnlaceMeet(respuesta, eventoId);
+    } catch (RestClientException excepcion) {
+      throw new ConexionGoogleException();
+    }
+  }
+
+  private String leerEnlaceMeet(JsonNode respuesta, String eventoId) {
+    if (respuesta == null || !eventoId.equals(respuesta.path("id").asText())) {
+      throw new ConexionGoogleException();
+    }
+    String enlace = respuesta.path("hangoutLink").asText("");
+    if (enlace.isBlank()) {
+      enlace = buscarEnlaceMeet(respuesta);
+    }
+    if (!enlace.isBlank() && !enlace.startsWith("https://meet.google.com/")) {
+      throw new ConexionGoogleException();
+    }
+    return enlace.isBlank() ? null : enlace;
+  }
+
+  private String buscarEnlaceMeet(JsonNode respuesta) {
+    for (JsonNode entrada : respuesta.path("conferenceData").path("entryPoints")) {
+      if (TIPO_VIDEO.equals(entrada.path("entryPointType").asText())) {
+        return entrada.path("uri").asText("");
+      }
+    }
+    return "";
+  }
+
   private MultiValueMap<String, String> credenciales() {
     MultiValueMap<String, String> parametros = new LinkedMultiValueMap<>();
     parametros.add("client_id", configuracion.getClientId());
@@ -143,7 +225,6 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
     return parametros;
   }
 
-  @SuppressWarnings("PMD.PreserveStackTrace")
   private JsonNode solicitarToken(MultiValueMap<String, String> parametros) {
     try {
       JsonNode respuesta = cliente

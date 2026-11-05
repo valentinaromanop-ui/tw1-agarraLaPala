@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +29,14 @@ public class Entrevista {
 
   @Column(nullable = false)
   private LocalDateTime fechaInvitacion;
+
+  private Long empleadorId;
+  private Instant inicio;
+  private Instant fin;
+  private String googleEventId;
+
+  @Column(length = 1000)
+  private String urlMeet;
 
   public Entrevista() {}
 
@@ -50,5 +59,41 @@ public class Entrevista {
 
   public LocalDateTime getFechaInvitacion() {
     return fechaInvitacion;
+  }
+
+  public Long getEmpleadorId() {
+    return empleadorId;
+  }
+
+  public void setEmpleadorId(Long empleadorId) {
+    this.empleadorId = empleadorId;
+  }
+
+  public Instant getInicio() {
+    return inicio;
+  }
+
+  public Instant getFin() {
+    return fin;
+  }
+
+  public String getGoogleEventId() {
+    return googleEventId;
+  }
+
+  public String getUrlMeet() {
+    return urlMeet;
+  }
+
+  public void agendar(IntervaloHorario horario, EventoGoogleCalendar evento) {
+    inicio = horario.getInicio();
+    fin = horario.getFin();
+    googleEventId = evento.getId();
+    urlMeet = evento.getUrlMeet();
+    estado = EstadoEntrevista.AGENDADA;
+  }
+
+  public void actualizarUrlMeet(String urlMeet) {
+    this.urlMeet = urlMeet;
   }
 }

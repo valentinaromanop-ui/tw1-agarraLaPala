@@ -8,6 +8,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.ClienteGoogleCalendar;
+import com.tallerwebi.dominio.EventoGoogleCalendar;
 import com.tallerwebi.dominio.IntervaloHorario;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
 import java.time.Instant;
@@ -15,6 +16,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -272,6 +274,161 @@ public class ClienteGoogleCalendarTest {
     // ejecucion y validacion
     assertThrows(ConexionGoogleException.class, () -> cuandoConsultoLosPeriodosOcupados());
     servidor.verify();
+  }
+
+  @Test
+  public void deberiaCrearElEventoConMeetYNotificarAlCandidato() {
+    // preparacion
+    servidor
+      .expect(
+        requestTo(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all"
+        )
+      )
+      .andExpect(method(HttpMethod.POST))
+      .andExpect(header("Authorization", "Bearer acceso"))
+      .andExpect(jsonPath("$.id").value("entrevista123"))
+      .andExpect(jsonPath("$.start.dateTime").value("2026-11-02T12:00:00Z"))
+      .andExpect(jsonPath("$.end.dateTime").value("2026-11-02T12:30:00Z"))
+      .andExpect(jsonPath("$.attendees[0].email").value("candidato@test.com"))
+      .andExpect(jsonPath("$.conferenceData.createRequest.requestId").value("entrevista123"))
+      .andExpect(
+        jsonPath("$.conferenceData.createRequest.conferenceSolutionKey.type").value("hangoutsMeet")
+      )
+      .andRespond(
+        withSuccess(
+          """
+          {"id": "entrevista123", "hangoutLink": "https://meet.google.com/abc-defg-hij"}
+          """,
+          MediaType.APPLICATION_JSON
+        )
+      );
+
+    // ejecucion
+    EventoGoogleCalendar evento = cuandoCreoElEvento();
+
+    // validacion
+    assertThat(evento.getId(), equalTo("entrevista123"));
+    assertThat(evento.getUrlMeet(), equalTo("https://meet.google.com/abc-defg-hij"));
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaAceptarElEventoCuandoMeetTodaviaEstaPendiente() {
+    // preparacion
+    servidor
+      .expect(anything())
+      .andRespond(
+        withSuccess(
+          """
+          {"id": "entrevista123", "conferenceData": {"createRequest": {"status": {"statusCode": "pending"}}}}
+          """,
+          MediaType.APPLICATION_JSON
+        )
+      );
+
+    // ejecucion
+    EventoGoogleCalendar evento = cuandoCreoElEvento();
+
+    // validacion
+    assertThat(evento.getId(), equalTo("entrevista123"));
+    assertThat(evento.getUrlMeet(), equalTo(null));
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaConsultarElMeetDeUnEventoYaCreado() {
+    // preparacion
+    servidor
+      .expect(
+        requestTo("https://www.googleapis.com/calendar/v3/calendars/primary/events/entrevista123")
+      )
+      .andExpect(method(HttpMethod.GET))
+      .andExpect(header("Authorization", "Bearer acceso"))
+      .andRespond(
+        withSuccess(
+          """
+          {"id": "entrevista123", "conferenceData": {"entryPoints": [
+            {"entryPointType": "phone", "uri": "tel:123"},
+            {"entryPointType": "video", "uri": "https://meet.google.com/abc-defg-hij"}
+          ]}}
+          """,
+          MediaType.APPLICATION_JSON
+        )
+      );
+
+    // ejecucion
+    String enlace = cliente.obtenerEnlaceMeet("acceso", "entrevista123");
+
+    // validacion
+    assertThat(enlace, equalTo("https://meet.google.com/abc-defg-hij"));
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarUnaRespuestaSinElIdentificadorDelEvento() {
+    // preparacion
+    servidor.expect(anything()).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoCreoElEvento());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaRechazarUnEnlaceQueNoSeaDeGoogleMeet() {
+    // preparacion
+    servidor
+      .expect(anything())
+      .andRespond(
+        withSuccess(
+          """
+          {"id": "entrevista123", "hangoutLink": "javascript:alert(1)"}
+          """,
+          MediaType.APPLICATION_JSON
+        )
+      );
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoCreoElEvento());
+    servidor.verify();
+  }
+
+  @Test
+  public void noDeberiaReintentarLaCreacionSiGoogleDevuelveUnConflicto() {
+    // preparacion
+    servidor.expect(anything()).andRespond(withStatus(HttpStatus.CONFLICT));
+
+    // ejecucion y validacion
+    assertThrows(ConexionGoogleException.class, () -> cuandoCreoElEvento());
+    servidor.verify();
+  }
+
+  @Test
+  public void deberiaInformarSiGoogleNoPermiteCrearElEvento() {
+    // preparacion
+    servidor.expect(anything()).andRespond(withBadRequest().body("Error privado de Google"));
+
+    // ejecucion y validacion
+    ConexionGoogleException error = assertThrows(
+      ConexionGoogleException.class,
+      () -> cuandoCreoElEvento()
+    );
+    assertFalse(error.toString().contains("Error privado de Google"));
+    servidor.verify();
+  }
+
+  private EventoGoogleCalendar cuandoCreoElEvento() {
+    return cliente.crearEventoConMeet(
+      "acceso",
+      "entrevista123",
+      "Entrevista laboral",
+      "candidato@test.com",
+      new IntervaloHorario(
+        Instant.parse("2026-11-02T12:00:00Z"),
+        Instant.parse("2026-11-02T12:30:00Z")
+      )
+    );
   }
 
   private List<IntervaloHorario> cuandoConsultoLosPeriodosOcupados() {
