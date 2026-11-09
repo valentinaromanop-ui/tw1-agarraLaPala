@@ -464,7 +464,7 @@
                 <version>12.0.37</version>
                 <configuration>
                 <webApp>
-                    <contextPath>/spring</contextPath>
+                    <contextPath>/</contextPath>
                 </webApp>
                 <httpConnector>
                     <port>8080</port>

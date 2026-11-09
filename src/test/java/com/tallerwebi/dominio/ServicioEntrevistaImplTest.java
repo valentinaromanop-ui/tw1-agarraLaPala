@@ -227,7 +227,7 @@ public class ServicioEntrevistaImplTest {
     verify(eventosMock).publishEvent(captor.capture());
     assertThat(captor.getValue().getDestinatarios(), equalTo(List.of("candidato@test.com")));
     assertThat(
-      captor.getValue().getMensaje().contains("http://localhost:8080/spring/entrevistas/30"),
+      captor.getValue().getMensaje().contains("http://localhost:8080/entrevistas/30"),
       equalTo(true)
     );
     verifyNoInteractions(clienteGoogleCalendarMock);
