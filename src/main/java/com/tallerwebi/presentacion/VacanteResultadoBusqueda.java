@@ -19,6 +19,9 @@ public class VacanteResultadoBusqueda {
   private final BigDecimal salario;
   private final String horario;
   private final boolean empresaPremium;
+  private final Long empleadorId;
+  private final BigDecimal promedioResenas;
+  private final long cantidadResenas;
 
   public VacanteResultadoBusqueda(VacanteDTO vacante) {
     titulo = vacante.getTitulo();
@@ -32,6 +35,9 @@ public class VacanteResultadoBusqueda {
     salario = vacante.getSalario();
     horario = vacante.getHorario();
     empresaPremium = vacante.isEmpresaPremium();
+    empleadorId = vacante.getEmpleadorId();
+    promedioResenas = vacante.getPromedioResenas();
+    cantidadResenas = vacante.getCantidadResenas();
     // El formato ISO evita necesitar un módulo JSON adicional para LocalDateTime.
     fechaPublicacion =
       Optional.ofNullable(vacante.getFechaPublicacion()).map(Object::toString).orElse("");
@@ -83,5 +89,17 @@ public class VacanteResultadoBusqueda {
 
   public boolean isEmpresaPremium() {
     return empresaPremium;
+  }
+
+  public Long getEmpleadorId() {
+    return empleadorId;
+  }
+
+  public BigDecimal getPromedioResenas() {
+    return promedioResenas;
+  }
+
+  public long getCantidadResenas() {
+    return cantidadResenas;
   }
 }

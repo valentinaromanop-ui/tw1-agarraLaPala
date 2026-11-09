@@ -1,9 +1,11 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
+import com.tallerwebi.dominio.ResumenResenas;
 import com.tallerwebi.dominio.ServicioEmpleoGuardado;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPostulacion;
+import com.tallerwebi.dominio.ServicioResena;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteDTO;
 import jakarta.servlet.http.HttpSession;
@@ -33,6 +35,7 @@ public class ControladorDetalleVacante {
   private final ServicioPostulacion servicioPostulacion;
   private final ServicioEmpleoGuardado servicioEmpleoGuardado;
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
+  private ServicioResena servicioResena;
 
   @Autowired
   public ControladorDetalleVacante(
@@ -54,6 +57,11 @@ public class ControladorDetalleVacante {
 
   public ControladorDetalleVacante(ServicioPostulacion servicioPostulacion) {
     this(servicioPostulacion, null, null);
+  }
+
+  @Autowired(required = false)
+  public void setServicioResena(ServicioResena servicioResena) {
+    this.servicioResena = servicioResena;
   }
 
   @RequestMapping(path = "/vacantes/detalle", method = RequestMethod.GET)
@@ -83,6 +91,16 @@ public class ControladorDetalleVacante {
     modelo.put("vacante", oferta);
     modelo.put("fuente", fuente);
     modelo.put("ofertaEmpleador", esOfertaEmpleador(oferta));
+    Long empleadorId = obtenerEmpleadorId(oferta);
+    modelo.put("empleadorId", empleadorId);
+    ResumenResenas resumen = empleadorId == null || servicioResena == null
+      ? new ResumenResenas(empleadorId, java.math.BigDecimal.ZERO, 0)
+      : servicioResena.obtenerResumen(empleadorId);
+    modelo.put("resumenResenas", resumen);
+    if (oferta instanceof VacanteDTO vacanteDTO) {
+      vacanteDTO.setPromedioResenas(resumen.getPromedio());
+      vacanteDTO.setCantidadResenas(resumen.getCantidad());
+    }
     modelo.put("ofertaCerrada", estaCerrada(oferta));
     modelo.put("puedePostularse", esPostulante(session));
     modelo.put(
@@ -208,6 +226,13 @@ public class ControladorDetalleVacante {
       return vacanteDTO.isOfertaEmpleador();
     }
     return oferta instanceof Vacante vacante && vacante.getEmpleadorId() != null;
+  }
+
+  private Long obtenerEmpleadorId(Object oferta) {
+    if (oferta instanceof VacanteDTO vacanteDTO) {
+      return vacanteDTO.getEmpleadorId();
+    }
+    return oferta instanceof Vacante vacante ? vacante.getEmpleadorId() : null;
   }
 
   private boolean estaCerrada(Object oferta) {

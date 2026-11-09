@@ -18,6 +18,7 @@
   <!-- custom style -->
   <link rel="stylesheet" th:href="@{/css/home.css}" />
   <link rel="stylesheet" th:href="@{/css/vacantes.css}" />
+  <link rel="stylesheet" th:href="@{/css/resenas.css}" />
 
 </head>
 
@@ -239,7 +240,18 @@
               <h3><span th:text="${oferta.titulo}">Título del cargo</span>
                 <span class="premium-badge employer-company-badge">Destacada</span>
               </h3>
-              <p><span th:text="${oferta.empresa}">Empresa</span> <span class="premium-badge employer-company-badge"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium</span></p>
+              <p class="offer-company-name">
+                <a th:href="@{/empresas/{empleadorId}(empleadorId=${oferta.empleadorId})}"
+                  th:text="${oferta.empresa}">Empresa</a>
+                <span class="premium-badge employer-company-badge"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium</span>
+                <span class="offer-review-summary" th:with="resumen=${resenasPorEmpleador[oferta.empleadorId]}">
+                  <span th:if="${resumen != null and resumen.cantidad > 0}">
+                    · ★ <span th:text="${#numbers.formatDecimal(resumen.promedio, 1, 1)}">0,0</span>
+                    (<span th:text="${resumen.cantidad}">0</span>)
+                  </span>
+                  <span th:unless="${resumen != null and resumen.cantidad > 0}"> · Sin reseñas</span>
+                </span>
+              </p>
               <div class="offer-meta"><span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span><span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span></div>
             </div>
             <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
@@ -259,7 +271,17 @@
             <div class="company-logo logo-blue" th:text="${#strings.substring(oferta.empresa, 0, 1)}">E</div>
             <div class="offer-info">
               <h3 th:text="${oferta.titulo}">Título del cargo</h3>
-              <p th:text="${oferta.empresa}">Empresa</p>
+              <p class="offer-company-name">
+                <a th:href="@{/empresas/{empleadorId}(empleadorId=${oferta.empleadorId})}"
+                  th:text="${oferta.empresa}">Empresa</a>
+                <span class="offer-review-summary" th:with="resumen=${resenasPorEmpleador[oferta.empleadorId]}">
+                  <span th:if="${resumen != null and resumen.cantidad > 0}">
+                    · ★ <span th:text="${#numbers.formatDecimal(resumen.promedio, 1, 1)}">0,0</span>
+                    (<span th:text="${resumen.cantidad}">0</span>)
+                  </span>
+                  <span th:unless="${resumen != null and resumen.cantidad > 0}"> · Sin reseñas</span>
+                </span>
+              </p>
               <div class="offer-meta">
                 <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span>
                 <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span>
