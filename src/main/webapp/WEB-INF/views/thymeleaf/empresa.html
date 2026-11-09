@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${'Empresa ' + (#strings.isEmpty(empleador.empresa) ? 'perfil' : empleador.empresa) + ' | Agarra la Pala'}">Perfil de empresa | Agarra la Pala</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+  <link rel="stylesheet" th:href="@{/css/resenas.css}">
+</head>
+<body class="employer-body public-company-body">
+  <nav th:replace="~{fragments/navbar :: appNavbar('jobs', false, false)}"></nav>
+  <main class="page-container employer-page">
+    <a class="btn btn-outline-light page-back" th:href="@{/buscar}">
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a las ofertas
+    </a>
+    <section class="employer-panel company-profile-panel">
+      <p class="employer-eyebrow"><i class="bi bi-building" aria-hidden="true"></i> Perfil público</p>
+      <h1 th:text="${#strings.isEmpty(empleador.empresa) ? 'Empresa' : empleador.empresa}">Empresa</h1>
+      <p th:if="${!#strings.isEmpty(empleador.ubicacion)}" th:text="${empleador.ubicacion}"></p>
+
+      <section id="resenas" class="company-reviews" aria-labelledby="resenas-titulo">
+        <header class="reviews-heading">
+          <div>
+            <p class="employer-eyebrow">Opiniones de candidatos</p>
+            <h2 id="resenas-titulo">Reseñas</h2>
+          </div>
+          <p class="reviews-summary" th:if="${resumenResenas.cantidad > 0}">
+            <span aria-label="Promedio de estrellas">★</span>
+            <strong th:text="${#numbers.formatDecimal(resumenResenas.promedio, 1, 1)}">0,0</strong>
+            <span>(<span th:text="${resumenResenas.cantidad}">0</span>)</span>
+          </p>
+          <p class="reviews-summary" th:if="${resumenResenas.cantidad == 0}">Sin reseñas</p>
+        </header>
+
+        <p th:if="${mensaje != null}" th:text="${mensaje}" class="alert alert-success" role="status"></p>
+        <p th:if="${error != null}" th:text="${error}" class="alert alert-danger" role="alert"></p>
+
+        <form th:if="${puedeResenar}" class="review-form" method="post"
+          th:action="@{/empresas/{empleadorId}/resenas(empleadorId=${empleador.id})}"
+          data-review-form>
+          <h3>Dejá tu reseña</h3>
+          <label for="puntaje-nueva">Calificación</label>
+          <select id="puntaje-nueva" name="puntaje" required>
+            <option value="">Elegí de 1 a 5 estrellas</option>
+            <option value="5">5 estrellas</option>
+            <option value="4">4 estrellas</option>
+            <option value="3">3 estrellas</option>
+            <option value="2">2 estrellas</option>
+            <option value="1">1 estrella</option>
+          </select>
+          <label for="comentario-nuevo">Comentario</label>
+          <textarea id="comentario-nuevo" name="comentario" maxlength="2000" required
+            data-review-comment placeholder="Contá tu experiencia con esta empresa"></textarea>
+          <p class="review-character-count" aria-live="polite"></p>
+          <button type="submit" class="btn btn-primary">Publicar reseña</button>
+        </form>
+
+        <p th:if="${session.USUARIO_ID == null}" class="review-hint">
+          Iniciá sesión y postuláte a una oferta de esta empresa para poder dejar una reseña.
+        </p>
+        <p th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}"
+          th:unless="${puedeResenar or resenaPropia != null}" class="review-hint">
+          Para reseñar, primero tenés que postularte a una oferta de esta empresa.
+        </p>
+
+        <p th:if="${#lists.isEmpty(resenas)}" class="empty-reviews">Todavía no hay reseñas.</p>
+        <ol class="review-list" th:unless="${#lists.isEmpty(resenas)}">
+          <li class="review-card" th:each="resena : ${resenas}">
+            <article>
+              <header class="review-card-heading">
+                <div>
+                  <h3 th:text="${#strings.isEmpty(resena.candidato.nombre) ? 'Candidato' : resena.candidato.nombre}">Candidato</h3>
+                  <p class="review-stars" th:text="${'★'.repeat(resena.puntaje)}"
+                    th:attr="aria-label=${resena.puntaje + ' de 5 estrellas'}"></p>
+                </div>
+                <time th:if="${resena.fecha != null}" th:datetime="${resena.fecha}"
+                  th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</time>
+              </header>
+              <p class="review-comment" th:text="${resena.comentario}">Comentario de la reseña</p>
+
+              <section class="employer-response" th:if="${resena.respuestaEmpleador != null}">
+                <h4>Respuesta de la empresa</h4>
+                <p th:text="${resena.respuestaEmpleador}"></p>
+                <time th:if="${resena.fechaRespuesta != null}" th:datetime="${resena.fechaRespuesta}"
+                  th:text="${#temporals.format(resena.fechaRespuesta, 'dd/MM/yyyy')}"></time>
+              </section>
+
+              <form class="review-form review-edit-form" method="post"
+                th:if="${resenaPropia != null and resenaPropia.id == resena.id}"
+                th:action="@{/empresas/{empleadorId}/resenas/{resenaId}/editar(empleadorId=${empleador.id}, resenaId=${resena.id})}"
+                data-review-form>
+                <h4>Editar tu reseña</h4>
+                <label th:for="${'puntaje-' + resena.id}">Calificación</label>
+                <select th:id="${'puntaje-' + resena.id}" name="puntaje" required>
+                  <option value="5" th:selected="${resena.puntaje == 5}">5 estrellas</option>
+                  <option value="4" th:selected="${resena.puntaje == 4}">4 estrellas</option>
+                  <option value="3" th:selected="${resena.puntaje == 3}">3 estrellas</option>
+                  <option value="2" th:selected="${resena.puntaje == 2}">2 estrellas</option>
+                  <option value="1" th:selected="${resena.puntaje == 1}">1 estrella</option>
+                </select>
+                <label th:for="${'comentario-' + resena.id}">Comentario</label>
+                <textarea th:id="${'comentario-' + resena.id}" name="comentario" maxlength="2000"
+                  required data-review-comment th:text="${resena.comentario}"></textarea>
+                <p class="review-character-count" aria-live="polite"></p>
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+              </form>
+              <form method="post" class="review-action-form"
+                th:if="${resenaPropia != null and resenaPropia.id == resena.id}"
+                th:action="@{/empresas/{empleadorId}/resenas/{resenaId}/eliminar(empleadorId=${empleador.id}, resenaId=${resena.id})}"
+                data-confirm="¿Querés eliminar tu reseña?">
+                <button type="submit" class="btn btn-outline-danger">Eliminar mi reseña</button>
+              </form>
+
+              <form class="review-form response-form" method="post"
+                th:if="${session.ROL == 'EMPLEADOR' and session.USUARIO_ID == empleador.id and resena.respuestaEmpleador == null}"
+                th:action="@{/empresas/{empleadorId}/resenas/{resenaId}/responder(empleadorId=${empleador.id}, resenaId=${resena.id})}"
+                data-review-form>
+                <label th:for="${'respuesta-' + resena.id}">Responder como empresa</label>
+                <textarea th:id="${'respuesta-' + resena.id}" name="respuesta" maxlength="2000" required
+                  data-review-comment placeholder="Escribí una respuesta pública"></textarea>
+                <p class="review-character-count" aria-live="polite"></p>
+                <button type="submit" class="btn btn-primary">Publicar respuesta</button>
+              </form>
+
+              <form method="post" class="review-action-form"
+                th:action="@{/empresas/{empleadorId}/resenas/{resenaId}/reportar(empleadorId=${empleador.id}, resenaId=${resena.id})}"
+                data-confirm="¿Querés reportar esta reseña?">
+                <button type="submit" class="btn btn-link report-review">Reportar</button>
+              </form>
+            </article>
+          </li>
+        </ol>
+      </section>
+    </section>
+  </main>
+  <footer th:replace="~{fragments/footer :: appFooter}"></footer>
+  <script type="module" th:src="@{/js/resenas.js}"></script>
+</body>
+</html>

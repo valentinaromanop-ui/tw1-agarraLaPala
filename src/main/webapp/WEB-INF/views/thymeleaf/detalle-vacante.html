@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/home.css}">
   <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+  <link rel="stylesheet" th:href="@{/css/resenas.css}">
 </head>
 <body>
   <nav th:replace="~{fragments/navbar :: appNavbar('jobs', false, true)}">
@@ -34,7 +35,17 @@
       <header>
         <p class="local-source" th:text="${fuente == 'LOCAL' ? 'Oferta de nuestra plataforma' : 'Fuente: ' + fuente}"></p>
         <h1 th:text="${vacante.titulo}">Título de la oferta</h1>
-        <p class="detalle-empresa" th:text="${vacante.empresa ?: 'Empresa no informada'}"></p>
+        <p class="detalle-empresa">
+          <a th:if="${empleadorId != null}" th:href="@{/empresas/{empleadorId}(empleadorId=${empleadorId})}"
+            th:text="${vacante.empresa ?: 'Empresa no informada'}">Empresa</a>
+          <span th:unless="${empleadorId != null}"
+            th:text="${vacante.empresa ?: 'Empresa no informada'}">Empresa</span>
+          <span class="offer-review-summary" th:if="${resumenResenas.cantidad > 0}">
+            · ★ <span th:text="${#numbers.formatDecimal(resumenResenas.promedio, 1, 1)}">0,0</span>
+            (<span th:text="${resumenResenas.cantidad}">0</span>)
+          </span>
+          <span class="offer-review-summary" th:if="${resumenResenas.cantidad == 0}"> · Sin reseñas</span>
+        </p>
       </header>
       <dl class="detalle-datos">
         <div><dt>Ubicación</dt><dd th:text="${vacante.ubicacion ?: 'No informada'}"></dd></div>

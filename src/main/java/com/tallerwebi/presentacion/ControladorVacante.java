@@ -5,7 +5,9 @@ import com.tallerwebi.dominio.ServicioEmpleoGuardado;
 import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPerfil;
 import com.tallerwebi.dominio.ServicioPostulacion;
+import com.tallerwebi.dominio.ServicioResena;
 import com.tallerwebi.dominio.ServicioVacante;
+import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
 import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
 import jakarta.servlet.http.HttpSession;
@@ -28,6 +30,7 @@ public class ControladorVacante {
   private final ServicioPerfil servicioPerfil;
   private final ServicioPago servicioPago;
   private final ServicioEmpleoGuardado servicioEmpleoGuardado;
+  private ServicioResena servicioResena;
   private static final String ROL_EMPLEADOR = "EMPLEADOR";
   private static final String ROL_CANDIDATO = "CANDIDATO";
   private static final String ROL_POSTULANTE = "POSTULANTE";
@@ -49,6 +52,11 @@ public class ControladorVacante {
     this.servicioPerfil = servicioPerfil;
     this.servicioPago = servicioPago;
     this.servicioEmpleoGuardado = servicioEmpleoGuardado;
+  }
+
+  @Autowired(required = false)
+  public void setServicioResena(ServicioResena servicioResena) {
+    this.servicioResena = servicioResena;
   }
 
   public ControladorVacante(
@@ -144,7 +152,9 @@ public class ControladorVacante {
       return new ModelAndView(VISTA_VACANTES, modelo);
     }
     try {
-      modelo.put(VISTA_VACANTES, servicioVacante.obtenerVacantesPorSkills(busqueda));
+      List<VacanteDTO> vacantes = servicioVacante.obtenerVacantesPorSkills(busqueda);
+      EnriquecedorResenasVacantes.agregarResumenes(vacantes, servicioResena);
+      modelo.put(VISTA_VACANTES, vacantes);
       session.setAttribute(VISTA_VACANTES, modelo.get(VISTA_VACANTES));
       session.setAttribute(BUSQUEDA, busqueda);
     } catch (BusquedaVacanteInvalida | FuenteVacanteNoDisponible excepcion) {

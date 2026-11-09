@@ -384,13 +384,30 @@ function iniciarResultados() {
       titulo.append(" ", badge);
     }
     const empresa = document.createElement("p");
-    empresa.textContent = oferta.empresa || "Empresa no informada";
+    if (oferta.empleadorId) {
+      const empresaLink = document.createElement("a");
+      empresaLink.href = rutaAplicacion(`/empresas/${encodeURIComponent(oferta.empleadorId)}`);
+      empresaLink.textContent = oferta.empresa || "Empresa no informada";
+      empresa.append(empresaLink);
+    } else {
+      empresa.textContent = oferta.empresa || "Empresa no informada";
+    }
     if (oferta.empresaPremium) {
       const badge = document.createElement("span");
       badge.className = "premium-badge employer-company-badge";
       badge.textContent = "Empresa Premium";
       empresa.append(" ", badge);
     }
+    const resenas = document.createElement("span");
+    resenas.className = "offer-review-summary";
+    const cantidadResenas = Number(oferta.cantidadResenas) || 0;
+    resenas.textContent = cantidadResenas > 0
+      ? ` · ★ ${new Intl.NumberFormat("es-AR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(Number(oferta.promedioResenas))} (${cantidadResenas})`
+      : " · Sin reseñas";
+    empresa.append(resenas);
     const detalles = document.createElement("p");
     detalles.className = "result-details";
     const fecha = oferta.fechaPublicacion

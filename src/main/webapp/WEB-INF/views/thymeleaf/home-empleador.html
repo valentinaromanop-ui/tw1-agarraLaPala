@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/home.css}">
   <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+  <link rel="stylesheet" th:href="@{/css/resenas.css}">
   <link rel="stylesheet" th:href="@{/css/home-empleador.css}">
 </head>
 <body class="employer-home-page">
@@ -207,7 +208,17 @@
               <h3><span th:text="${oferta.titulo}">Título del puesto</span>
                 <span class="premium-badge employer-company-badge" th:if="${oferta.empresaPremium}">Destacada</span>
               </h3>
-              <p th:text="${oferta.empresa}">Nombre de la empresa</p>
+              <p class="offer-company-name">
+                <a th:href="@{/empresas/{empleadorId}(empleadorId=${oferta.empleadorId})}"
+                  th:text="${oferta.empresa}">Nombre de la empresa</a>
+                <span class="offer-review-summary" th:with="resumen=${resenasPorEmpleador[oferta.empleadorId]}">
+                  <span th:if="${resumen != null and resumen.cantidad > 0}">
+                    · ★ <span th:text="${#numbers.formatDecimal(resumen.promedio, 1, 1)}">0,0</span>
+                    (<span th:text="${resumen.cantidad}">0</span>)
+                  </span>
+                  <span th:unless="${resumen != null and resumen.cantidad > 0}"> · Sin reseñas</span>
+                </span>
+              </p>
               <span class="premium-badge employer-company-badge" th:if="${oferta.empresaPremium}">
                 <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium
               </span>

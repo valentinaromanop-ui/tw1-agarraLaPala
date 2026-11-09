@@ -93,6 +93,10 @@
       <a class="btn btn-primary" th:href="@{/busquedas-Empleador}">
         <i class="bi bi-list-check" aria-hidden="true"></i> Ver mis búsquedas
       </a>
+      <a class="btn btn-outline-primary mt-2"
+        th:href="@{/empresas/{empleadorId}(empleadorId=${empleador.id})}">
+        <i class="bi bi-star" aria-hidden="true"></i> Ver perfil público y responder reseñas
+      </a>
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"

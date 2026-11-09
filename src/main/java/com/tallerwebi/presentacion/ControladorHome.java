@@ -3,6 +3,7 @@ package com.tallerwebi.presentacion;
 import com.tallerwebi.dominio.EstadoVacante;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPago;
+import com.tallerwebi.dominio.ServicioResena;
 import com.tallerwebi.dominio.Vacante;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -21,6 +22,7 @@ public class ControladorHome {
 
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
   private final ServicioPago servicioPago;
+  private ServicioResena servicioResena;
 
   @Autowired
   public ControladorHome(
@@ -31,6 +33,11 @@ public class ControladorHome {
     this.servicioPago = servicioPago;
   }
 
+  @Autowired(required = false)
+  public void setServicioResena(ServicioResena servicioResena) {
+    this.servicioResena = servicioResena;
+  }
+
   @RequestMapping(path = "/home", method = RequestMethod.GET)
   public ModelAndView mostrarHome(HttpServletRequest request) {
     if (esEmpleador(request)) {
@@ -38,7 +45,9 @@ public class ControladorHome {
     }
 
     Map<String, Object> modelo = new ModelMap();
-    modelo.put("ofertasEmpleadores", servicioOfertaEmpleador.listarOfertasPublicadas());
+    List<Vacante> ofertasEmpleadores = servicioOfertaEmpleador.listarOfertasPublicadas();
+    modelo.put("ofertasEmpleadores", ofertasEmpleadores);
+    agregarResumenesResenas(modelo, ofertasEmpleadores);
     Object usuarioId = request.getSession(false) == null
       ? null
       : request.getSession(false).getAttribute("USUARIO_ID");
@@ -62,12 +71,26 @@ public class ControladorHome {
     Map<String, Object> modelo = new ModelMap();
     modelo.put("ofertasEmpleadores", ofertasEmpleadores);
     modelo.put("ofertasActivas", ofertasActivas);
+    agregarResumenesResenas(modelo, ofertasEmpleadores);
     Map<Long, Long> cantidadesPostulaciones = new LinkedHashMap<>();
     for (Vacante oferta : ofertasActivas) {
       cantidadesPostulaciones.put(oferta.getId(), 0L);
     }
     modelo.put("cantidadesPostulaciones", cantidadesPostulaciones);
     return new ModelAndView("home-empleador", modelo);
+  }
+
+  private void agregarResumenesResenas(Map<String, Object> modelo, List<Vacante> ofertas) {
+    List<Long> empleadorIds = ofertas
+      .stream()
+      .map(Vacante::getEmpleadorId)
+      .filter(id -> id != null)
+      .distinct()
+      .toList();
+    modelo.put(
+      "resenasPorEmpleador",
+      EnriquecedorResenasVacantes.obtenerResumenes(empleadorIds, servicioResena)
+    );
   }
 
   private boolean esEmpleador(HttpServletRequest request) {
