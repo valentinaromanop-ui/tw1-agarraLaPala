@@ -58,12 +58,20 @@ class ServicioPerfilImplTest {
     datos.setNombre("Ana");
     datos.setApellido("Pérez");
     datos.setSkillIds(List.of(1L));
+    datos.setVisibleParaEmpleadores(false);
 
     servicio.guardarPerfil(5L, datos);
 
     assertThat(usuario.getNombre(), org.hamcrest.Matchers.is("Ana"));
     assertThat(usuario.getApellido(), org.hamcrest.Matchers.is("Pérez"));
     assertThat(usuario.getHabilidades(), containsInAnyOrder("Java"));
+    org.mockito.ArgumentCaptor<PerfilPostulante> perfilCapturado =
+      org.mockito.ArgumentCaptor.forClass(PerfilPostulante.class);
+    verify(repositorioPerfil).guardar(perfilCapturado.capture());
+    assertThat(
+      perfilCapturado.getValue().isVisibleParaEmpleadores(),
+      org.hamcrest.Matchers.is(false)
+    );
     verify(repositorioUsuario).modificar(usuario);
     verify(repositorioPerfil).guardarSkill(any(PostulanteSkill.class));
   }

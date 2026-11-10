@@ -7,6 +7,7 @@ import com.tallerwebi.dominio.FotoPerfilPostulanteDTO;
 import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.PerfilPostulanteDTO;
 import com.tallerwebi.dominio.PostulanteOfertaDTO;
+import com.tallerwebi.dominio.ServicioInvitacion;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPostulacion;
@@ -58,6 +59,7 @@ public class ControladorPostulacion {
   private final ServicioPostulacion servicioPostulacion;
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
   private final ServicioPago servicioPago;
+  private ServicioInvitacion servicioInvitacion;
 
   @Autowired
   public ControladorPostulacion(
@@ -68,6 +70,11 @@ public class ControladorPostulacion {
     this.servicioPostulacion = servicioPostulacion;
     this.servicioOfertaEmpleador = servicioOfertaEmpleador;
     this.servicioPago = servicioPago;
+  }
+
+  @Autowired
+  public void setServicioInvitacion(ServicioInvitacion servicioInvitacion) {
+    this.servicioInvitacion = servicioInvitacion;
   }
 
   public ControladorPostulacion(ServicioPostulacion servicioPostulacion) {
@@ -183,6 +190,13 @@ public class ControladorPostulacion {
     modelo.put("premium", premium);
     var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
     modelo.put("vacante", vacante);
+    if (servicioInvitacion != null && empleadorId != null && vacante != null) {
+      modelo.put(
+        "candidatosSugeridos",
+        servicioInvitacion.obtenerCandidatosSugeridos(vacanteId, empleadorId)
+      );
+      modelo.put("puedeInvitar", servicioInvitacion.puedeInvitar(vacanteId, empleadorId));
+    }
     agregarMetricas(modelo, vacanteId, vacante, premium);
     return new ModelAndView("postulantes-oferta", modelo);
   }
