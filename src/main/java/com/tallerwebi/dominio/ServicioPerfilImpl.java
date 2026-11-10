@@ -76,6 +76,7 @@ public class ServicioPerfilImpl implements ServicioPerfil {
     perfil.setNivelIngles(datos.getNivelIngles());
     perfil.setLinkedin(datos.getLinkedin());
     perfil.setGithub(datos.getGithub());
+    perfil.setVisibleParaEmpleadores(datos.isVisibleParaEmpleadores());
     perfil.setPresentacion(datos.getPresentacion());
     perfil.setIdiomas(datos.getIdiomas());
     usuario.setTelefono(datos.getTelefono());

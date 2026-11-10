@@ -19,6 +19,7 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   private final RepositorioPostulacion repositorioPostulacion;
   private final RepositorioVacante repositorioVacante;
   private final ServicioPostulantesOferta servicioPostulantesOferta;
+  private ServicioInvitacion servicioInvitacion;
 
   @Autowired
   public ServicioPostulacionImpl(
@@ -31,6 +32,11 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
     this.servicioPostulantesOferta = servicioPostulantesOferta;
+  }
+
+  @Autowired
+  public void setServicioInvitacion(ServicioInvitacion servicioInvitacion) {
+    this.servicioInvitacion = servicioInvitacion;
   }
 
   public ServicioPostulacionImpl(
@@ -100,7 +106,11 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     postulacion.setIdOferta(postulacion.getIdOferta().trim());
     postulacion.setFechaPostulacion(LocalDateTime.now());
     postulacion.setEstado(EstadoPostulacion.ENVIADA);
-    return repositorioPostulacion.guardar(postulacion);
+    Postulacion guardada = repositorioPostulacion.guardar(postulacion);
+    if (servicioInvitacion != null) {
+      servicioInvitacion.aceptarSiExiste(usuarioId, guardada.getIdOferta());
+    }
+    return guardada;
   }
 
   @Override

@@ -26,8 +26,18 @@ public class ServicioNotificacionOfertaImpl implements ServicioNotificacionOfert
   }
 
   @Override
+  public List<NotificacionOferta> listar(Long usuarioId) {
+    return repositorio.buscarPorUsuario(usuarioId);
+  }
+
+  @Override
   public List<NotificacionOferta> listarNoLeidas(Long usuarioId) {
     return repositorio.buscarNoLeidas(usuarioId);
+  }
+
+  @Override
+  public long contarNoLeidas(Long usuarioId) {
+    return repositorio.contarNoLeidas(usuarioId);
   }
 
   @Override
