@@ -14,7 +14,7 @@
   <nav th:replace="~{fragments/navbar :: appNavbar('applications', false, false)}"></nav>
   <main class="page-container employer-page">
     <section class="employer-panel" aria-labelledby="invitacion-titulo">
-      <h1 id="invitacion-titulo" th:text="${entrevista.estado.name() == 'AGENDADA' ? 'Entrevista agendada' : 'Elegí el horario de tu entrevista'}">Elegí el horario de tu entrevista</h1>
+      <h1 id="invitacion-titulo" th:text="${entrevista.estado.name() == 'AGENDADA' ? 'Entrevista agendada' : (entrevista.estado.name() == 'CANCELADA' ? 'Entrevista cancelada' : 'Elegí el horario de tu entrevista')}">Elegí el horario de tu entrevista</h1>
       <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
       <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
       <p th:if="${entrevista.postulacion.titulo != null}">
@@ -29,34 +29,9 @@
       </p>
       <p>Todos los horarios corresponden a Buenos Aires (UTC−3). Duración: 30 minutos.</p>
 
+      <p th:if="${entrevista.estado.name() == 'CANCELADA'}" class="alert alert-info">La entrevista fue cancelada por el empleador.</p>
       <div th:if="${entrevista.estado.name() == 'INVITADA'}">
-        <form id="seleccionar-turno" th:if="${!#maps.isEmpty(turnosPorDia)}" method="post"
-          th:action="@{/entrevistas/{id}/confirmar(id=${entrevista.postulacion.id})}">
-          <div class="row g-3 mb-3">
-            <div class="col-sm-6">
-              <label for="dia-entrevista" class="form-label">Día</label>
-              <select id="dia-entrevista" class="form-select" required>
-                <option value="">Elegí un día</option>
-                <option th:each="dia : ${turnosPorDia}" th:value="${dia.key}"
-                  th:text="${#temporals.format(dia.key, 'EEEE dd/MM/yyyy')}"></option>
-              </select>
-            </div>
-            <div class="col-sm-6">
-              <label for="horario-entrevista" class="form-label">Horario</label>
-              <select id="horario-entrevista" class="form-select" name="inicio" required disabled>
-                <option value="">Elegí un día primero</option>
-              </select>
-            </div>
-          </div>
-          <p id="disponibilidad-dia" role="status"></p>
-          <template id="opciones-horario">
-            <th:block th:each="dia : ${turnosPorDia}">
-              <option th:each="turno : ${dia.value}" th:attr="data-dia=${dia.key}" th:value="${turno.inicio}"
-                th:text="|${#temporals.format(turno.inicio.atZone(zonaHoraria), 'HH:mm')} a ${#temporals.format(turno.fin.atZone(zonaHoraria), 'HH:mm')}|"></option>
-            </th:block>
-          </template>
-          <button class="btn btn-primary mb-3" type="submit" disabled>Confirmar entrevista</button>
-        </form>
+        <form th:replace="~{fragments/selector-horario :: selector(@{/entrevistas/{id}/confirmar(id=${entrevista.postulacion.id})}, 'Confirmar entrevista')}"></form>
         <p th:if="${error == null and #maps.isEmpty(turnosPorDia)}">No hay horarios disponibles en los próximos 14 días.</p>
         <a class="btn btn-outline-light mb-3" th:href="@{/entrevistas/{id}(id=${entrevista.postulacion.id})}">Actualizar horarios</a>
       </div>
@@ -79,34 +54,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
     crossorigin="anonymous"></script>
-  <script>
-    const formularioTurno = document.getElementById('seleccionar-turno');
-    if (formularioTurno) {
-      const dia = document.getElementById('dia-entrevista');
-      const horario = document.getElementById('horario-entrevista');
-      const aviso = document.getElementById('disponibilidad-dia');
-      const opciones = document.getElementById('opciones-horario').content.querySelectorAll('option');
-      const confirmar = formularioTurno.querySelector('button[type="submit"]');
-
-      function mostrarHorarios() {
-        horario.replaceChildren(new Option(dia.value ? 'Elegí un horario' : 'Elegí un día primero', ''));
-        for (const opcion of opciones) {
-          if (opcion.dataset.dia === dia.value) {
-            horario.append(opcion.cloneNode(true));
-          }
-        }
-        horario.disabled = horario.options.length === 1;
-        aviso.textContent = dia.value && horario.disabled ? 'No hay horarios disponibles para este día.' : '';
-        confirmar.disabled = true;
-      }
-
-      dia.addEventListener('change', mostrarHorarios);
-      horario.addEventListener('change', () => {
-        confirmar.disabled = !horario.value;
-      });
-      mostrarHorarios();
-    }
-  </script>
+  <script th:replace="~{fragments/selector-horario :: scriptSelector}"></script>
   <footer th:replace="~{fragments/footer :: appFooter}"></footer>
 </body>
 </html>

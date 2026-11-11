@@ -49,9 +49,44 @@
         </p>
       </section>
 
-
       <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
       <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+
+      <section class="suggested-candidates" aria-labelledby="suggested-candidates-title">
+        <h2 id="suggested-candidates-title">Candidatos sugeridos</h2>
+        <p>Personas visibles para empleadores que todavía no se postularon y coinciden con las habilidades de esta oferta.</p>
+        <p th:if="${!puedeInvitar}" class="alert alert-info" role="status">
+          Esta oferta está cerrada o alcanzó su límite de postulaciones; no se pueden enviar invitaciones.
+        </p>
+        <div th:if="${#lists.isEmpty(candidatosSugeridos)}" class="empty-searches">
+          <p>No hay candidatos sugeridos para esta oferta por ahora.</p>
+        </div>
+        <div class="suggested-candidates-list" th:unless="${#lists.isEmpty(candidatosSugeridos)}">
+          <article class="suggested-candidate-card" th:each="sugerido : ${candidatosSugeridos}">
+            <div>
+              <h3 th:text="${sugerido.nombreCompleto}">Nombre Apellido</h3>
+              <p class="postulante-email" th:text="${sugerido.email}">candidato@correo.com</p>
+              <p class="suggested-candidate-skills">
+                <span th:each="habilidad, estado : ${sugerido.habilidades}">
+                  <span th:text="${habilidad}">Habilidad</span><span th:if="${!estado.last}">, </span>
+                </span>
+              </p>
+              <strong th:text="${#numbers.formatDecimal(sugerido.porcentajeCoincidencia, 1, 0) + '% de coincidencia'}">
+                75% de coincidencia
+              </strong>
+            </div>
+            <div class="suggested-candidate-action">
+              <span th:if="${sugerido.estadoInvitacion != null}" class="invitation-status"
+                    th:text="${sugerido.estadoInvitacion}">PENDIENTE</span>
+              <form th:if="${sugerido.estadoInvitacion == null and puedeInvitar}"
+                    th:action="@{/ofertas/{ofertaId}/invitaciones(ofertaId=${vacante.id})}" method="post">
+                <input type="hidden" name="candidatoId" th:value="${sugerido.candidatoId}">
+                <button class="btn btn-primary" type="submit">Invitar a postularse</button>
+              </form>
+            </div>
+          </article>
+        </div>
+      </section>
 
       <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
         <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
@@ -200,6 +235,8 @@
                       <i class="bi bi-calendar-plus" aria-hidden="true"></i> Citar a entrevista
                     </button>
                   </form>
+                  <a class="btn btn-sm applicant-action-button"
+                    th:href="@{/ofertas/{ofertaId}/postulantes/{id}/entrevista(ofertaId=${vacante.id}, id=${postulante.postulacionId})}">Ver entrevista</a>
                   <div class="postulante-contact-actions">
                     <a class="btn btn-sm applicant-icon-button" title="Ver perfil" aria-label="Ver perfil"
                       th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">

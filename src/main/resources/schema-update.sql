@@ -73,6 +73,21 @@ PREPARE migracion_id_oferta FROM @copiar_id_oferta;
 EXECUTE migracion_id_oferta;
 DEALLOCATE PREPARE migracion_id_oferta;
 
+SET @agregar_leido_mensaje = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Mensaje'
+      AND column_name = 'leido'
+  ) = 0,
+  'ALTER TABLE Mensaje ADD COLUMN leido BOOLEAN NOT NULL DEFAULT FALSE',
+  'SELECT 1'
+);
+PREPARE agregar_leido_mensaje FROM @agregar_leido_mensaje;
+EXECUTE agregar_leido_mensaje;
+DEALLOCATE PREPARE agregar_leido_mensaje;
+
 SET @permitir_oferta_id_nulo = IF(
   (
     SELECT COUNT(*)
@@ -145,6 +160,19 @@ PREPARE migracion_estado_postulacion_default FROM @definir_estado_postulacion_de
 EXECUTE migracion_estado_postulacion_default;
 DEALLOCATE PREPARE migracion_estado_postulacion_default;
 
+CREATE TABLE IF NOT EXISTS VistaPerfil (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  postulante_id BIGINT NOT NULL,
+  empleador_id BIGINT NOT NULL,
+  empresa VARCHAR(255) NULL,
+  oferta_id BIGINT NULL,
+  ofertaTitulo VARCHAR(255) NULL,
+  tipo VARCHAR(20) NOT NULL,
+  fecha DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_vista_postulante_fecha (postulante_id, fecha),
+  INDEX idx_vista_deduplicacion (postulante_id, empleador_id, oferta_id, tipo, fecha)
+);
 SET @agregar_leido_mensaje = IF(
   (
     SELECT COUNT(*)
@@ -159,3 +187,26 @@ SET @agregar_leido_mensaje = IF(
 PREPARE agregar_leido_mensaje FROM @agregar_leido_mensaje;
 EXECUTE agregar_leido_mensaje;
 DEALLOCATE PREPARE agregar_leido_mensaje;
+
+SET @agregar_visibilidad_perfil = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'PerfilPostulante'
+      AND column_name = 'visible_para_empleadores'
+  ) = 0
+  AND (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'PerfilPostulante'
+  ) > 0,
+  'ALTER TABLE PerfilPostulante ADD COLUMN visible_para_empleadores BOOLEAN NOT NULL DEFAULT TRUE',
+  'SELECT 1'
+);
+PREPARE migracion_visibilidad_perfil FROM @agregar_visibilidad_perfil;
+EXECUTE migracion_visibilidad_perfil;
+DEALLOCATE PREPARE migracion_visibilidad_perfil;
+
+ALTER TABLE Entrevista MODIFY COLUMN estado ENUM('INVITADA', 'AGENDADA', 'CANCELADA') NOT NULL;

@@ -17,4 +17,12 @@ public interface ServicioEntrevista {
   );
   Entrevista confirmar(Long postulacionId, Long candidatoId, Instant inicio);
   Entrevista actualizarEnlaceMeet(Long postulacionId, Long candidatoId);
+  Entrevista obtenerParaEmpleador(Long vacanteId, Long postulacionId, Long empleadorId);
+  Map<LocalDate, List<IntervaloHorario>> obtenerTurnosParaEmpleador(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId
+  );
+  void modificar(Long vacanteId, Long postulacionId, Long empleadorId, Instant inicio);
+  void cancelar(Long vacanteId, Long postulacionId, Long empleadorId);
 }

@@ -74,6 +74,27 @@
         >
       </div>
     </div>
+    <section class="profile-section profile-views-section" aria-labelledby="vistas-perfil-titulo">
+      <h2 class="h5" id="vistas-perfil-titulo">Quién vio mi perfil</h2>
+      <div class="profile-views-counters">
+        <strong>Perfil visto: <span th:text="${vistasPerfilCantidad}">0</span></strong>
+        <strong>CV visto: <span th:text="${vistasCvCantidad}">0</span></strong>
+      </div>
+      <p class="profile-views-empty" th:if="${#lists.isEmpty(vistasPerfil)}">
+        Todavía ningún empleador vio tu perfil. Completá tu perfil y subí tu CV para destacarte.
+      </p>
+      <div class="profile-views-list" th:unless="${#lists.isEmpty(vistasPerfil)}">
+        <article class="profile-view-item" th:each="vista : ${vistasPerfil}">
+          <div>
+            <strong th:text="${vista.empresa}">Empresa</strong>
+            <span th:if="${vista.ofertaTitulo != null and !#strings.isEmpty(vista.ofertaTitulo)}"
+              th:text="${vista.ofertaTitulo}">Propuesta</span>
+          </div>
+          <span class="profile-view-badge" th:text="${vista.etiquetaTipo}">Perfil visto</span>
+          <time th:text="${vista.fechaRelativa}" th:datetime="${vista.fecha}">hoy</time>
+        </article>
+      </div>
+    </section>
     <section class="profile-section">
       <h2 class="h5">Plan Premium</h2>
       <p th:if="${premiumHasta == null}">Accedé a beneficios exclusivos para tu búsqueda.</p>
@@ -235,6 +256,16 @@
       <section class="profile-section">
         <fieldset>
           <legend class="h5">Preferencias laborales</legend>
+          <div class="form-check mb-3">
+            <input class="form-check-input" id="visibleParaEmpleadores"
+                   type="checkbox" th:field="*{visibleParaEmpleadores}">
+            <label class="form-check-label" for="visibleParaEmpleadores">
+              Visible para empleadores
+            </label>
+            <p class="form-text mb-0">
+              Si desactivás esta opción, tu perfil no aparecerá entre los candidatos sugeridos.
+            </p>
+          </div>
           <div class="form-check form-check-inline" th:each="modalidad : ${ {'Remoto', 'Híbrido', 'Presencial'} }">
             <input class="form-check-input" type="checkbox" th:field="*{modalidades}" th:value="${modalidad}" th:id="${'modalidad-' + modalidad}">
             <label class="form-check-label" th:for="${'modalidad-' + modalidad}" th:text="${modalidad}">Remoto</label>

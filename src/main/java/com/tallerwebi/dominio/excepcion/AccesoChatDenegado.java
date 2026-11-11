@@ -4,5 +4,7 @@ public class AccesoChatDenegado extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  public AccesoChatDenegado(String mensaje) {}
+  public AccesoChatDenegado(String mensaje) {
+    super(mensaje);
+  }
 }

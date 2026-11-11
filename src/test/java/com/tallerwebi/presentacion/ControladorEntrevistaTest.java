@@ -334,4 +334,60 @@ public class ControladorEntrevistaTest {
       equalTo("No se pudo consultar Google Calendar. Volvé a intentar.")
     );
   }
+
+  @Test
+  public void elEmpleadorDeberiaPoderCancelarDesdeLaGestion() {
+    when(sessionMock.getAttribute("ROL")).thenReturn("EMPLEADOR");
+
+    ModelAndView vista = controladorEntrevista.cancelar(20L, 30L, sessionMock, mensajes);
+
+    verify(servicioEntrevistaMock).cancelar(20L, 30L, 7L);
+    assertThat(mensajes.getFlashAttributes().get("mensaje"), equalTo("Entrevista cancelada."));
+    assertThat(vista.getViewName(), equalTo("redirect:/ofertas/20/postulantes/30/entrevista"));
+  }
+
+  @Test
+  public void modificarDeberiaEnviarElHorarioElegido() {
+    when(sessionMock.getAttribute("ROL")).thenReturn("EMPLEADOR");
+
+    controladorEntrevista.modificar(20L, 30L, "2026-11-03T13:00:00Z", sessionMock, mensajes);
+
+    verify(servicioEntrevistaMock).modificar(20L, 30L, 7L, Instant.parse("2026-11-03T13:00:00Z"));
+    assertThat(
+      mensajes.getFlashAttributes().get("mensaje"),
+      equalTo("Horario de entrevista actualizado.")
+    );
+  }
+
+  @Test
+  public void unCandidatoNoDeberiaAccederALaGestionDelEmpleador() {
+    when(sessionMock.getAttribute("ROL")).thenReturn("CANDIDATO");
+
+    assertThrows(
+      ResponseStatusException.class,
+      () -> controladorEntrevista.gestionar(20L, 30L, sessionMock)
+    );
+    assertThrows(
+      ResponseStatusException.class,
+      () -> controladorEntrevista.modificar(20L, 30L, "2026-11-03T13:00:00Z", sessionMock, mensajes)
+    );
+    assertThrows(
+      ResponseStatusException.class,
+      () -> controladorEntrevista.cancelar(20L, 30L, sessionMock, mensajes)
+    );
+    verifyNoInteractions(servicioEntrevistaMock);
+  }
+
+  @Test
+  public void modificarSinHorarioDeberiaMostrarLaValidacion() {
+    when(sessionMock.getAttribute("ROL")).thenReturn("EMPLEADOR");
+
+    controladorEntrevista.modificar(20L, 30L, null, sessionMock, mensajes);
+
+    assertThat(
+      mensajes.getFlashAttributes().get("error"),
+      equalTo("Elegí un horario para modificar la entrevista.")
+    );
+    verifyNoInteractions(servicioEntrevistaMock);
+  }
 }

@@ -196,6 +196,77 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     return entrevista;
   }
 
+  @Override
+  @Transactional
+  public Entrevista obtenerParaEmpleador(Long vacanteId, Long postulacionId, Long empleadorId) {
+    servicioPostulantesOferta.buscarPostulacionPropia(vacanteId, postulacionId, empleadorId);
+    Entrevista entrevista = repositorioEntrevista.buscarPorPostulacionPorId(postulacionId);
+    if (entrevista == null) {
+      throw new IllegalArgumentException(
+        "Todavía no se envió una invitación para esta postulación."
+      );
+    }
+    return entrevista;
+  }
+
+  @Override
+  @Transactional
+  public Map<LocalDate, List<IntervaloHorario>> obtenerTurnosParaEmpleador(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId
+  ) {
+    Entrevista entrevista = obtenerParaEmpleador(vacanteId, postulacionId, empleadorId);
+    validarAgendada(entrevista);
+    Long organizadorId = obtenerEmpleadorId(entrevista);
+    String token = servicioConexionGoogle.obtenerTokenAcceso(organizadorId);
+    return calcularTurnosPorDia(organizadorId, token);
+  }
+
+  @Override
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public void modificar(Long vacanteId, Long postulacionId, Long empleadorId, Instant inicio) {
+    obtenerParaEmpleador(vacanteId, postulacionId, empleadorId);
+    Entrevista entrevista = repositorioEntrevista.buscarPorPostulacionParaActualizar(postulacionId);
+    validarAgendada(entrevista);
+    validarPostulacionVigente(entrevista);
+    if (entrevista.getInicio().equals(inicio)) {
+      return;
+    }
+    Long organizadorId = obtenerEmpleadorId(entrevista);
+    repositorioUsuario.buscarPorIdParaActualizar(organizadorId);
+    String token = servicioConexionGoogle.obtenerTokenAcceso(organizadorId);
+    IntervaloHorario horario = buscarTurno(inicio, calcularTurnosDisponibles(organizadorId, token));
+    clienteGoogleCalendar.modificarHorario(token, entrevista.getGoogleEventId(), horario);
+    entrevista.cambiarHorario(horario);
+  }
+
+  @Override
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public void cancelar(Long vacanteId, Long postulacionId, Long empleadorId) {
+    obtenerParaEmpleador(vacanteId, postulacionId, empleadorId);
+    Entrevista entrevista = repositorioEntrevista.buscarPorPostulacionParaActualizar(postulacionId);
+    if (entrevista.getEstado() == EstadoEntrevista.CANCELADA) {
+      return;
+    }
+    validarAgendada(entrevista);
+    Long organizadorId = obtenerEmpleadorId(entrevista);
+    repositorioUsuario.buscarPorIdParaActualizar(organizadorId);
+    clienteGoogleCalendar.eliminarEvento(
+      servicioConexionGoogle.obtenerTokenAcceso(organizadorId),
+      entrevista.getGoogleEventId()
+    );
+    entrevista.cancelar();
+  }
+
+  private void validarAgendada(Entrevista entrevista) {
+    if (entrevista.getEstado() != EstadoEntrevista.AGENDADA) {
+      throw new IllegalArgumentException(
+        "Solo se pueden modificar o cancelar entrevistas agendadas."
+      );
+    }
+  }
+
   private Long obtenerEmpleadorId(Entrevista entrevista) {
     if (entrevista.getEmpleadorId() != null) {
       return entrevista.getEmpleadorId();
@@ -207,6 +278,9 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
   }
 
   private void validarPostulacionVigente(Entrevista entrevista) {
+    if (entrevista.getEstado() == EstadoEntrevista.CANCELADA) {
+      throw new IllegalArgumentException("La entrevista fue cancelada.");
+    }
     if (entrevista.getPostulacion().getEstado() == EstadoPostulacion.RECHAZADA) {
       throw new IllegalArgumentException(
         "La postulación fue rechazada y ya no permite reservar una entrevista."

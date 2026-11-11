@@ -46,6 +46,9 @@ public class PerfilPostulante {
   private String linkedin;
   private String github;
 
+  @Column(name = "visible_para_empleadores", nullable = false)
+  private boolean visibleParaEmpleadores = true;
+
   @Column(length = 500)
   private String presentacion;
 
@@ -165,6 +168,14 @@ public class PerfilPostulante {
 
   public void setGithub(String github) {
     this.github = github;
+  }
+
+  public boolean isVisibleParaEmpleadores() {
+    return visibleParaEmpleadores;
+  }
+
+  public void setVisibleParaEmpleadores(boolean visibleParaEmpleadores) {
+    this.visibleParaEmpleadores = visibleParaEmpleadores;
   }
 
   public String getPresentacion() {

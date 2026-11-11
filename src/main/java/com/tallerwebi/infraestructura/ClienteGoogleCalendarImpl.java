@@ -6,6 +6,7 @@ import com.tallerwebi.dominio.ClienteGoogleCalendar;
 import com.tallerwebi.dominio.EventoGoogleCalendar;
 import com.tallerwebi.dominio.IntervaloHorario;
 import com.tallerwebi.dominio.excepcion.ConexionGoogleException;
+import java.net.http.HttpClient;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,12 +17,13 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
@@ -31,6 +33,7 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
   private final GoogleCalendarConfig configuracion;
   private final RestClient cliente;
   private static final String TIPO_VIDEO = "video";
+  private static final String CAMPO_FECHA_HORA = "dateTime";
 
   @Autowired
   public ClienteGoogleCalendarImpl(GoogleCalendarConfig configuracion) {
@@ -43,8 +46,9 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
   }
 
   private static RestClient crearCliente() {
-    SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory();
-    fabrica.setConnectTimeout(Duration.ofSeconds(10));
+    JdkClientHttpRequestFactory fabrica = new JdkClientHttpRequestFactory(
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build()
+    );
     fabrica.setReadTimeout(Duration.ofSeconds(10));
     return RestClient.builder().requestFactory(fabrica).build();
   }
@@ -152,9 +156,9 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
       "summary",
       titulo,
       "start",
-      Map.of("dateTime", horario.getInicio().toString()),
+      Map.of(CAMPO_FECHA_HORA, horario.getInicio().toString()),
       "end",
-      Map.of("dateTime", horario.getFin().toString()),
+      Map.of(CAMPO_FECHA_HORA, horario.getFin().toString()),
       "attendees",
       List.of(Map.of("email", emailCandidato)),
       "conferenceData",
@@ -190,6 +194,54 @@ public class ClienteGoogleCalendarImpl implements ClienteGoogleCalendar {
         .retrieve()
         .body(JsonNode.class);
       return leerEnlaceMeet(respuesta, eventoId);
+    } catch (RestClientException excepcion) {
+      throw new ConexionGoogleException();
+    }
+  }
+
+  @Override
+  public void modificarHorario(String tokenAcceso, String eventoId, IntervaloHorario horario) {
+    try {
+      JsonNode respuesta = cliente
+        .patch()
+        .uri(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events/{id}?conferenceDataVersion=1&sendUpdates=all",
+          eventoId
+        )
+        .headers(headers -> headers.setBearerAuth(tokenAcceso))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          Map.of(
+            "start",
+            Map.of(CAMPO_FECHA_HORA, horario.getInicio().toString()),
+            "end",
+            Map.of(CAMPO_FECHA_HORA, horario.getFin().toString())
+          )
+        )
+        .retrieve()
+        .body(JsonNode.class);
+      leerEnlaceMeet(respuesta, eventoId);
+    } catch (RestClientException excepcion) {
+      throw new ConexionGoogleException();
+    }
+  }
+
+  @Override
+  public void eliminarEvento(String tokenAcceso, String eventoId) {
+    try {
+      cliente
+        .delete()
+        .uri(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events/{id}?sendUpdates=all",
+          eventoId
+        )
+        .headers(headers -> headers.setBearerAuth(tokenAcceso))
+        .retrieve()
+        .toBodilessEntity();
+    } catch (RestClientResponseException excepcion) {
+      if (excepcion.getStatusCode().value() != 404 && excepcion.getStatusCode().value() != 410) {
+        throw new ConexionGoogleException();
+      }
     } catch (RestClientException excepcion) {
       throw new ConexionGoogleException();
     }

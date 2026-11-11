@@ -27,9 +27,9 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class ControladorChat {
 
+  private static final DateTimeFormatter FECHA_JSON = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
   private static final String PATH_VARIABLE_POSTULACION_ID = "postulacionId";
   private static final String RUTA_CONVERSACIONES = "/api/chat/conversaciones";
-  private static final DateTimeFormatter FECHA_JSON = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
   private final ServicioChat servicioChat;
   private final ServicioMensaje servicioMensaje;
 
@@ -52,19 +52,10 @@ public class ControladorChat {
     @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
     HttpServletRequest request
   ) {
-    HttpSession session = request.getSession(false);
-    Object id = session == null ? null : session.getAttribute("USUARIO_ID");
-    if (!(id instanceof Number)) {
-      return new ModelAndView("redirect:/login");
-    }
-
-    Long usuarioId = ((Number) id).longValue();
+    Long usuarioId = usuarioId(request);
+    if (usuarioId == null) return new ModelAndView("redirect:/login");
     Map<String, Object> modelo = new LinkedHashMap<>();
-    try {
-      modelo.put("mensajes", servicioMensaje.listar(postulacionId, usuarioId));
-    } catch (AccesoChatDenegado excepcion) {
-      return new ModelAndView("redirect:/home");
-    }
+    modelo.put("mensajes", servicioChat.listarMensajes(usuarioId, postulacionId));
     modelo.put(PATH_VARIABLE_POSTULACION_ID, postulacionId);
     modelo.put("usuarioId", usuarioId);
     return new ModelAndView("chat", modelo);
@@ -74,9 +65,7 @@ public class ControladorChat {
   @ResponseBody
   public ResponseEntity<?> conversaciones(HttpServletRequest request) {
     Long usuarioId = usuarioId(request);
-    if (usuarioId == null) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+    if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     List<Map<String, Object>> resultado = new ArrayList<>();
     for (Postulacion postulacion : servicioChat.listarConversaciones(usuarioId)) {
       List<Mensaje> mensajes = servicioChat.listarMensajes(usuarioId, postulacion.getId());
@@ -108,9 +97,7 @@ public class ControladorChat {
   @ResponseBody
   public ResponseEntity<?> noLeidos(HttpServletRequest request) {
     Long usuarioId = usuarioId(request);
-    if (usuarioId == null) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+    if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     return ResponseEntity.ok(Map.of("cantidad", servicioChat.contarNoLeidos(usuarioId)));
   }
 
@@ -127,9 +114,7 @@ public class ControladorChat {
     HttpServletRequest request
   ) {
     Long usuarioId = usuarioId(request);
-    if (usuarioId == null) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+    if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     return ResponseEntity.ok(
       servicioChat
         .listarMensajes(usuarioId, postulacionId)
@@ -156,9 +141,7 @@ public class ControladorChat {
     HttpServletRequest request
   ) {
     Long usuarioId = usuarioId(request);
-    if (usuarioId == null) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+    if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     servicioChat.marcarLeidos(usuarioId, postulacionId);
     return ResponseEntity.ok(Map.of("cantidad", servicioChat.contarNoLeidos(usuarioId)));
   }
@@ -174,9 +157,7 @@ public class ControladorChat {
     HttpServletRequest request
   ) {
     Long usuarioId = usuarioId(request);
-    if (usuarioId == null) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+    if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     if (contenido == null || contenido.trim().isEmpty() || contenido.trim().length() > 2000) {
       return ResponseEntity.badRequest().build();
     }
@@ -189,14 +170,14 @@ public class ControladorChat {
     return ResponseEntity.ok(respuesta);
   }
 
-  private String formatearFecha(java.time.LocalDateTime fecha) {
-    return fecha == null ? null : FECHA_JSON.format(fecha);
-  }
-
   private Long usuarioId(HttpServletRequest request) {
     HttpSession session = request.getSession(false);
     Object id = session == null ? null : session.getAttribute("USUARIO_ID");
     return id instanceof Number ? ((Number) id).longValue() : null;
+  }
+
+  private String formatearFecha(java.time.LocalDateTime fecha) {
+    return fecha == null ? null : FECHA_JSON.format(fecha);
   }
 
   private String nombreOtro(Postulacion postulacion, Long usuarioId) {

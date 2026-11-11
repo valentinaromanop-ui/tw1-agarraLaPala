@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+        <form th:fragment="selector(accion, textoBoton)" id="seleccionar-turno" th:if="${!#maps.isEmpty(turnosPorDia)}" method="post"
+          th:action="${accion}">
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label for="dia-entrevista" class="form-label">Día</label>
+              <select id="dia-entrevista" class="form-select" required>
+                <option value="">Elegí un día</option>
+                <option th:each="dia : ${turnosPorDia}" th:value="${dia.key}"
+                  th:text="${#temporals.format(dia.key, 'EEEE dd/MM/yyyy')}"></option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label for="horario-entrevista" class="form-label">Horario</label>
+              <select id="horario-entrevista" class="form-select" name="inicio" required disabled>
+                <option value="">Elegí un día primero</option>
+              </select>
+            </div>
+          </div>
+          <p id="disponibilidad-dia" role="status"></p>
+          <template id="opciones-horario">
+            <th:block th:each="dia : ${turnosPorDia}">
+              <option th:each="turno : ${dia.value}" th:attr="data-dia=${dia.key}" th:value="${turno.inicio}"
+                th:text="|${#temporals.format(turno.inicio.atZone(zonaHoraria), 'HH:mm')} a ${#temporals.format(turno.fin.atZone(zonaHoraria), 'HH:mm')}|"></option>
+            </th:block>
+          </template>
+          <button class="btn btn-primary mb-3" type="submit" disabled th:text="${textoBoton}">Confirmar entrevista</button>
+        </form>
+  <script th:fragment="scriptSelector">
+    const formularioTurno = document.getElementById('seleccionar-turno');
+    if (formularioTurno) {
+      const dia = document.getElementById('dia-entrevista');
+      const horario = document.getElementById('horario-entrevista');
+      const aviso = document.getElementById('disponibilidad-dia');
+      const opciones = document.getElementById('opciones-horario').content.querySelectorAll('option');
+      const confirmar = formularioTurno.querySelector('button[type="submit"]');
+
+      function mostrarHorarios() {
+        horario.replaceChildren(new Option(dia.value ? 'Elegí un horario' : 'Elegí un día primero', ''));
+        for (const opcion of opciones) {
+          if (opcion.dataset.dia === dia.value) {
+            horario.append(opcion.cloneNode(true));
+          }
+        }
+        horario.disabled = horario.options.length === 1;
+        aviso.textContent = dia.value && horario.disabled ? 'No hay horarios disponibles para este día.' : '';
+        confirmar.disabled = true;
+      }
+
+      dia.addEventListener('change', mostrarHorarios);
+      horario.addEventListener('change', () => {
+        confirmar.disabled = !horario.value;
+      });
+      mostrarHorarios();
+    }
+  </script>
+</body>
+</html>

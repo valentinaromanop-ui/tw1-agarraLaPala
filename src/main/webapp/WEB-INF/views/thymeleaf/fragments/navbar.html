@@ -93,9 +93,10 @@
                 aria-expanded="false" aria-label="Notificaciones"
                 th:classappend="${activePage == 'notifications'} ? ' active' : ''">
                 <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
-                <span class="badge bg-danger"
-                  th:if="${!#lists.isEmpty(mensajesNoLeidos) or !#lists.isEmpty(alertasOfertasNoLeidas)}"
-                  th:text="${#lists.size(mensajesNoLeidos) + #lists.size(alertasOfertasNoLeidas)}">1</span>
+                <span id="notifications-count" class="badge bg-danger"
+                  th:hidden="${#lists.isEmpty(mensajesNoLeidos) and #lists.isEmpty(alertasOfertasNoLeidas)}"
+                  th:text="${(#lists.isEmpty(mensajesNoLeidos) ? 0 : #lists.size(mensajesNoLeidos)) + (#lists.isEmpty(alertasOfertasNoLeidas) ? 0 : #lists.size(alertasOfertasNoLeidas))}"
+                  th:data-contador-url="@{/notificaciones/contador}">1</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
                   aria-label="Notificaciones recientes">
@@ -135,6 +136,7 @@
                 <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
                   <hr class="dropdown-divider">
                   <a class="dropdown-item text-center" th:href="@{/postulaciones}">Ver mis postulaciones</a>
+                  <a class="dropdown-item text-center" th:href="@{/notificaciones}">Ver todas las notificaciones</a>
                 </li>
               </ul>
             </li>
@@ -176,32 +178,7 @@
         </div>
       </div>
     </nav>
-    <th:block th:if="${authenticated}">
-      <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
-      <div id="chat-widget" th:data-base-url="@{/}" class="chat-widget"
-        th:data-user-id="${session.USUARIO_ID}">
-        <button id="chat-widget-toggle" class="chat-widget-toggle" type="button"
-          aria-label="Abrir chat" aria-expanded="false">
-          <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
-          <span id="chat-widget-badge" class="chat-widget-badge" hidden></span>
-        </button>
-        <section id="chat-widget-panel" class="chat-widget-panel"
-          style="max-width: calc(100vw - 40px)" hidden
-          aria-label="Conversaciones">
-          <header class="chat-widget-header">
-            <button id="chat-widget-back" class="chat-widget-back" type="button" hidden
-              aria-label="Volver a conversaciones">
-              <i class="bi bi-arrow-left" aria-hidden="true"></i>
-            </button>
-            <h2 id="chat-widget-title">Mensajes</h2>
-            <button id="chat-widget-close" class="chat-widget-close" type="button"
-              aria-label="Cerrar chat">&times;</button>
-          </header>
-          <div id="chat-widget-content" class="chat-widget-content"></div>
-        </section>
-      </div>
-      <script th:src="@{/js/chat-widget.js}" defer></script>
-    </th:block>
+    <th:block th:if="${authenticated}" th:replace="~{fragments/chat-widget :: chatWidget}"></th:block>
   </th:block>
 </body>
 </html>

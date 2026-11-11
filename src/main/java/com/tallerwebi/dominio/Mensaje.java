@@ -25,13 +25,12 @@ public class Mensaje {
   @ManyToOne
   private Usuario receptor;
 
+  private boolean leido = false;
+
   @Column(length = 2000, nullable = false)
   private String texto;
 
   private LocalDateTime fecha = LocalDateTime.now();
-
-  @Column(nullable = false)
-  private boolean leido;
 
   public Long getId() {
     return id;
@@ -85,38 +84,42 @@ public class Mensaje {
     return leido;
   }
 
+  public void setLeido(boolean leido) {
+    this.leido = leido;
+  }
+
+  @Transient
+  public Usuario getRemitente() {
+    return getEmisor();
+  }
+
+  public void setRemitente(Usuario remitente) {
+    setEmisor(remitente);
+  }
+
+  @Transient
+  public String getContenido() {
+    return getTexto();
+  }
+
+  public void setContenido(String contenido) {
+    setTexto(contenido);
+  }
+
+  @Transient
+  public LocalDateTime getFechaEnvio() {
+    return getFecha();
+  }
+
+  public void setFechaEnvio(LocalDateTime fechaEnvio) {
+    setFecha(fechaEnvio);
+  }
+
   public Boolean getLeido() {
     return leido;
   }
 
   public void setLeido(Boolean leido) {
     this.leido = Boolean.TRUE.equals(leido);
-  }
-
-  @Transient
-  public Usuario getRemitente() {
-    return emisor;
-  }
-
-  public void setRemitente(Usuario remitente) {
-    this.emisor = remitente;
-  }
-
-  @Transient
-  public String getContenido() {
-    return texto;
-  }
-
-  public void setContenido(String contenido) {
-    this.texto = contenido;
-  }
-
-  @Transient
-  public LocalDateTime getFechaEnvio() {
-    return fecha;
-  }
-
-  public void setFechaEnvio(LocalDateTime fechaEnvio) {
-    this.fecha = fechaEnvio;
   }
 }
