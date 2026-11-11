@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="chatWidget">
+  <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
+  <div id="chat-widget" class="chat-widget" data-api-base="/api/chat"
+    th:data-user-id="${session.USUARIO_ID}">
+    <button id="chat-widget-toggle" class="chat-widget-toggle" type="button"
+      aria-label="Abrir mensajes" aria-expanded="false">
+      <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+      <span id="chat-widget-badge" class="chat-widget-badge" hidden>0</span>
+    </button>
+    <section id="chat-widget-panel" class="chat-widget-panel" hidden aria-label="Mensajes">
+      <header class="chat-widget-header">
+        <h2 id="chat-widget-title">Mensajes</h2>
+        <button id="chat-widget-close" type="button" aria-label="Cerrar mensajes">&times;</button>
+      </header>
+      <div id="chat-widget-list-view" class="chat-widget-view"></div>
+      <div id="chat-widget-conversation-view" class="chat-widget-view" hidden>
+        <button id="chat-widget-back" class="chat-widget-back" type="button">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+        </button>
+        <div id="chat-widget-messages" class="chat-widget-messages"></div>
+        <form id="chat-widget-form" class="chat-widget-form">
+          <input id="chat-widget-input" maxlength="1000" autocomplete="off"
+            placeholder="Escribí un mensaje..." aria-label="Mensaje">
+          <button type="submit">Enviar</button>
+        </form>
+      </div>
+    </section>
+  </div>
+  <script type="module" th:src="@{/js/chat-widget.js}"></script>
+</th:block>
+</body>
+</html>

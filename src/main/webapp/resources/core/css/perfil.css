@@ -77,6 +77,40 @@
   gap: 0.5rem;
 }
 
+.profile-views-section {
+ background: #141927;
+ color: #e8f4ff;
+}
+
+.profile-views-counters {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 1rem;
+ margin-bottom: 1rem;
+}
+
+.profile-views-counters strong { color: #fff; }
+.profile-views-empty { margin: 0; color: #c5cada; }
+.profile-views-list { display: grid; gap: 0.75rem; }
+.profile-view-item {
+ display: grid;
+ grid-template-columns: minmax(0, 1fr) auto auto;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 0.75rem;
+ border: 1px solid var(--border);
+ border-radius: 0.5rem;
+}
+.profile-view-item div { display: grid; gap: 0.2rem; min-width: 0; }
+.profile-view-item span,
+.profile-view-item time { color: #c5cada; font-size: 0.88rem; }
+.profile-view-badge { color: #a8f0c4 !important; }
+
+@media (max-width: 576px) {
+ .profile-view-item { grid-template-columns: 1fr auto; }
+ .profile-view-item time { grid-column: 1 / -1; }
+}
+
 .cajaCvs {
  display: grid;
  grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -46,6 +46,7 @@ public class ControladorPerfil {
   private final ServicioPerfil servicioPerfil;
   private final ServicioCurriculumGenerado servicioCurriculum;
   private final ServicioPago servicioPago;
+  private final ServicioVistaPerfil servicioVistaPerfil;
   private static final Set<String> TIPOSFOTO = Set.of("image/jpeg", "image/png");
   private static final String mensaje = "mensaje";
   private static final String error = "error";
@@ -123,11 +124,21 @@ public class ControladorPerfil {
   public ControladorPerfil(
     ServicioPerfil servicioPerfil,
     ServicioCurriculumGenerado servicioCurriculum,
-    ServicioPago servicioPago
+    ServicioPago servicioPago,
+    ServicioVistaPerfil servicioVistaPerfil
   ) {
     this.servicioPerfil = servicioPerfil;
     this.servicioCurriculum = servicioCurriculum;
     this.servicioPago = servicioPago;
+    this.servicioVistaPerfil = servicioVistaPerfil;
+  }
+
+  public ControladorPerfil(
+    ServicioPerfil servicioPerfil,
+    ServicioCurriculumGenerado servicioCurriculum,
+    ServicioPago servicioPago
+  ) {
+    this(servicioPerfil, servicioCurriculum, servicioPago, null);
   }
 
   public ControladorPerfil(
@@ -165,6 +176,7 @@ public class ControladorPerfil {
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
     );
+    agregarVistasPerfil(modelo, usuarioId);
     if (request.getParameter("guardado") != null) {
       modelo.put(
         mensaje,
@@ -226,6 +238,7 @@ public class ControladorPerfil {
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(usuarioId)
     );
+    agregarVistasPerfil(modelo, usuarioId);
     modelo.put("editarPerfil", true);
     modelo.put("error", error);
     return new ModelAndView(VISTA_PERFIL, modelo);
@@ -260,5 +273,22 @@ public class ControladorPerfil {
 
   private boolean campoVacio(String valor) {
     return valor == null || valor.isBlank();
+  }
+
+  private void agregarVistasPerfil(Map<String, Object> modelo, Long usuarioId) {
+    modelo.put(
+      "vistasPerfil",
+      servicioVistaPerfil == null ? List.of() : servicioVistaPerfil.listarUltimas(usuarioId)
+    );
+    modelo.put(
+      "vistasPerfilCantidad",
+      servicioVistaPerfil == null
+        ? 0
+        : servicioVistaPerfil.contar(usuarioId, TipoVistaPerfil.PERFIL)
+    );
+    modelo.put(
+      "vistasCvCantidad",
+      servicioVistaPerfil == null ? 0 : servicioVistaPerfil.contar(usuarioId, TipoVistaPerfil.CV)
+    );
   }
 }

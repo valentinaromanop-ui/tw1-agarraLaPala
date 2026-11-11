@@ -144,3 +144,17 @@ SET @definir_estado_postulacion_default = IF(
 PREPARE migracion_estado_postulacion_default FROM @definir_estado_postulacion_default;
 EXECUTE migracion_estado_postulacion_default;
 DEALLOCATE PREPARE migracion_estado_postulacion_default;
+
+CREATE TABLE IF NOT EXISTS VistaPerfil (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  postulante_id BIGINT NOT NULL,
+  empleador_id BIGINT NOT NULL,
+  empresa VARCHAR(255) NULL,
+  oferta_id BIGINT NULL,
+  ofertaTitulo VARCHAR(255) NULL,
+  tipo VARCHAR(20) NOT NULL,
+  fecha DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_vista_postulante_fecha (postulante_id, fecha),
+  INDEX idx_vista_deduplicacion (postulante_id, empleador_id, oferta_id, tipo, fecha)
+);

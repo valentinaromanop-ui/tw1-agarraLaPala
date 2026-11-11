@@ -35,6 +35,22 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
   }
 
   @Override
+  public List<Mensaje> listarConversacionesDeUsuario(Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "SELECT mensaje FROM Mensaje mensaje " +
+        "JOIN FETCH mensaje.postulacion postulacion " +
+        "JOIN FETCH postulacion.usuario " +
+        "WHERE mensaje.emisor.id = :id OR mensaje.receptor.id = :id " +
+        "ORDER BY mensaje.fecha DESC",
+        Mensaje.class
+      )
+      .setParameter("id", usuarioId)
+      .getResultList();
+  }
+
+  @Override
   public List<Mensaje> listarNoLeidos(Long usuarioId) {
     return sessionFactory
       .getCurrentSession()

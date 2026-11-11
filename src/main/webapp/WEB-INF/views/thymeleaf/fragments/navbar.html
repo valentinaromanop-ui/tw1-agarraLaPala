@@ -164,6 +164,7 @@
         </div>
       </div>
     </nav>
+    <th:block th:if="${authenticated}" th:replace="~{fragments/chat-widget :: chatWidget}"></th:block>
   </th:block>
 </body>
 </html>

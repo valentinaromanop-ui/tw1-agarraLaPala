@@ -4,7 +4,9 @@ import com.tallerwebi.dominio.excepcion.AccesoChatDenegado;
 import com.tallerwebi.dominio.excepcion.MensajeInvalido;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,8 +56,46 @@ public class ServicioMensajeImpl implements ServicioMensaje {
   @Override
   public List<Mensaje> listar(Long postulacionId, Long usuarioId) throws AccesoChatDenegado {
     obtenerYValidar(postulacionId, usuarioId);
-    repositorioMensaje.marcarLeidos(postulacionId, usuarioId);
+    marcarComoLeidos(postulacionId, usuarioId);
     return repositorioMensaje.listarPorPostulacion(postulacionId);
+  }
+
+  @Override
+  public void marcarComoLeidos(Long postulacionId, Long usuarioId) throws AccesoChatDenegado {
+    obtenerYValidar(postulacionId, usuarioId);
+    repositorioMensaje.marcarLeidos(postulacionId, usuarioId);
+  }
+
+  @Override
+  public List<ResumenConversacion> listarConversaciones(Long usuarioId) {
+    Map<Long, List<Mensaje>> porPostulacion = new LinkedHashMap<>();
+    for (Mensaje mensaje : repositorioMensaje.listarConversacionesDeUsuario(usuarioId)) {
+      porPostulacion
+        .computeIfAbsent(mensaje.getPostulacion().getId(), ignored -> new ArrayList<>())
+        .add(mensaje);
+    }
+
+    List<ResumenConversacion> resultado = new ArrayList<>();
+    for (List<Mensaje> mensajes : porPostulacion.values()) {
+      Mensaje ultimo = mensajes.get(0);
+      Postulacion postulacion = ultimo.getPostulacion();
+      resultado.add(
+        new ResumenConversacion(
+          postulacion.getId(),
+          nombreDe(otroParticipante(postulacion, usuarioId)),
+          postulacion.getTitulo(),
+          ultimo.getTexto(),
+          ultimo.getFecha(),
+          mensajes
+            .stream()
+            .filter(m ->
+              !m.isLeido() && m.getReceptor() != null && usuarioId.equals(m.getReceptor().getId())
+            )
+            .count()
+        )
+      );
+    }
+    return resultado;
   }
 
   private Postulacion obtenerYValidar(Long postulacionId, Long usuarioId)
@@ -93,6 +133,14 @@ public class ServicioMensajeImpl implements ServicioMensaje {
     return empleadorId == null ? null : repositorioUsuario.buscarPorId(empleadorId);
   }
 
+  private Usuario otroParticipante(Postulacion postulacion, Long usuarioId) {
+    if (postulacion.getUsuario().getId().equals(usuarioId)) {
+      Long empleadorId = obtenerEmpleadorId(postulacion.getIdOferta());
+      return empleadorId == null ? null : repositorioUsuario.buscarPorId(empleadorId);
+    }
+    return postulacion.getUsuario();
+  }
+
   private Long obtenerEmpleadorId(String idOferta) {
     try {
       Vacante vacante = repositorioVacante.obtenerPorId(
@@ -109,6 +157,9 @@ public class ServicioMensajeImpl implements ServicioMensaje {
   }
 
   private String nombreDe(Usuario usuario) {
+    if (usuario == null) {
+      return "Participante";
+    }
     if (usuario.getEmpresa() != null && !usuario.getEmpresa().isBlank()) {
       return usuario.getEmpresa();
     }

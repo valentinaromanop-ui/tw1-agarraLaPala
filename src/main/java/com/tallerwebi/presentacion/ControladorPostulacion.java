@@ -8,6 +8,7 @@ import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.PerfilPostulanteDTO;
 import com.tallerwebi.dominio.PostulanteOfertaDTO;
 import com.tallerwebi.dominio.ServicioPostulacion;
+import com.tallerwebi.dominio.TipoVistaPerfil;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.VacanteNoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -249,6 +250,12 @@ public class ControladorPostulacion {
     if (archivo == null) {
       return ResponseEntity.notFound().build();
     }
+    servicioPostulacion.registrarVistaPostulante(
+      ofertaId,
+      postulacionId,
+      empleadorId,
+      TipoVistaPerfil.CV
+    );
     String disposition = descargar ? "attachment" : "inline";
     MultiValueMap<String, String> headers = new HttpHeaders();
     headers.add(HttpHeaders.CONTENT_TYPE, obtenerContentTypeCv(archivo.getNombreArchivo()));
@@ -274,6 +281,12 @@ public class ControladorPostulacion {
       ofertaId,
       postulacionId,
       empleadorId
+    );
+    servicioPostulacion.registrarVistaPostulante(
+      ofertaId,
+      postulacionId,
+      empleadorId,
+      TipoVistaPerfil.PERFIL
     );
     Map<String, Object> modelo = new ModelMap();
     modelo.put("perfilPostulante", perfil);
