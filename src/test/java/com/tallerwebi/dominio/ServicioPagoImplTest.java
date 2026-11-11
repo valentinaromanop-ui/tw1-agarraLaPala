@@ -42,10 +42,41 @@ public class ServicioPagoImplTest {
     Suscripcion suscripcion = servicio.pagar(1L, "Titular", "4111111111111111", "12/99", "123");
 
     assertEquals(true, suscripcion.getFechaFin().isAfter(LocalDateTime.now().plusDays(29)));
+    when(repositorioSuscripcion.buscarPorUsuarioId(1L)).thenReturn(suscripcion);
+    assertEquals(true, servicio.esPremiumActivo(1L));
     org.mockito.ArgumentCaptor<Pago> captor = org.mockito.ArgumentCaptor.forClass(Pago.class);
     verify(repositorioPago).guardar(captor.capture());
     assertEquals(EstadoPago.APROBADO, captor.getValue().getEstado());
+    assertEquals(new java.math.BigDecimal("5.00"), captor.getValue().getMonto());
     assertEquals("1111", captor.getValue().getUltimosCuatro());
+    assertEquals("Titular", captor.getValue().getTitular());
+  }
+
+  @Test
+  void rechazaTitularVacioSinRegistrarPagoNiActivarPremium() {
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.pagar(1L, "   ", "4111111111111111", "12/99", "123")
+    );
+    verify(repositorioPago, org.mockito.Mockito.never()).guardar(any(Pago.class));
+    verify(repositorioSuscripcion, org.mockito.Mockito.never()).guardar(any(Suscripcion.class));
+  }
+
+  @Test
+  void aceptaCvvDeCuatroDigitos() {
+    Suscripcion suscripcion = servicio.pagar(1L, "Titular", "4111111111111111", "12/99", "1234");
+
+    org.junit.jupiter.api.Assertions.assertNotNull(suscripcion);
+  }
+
+  @Test
+  void rechazaTarjetaVencidaSinActivarPremium() {
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.pagar(1L, "Titular", "4111111111111111", "01/20", "123")
+    );
+    verify(repositorioPago, org.mockito.Mockito.never()).guardar(any(Pago.class));
+    verify(repositorioSuscripcion, org.mockito.Mockito.never()).guardar(any(Suscripcion.class));
   }
 
   @Test
@@ -73,5 +104,42 @@ public class ServicioPagoImplTest {
     Suscripcion actual = servicio.pagar(1L, "Titular", "4111111111111111", "12/99", "123");
 
     assertEquals(fechaEsperada, actual.getFechaFin());
+  }
+
+  @Test
+  void apruebaPagoPremiumDeEmpleadorPorQuinceDolares() {
+    usuario.setRol("EMPLEADOR");
+
+    Suscripcion suscripcion = servicio.pagarEmpleador(
+      1L,
+      "Titular",
+      "4111111111111111",
+      "12/99",
+      "123"
+    );
+
+    assertEquals(true, suscripcion.getFechaFin().isAfter(LocalDateTime.now().plusDays(29)));
+    org.mockito.ArgumentCaptor<Pago> captor = org.mockito.ArgumentCaptor.forClass(Pago.class);
+    verify(repositorioPago).guardar(captor.capture());
+    assertEquals(new java.math.BigDecimal("15"), captor.getValue().getMonto());
+    verify(repositorioSuscripcion).guardar(any(Suscripcion.class));
+  }
+
+  @Test
+  void candidatoNoPuedePagarPremiumDeEmpleador() {
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.pagarEmpleador(1L, "Titular", "4111111111111111", "12/99", "123")
+    );
+  }
+
+  @Test
+  void premiumVencidoNoSeConsideraActivo() {
+    Suscripcion vencida = new Suscripcion();
+    vencida.setFechaFin(LocalDateTime.now().minusSeconds(1));
+    when(repositorioSuscripcion.buscarPorUsuarioId(1L)).thenReturn(vencida);
+
+    assertEquals(false, servicio.esPremiumActivo(1L));
+    assertEquals(null, servicio.fechaFinPremium(1L));
   }
 }

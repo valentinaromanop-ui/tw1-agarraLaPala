@@ -320,6 +320,11 @@ body.vacantes-page {
   font-weight: 600;
 }
 
+.premium-home-promo .home-premium-active-message {
+  color: #f5c84b;
+  font-weight: 600;
+}
+
 .premium-plan-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -363,6 +368,39 @@ body.vacantes-page {
   display: block;
   margin: 0.25rem 0 0 1.45rem;
   color: #f5c84b;
+}
+
+.premium-benefits .premium-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid rgb(245 200 75 / 50%);
+  border-radius: 999px;
+  color: #f5c84b;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.employer-company-badge {
+  display: inline-block;
+  margin: 0.2rem 0 0.2rem 0.35rem;
+  padding: 0.12rem 0.45rem;
+  border: 1px solid rgb(245 200 75 / 50%);
+  border-radius: 999px;
+  color: #f5c84b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.employer-premium-profile-badge {
+  margin: 0.75rem 0;
+}
+
+.employer-offer-premium-badge {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 3.8rem;
+  margin: 0;
 }
 
 .premium-payment-form {

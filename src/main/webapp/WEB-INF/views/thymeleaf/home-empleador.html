@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inicio para empresas | Agarra la Pala</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" th:href="@{/css/vacantes.css}">
+  <link rel="stylesheet" th:href="@{/css/resenas.css}">
+  <link rel="stylesheet" th:href="@{/css/home-empleador.css}">
+</head>
+<body class="employer-home-page">
+  <nav class="navbar navbar-expand-lg app-navbar employer-home-navbar" aria-label="Navegación principal">
+    <div class="container-fluid app-navbar-container">
+      <a class="navbar-brand app-navbar-brand" th:href="@{/empleadores/home}">
+        <img th:src="@{/img/HormigaLogo.png}" alt="Logo de Agarra la Pala" id="Logo-ant">
+        <span>Agarra la Pala</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#employer-home-menu"
+        aria-controls="employer-home-menu" aria-expanded="false" aria-label="Abrir menú">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse app-navbar-collapse" id="employer-home-menu">
+        <div class="search-shell employer-home-search" role="search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" aria-label="Buscar candidatos, puestos o habilidades"
+            placeholder="Buscar candidatos, puestos o habilidades">
+        </div>
+        <ul class="navbar-nav app-navbar-links">
+          <li class="nav-item">
+            <a class="nav-link active" th:href="@{${rutaInicio}}" aria-current="page">
+              <i class="bi bi-house" aria-hidden="true"></i> Inicio
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" id="employer-business-dropdown-toggle" type="button"
+              data-bs-toggle="dropdown" aria-controls="employer-business-dropdown" aria-haspopup="true"
+              aria-expanded="false">
+              <i class="bi bi-building" aria-hidden="true"></i> Para empresas
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="employer-business-dropdown">
+              <li><a class="dropdown-item" href="#mis-ofertas"><i class="bi bi-people" aria-hidden="true"></i> Mis ofertas</a></li>
+              <li><a class="dropdown-item" th:href="@{/crear-postulacion}"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</a></li>
+              <li><a class="dropdown-item" th:href="@{/busquedas-Empleador}"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas</a></li>
+            </ul>
+          </li>
+        </ul>
+        <div class="app-navbar-actions employer-home-actions">
+          <a class="premium-button" th:href="@{/premium/empleador/pagar}">
+            <i class="bi bi-star-fill" aria-hidden="true"></i>
+            <span th:if="${premiumHasta == null}">Hacete Premium</span>
+            <span th:if="${premiumHasta != null}">Premium activo</span>
+          </a>
+          <a class="btn btn-outline-light nav-action" th:href="@{/empleador/perfil}">
+            <i class="bi bi-person-circle" aria-hidden="true"></i> Perfil de empresa
+          </a>
+          <form th:action="@{/logout}" method="post">
+            <button class="btn btn-outline-light nav-action" type="submit">
+              <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="inicio">
+    <section class="hero-section employer-hero" aria-labelledby="employer-hero-title">
+      <div class="container hero-grid employer-home-container">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> Tu próximo talento, más cerca</p>
+          <h1 id="employer-hero-title">Encontrá al talento que tu equipo necesita.</h1>
+          <p class="hero-description">
+            Publicá ofertas, recibí postulaciones y gestioná candidatos en un solo lugar. Menos vueltas para encontrar a quien va a hacer crecer tu equipo.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary-action" th:href="@{/crear-postulacion}">
+              Publicar una oferta <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+            <a class="text-action" href="#como-funciona">
+              Conocé cómo funciona <i class="bi bi-arrow-down" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+        <div class="hero-visual employer-hero-visual" aria-hidden="true">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+          <div class="visual-card visual-card-main">
+            <span class="visual-card-label">CANDIDATO DESTACADO</span>
+            <strong>Alex Ruiz</strong>
+            <span>Desarrollador/a Frontend · React</span>
+            <div class="visual-card-footer">
+              <span class="match-score">92% match</span>
+              <i class="bi bi-stars"></i>
+            </div>
+          </div>
+          <div class="visual-card visual-card-small">
+            <i class="bi bi-check2-circle"></i><span>Oferta publicada</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="cv-section employer-how-section" aria-labelledby="how-title">
+      <div class="container cv-grid employer-home-container">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> Una ayuda extra</p>
+          <h2 id="how-title">Tu próxima contratación, en tres pasos.</h2>
+        </div>
+        <div class="cv-content">
+          <p>Del primer aviso a la incorporación, organizá cada etapa y enfocá tu tiempo en las personas indicadas.</p>
+          <div class="steps-list">
+            <div class="step-item"><span>01</span><p>Publicás tu oferta</p></div>
+            <div class="step-item"><span>02</span><p>Recibís candidatos</p></div>
+            <div class="step-item"><span>03</span><p>Contratás mejor</p></div>
+          </div>
+          <a class="btn outline-action" th:href="@{/crear-postulacion}">
+            Publicá tu primera oferta <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="premium-home-promo employer-premium-banner employer-home-container"
+      aria-labelledby="premium-title">
+      <div>
+        <p class="eyebrow"><span></span> Plan Premium</p>
+        <h2 id="premium-title">Impulsá tus contrataciones.</h2>
+        <p>Destacá tus ofertas, personalizá tu perfil de empresa y accedé a métricas y más candidatos.</p>
+      </div>
+      <a th:if="${premiumHasta == null}" class="premium-button"
+        th:href="${session.USUARIO_ID == null} ? @{/login} : @{/premium/empleador/pagar}">
+        <i class="bi bi-star-fill" aria-hidden="true"></i> Hacete Premium
+      </a>
+      <p th:if="${premiumHasta != null}" class="premium-active-message home-premium-active-message">
+        <i class="bi bi-star-fill" aria-hidden="true"></i> Premium activo hasta
+        <strong th:text="${#temporals.format(premiumHasta, 'dd/MM/yyyy')}">fecha de vencimiento</strong>
+      </p>
+    </section>
+
+    <section class="employer-benefits-section" aria-labelledby="benefits-title">
+      <div class="container employer-home-container">
+        <div class="employer-section-heading">
+          <p class="eyebrow"><span></span> Más herramientas para tu equipo</p>
+          <h2 id="benefits-title">Todo lo que necesitás para contratar mejor.</h2>
+        </div>
+        <div class="employer-benefits-grid">
+          <article class="employer-benefit-card">
+            <i class="bi bi-rocket-takeoff" aria-hidden="true"></i>
+            <h3>Ofertas destacadas</h3>
+            <p>Aparecé primero y sumá una insignia para que tus búsquedas se vean.</p>
+          </article>
+          <article class="employer-benefit-card">
+            <i class="bi bi-building" aria-hidden="true"></i>
+            <h3>Tu marca, a tu manera</h3>
+            <p>Armá un perfil de empresa con logo, banner y una descripción propia.</p>
+          </article>
+          <article class="employer-benefit-card">
+            <i class="bi bi-kanban" aria-hidden="true"></i>
+            <h3>Tablero de postulantes</h3>
+            <p>Organizá perfiles recibidos, preseleccionados, en entrevista o descartados.</p>
+          </article>
+          <article class="employer-benefit-card">
+            <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+            <h3>Métricas por oferta</h3>
+            <p>Consultá vistas, clics y postulaciones para entender qué funciona.</p>
+          </article>
+          <article class="employer-benefit-card">
+            <i class="bi bi-people" aria-hidden="true"></i>
+            <h3>Base de candidatos</h3>
+            <p>Encontrá perfiles con filtros para acercarte a las habilidades que buscás.</p>
+          </article>
+          <article class="employer-benefit-card">
+            <i class="bi bi-headset" aria-hidden="true"></i>
+            <h3>Soporte prioritario</h3>
+            <p>Recibí ayuda cuando la necesites para que el proceso siga avanzando.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="mis-ofertas" class="offers-section employer-offers-section" aria-labelledby="offers-title">
+      <div class="container employer-home-container">
+        <div class="offers-header">
+          <div>
+            <p class="eyebrow"><span></span> Tus publicaciones</p>
+            <h2 id="offers-title">Tus ofertas activas.</h2>
+          </div>
+          <span class="offers-count"
+            th:text="|Mostrando ${#lists.size(ofertasActivas)} ofertas|">Mostrando 0 ofertas</span>
+        </div>
+        <div th:if="${#lists.isEmpty(ofertasActivas)}" class="employer-empty-offers" role="status">
+          <i class="bi bi-clipboard2-x" aria-hidden="true"></i>
+          <h3>Todavía no tenés ofertas activas.</h3>
+          <p>Publicá tu primera búsqueda y empezá a encontrar a tu próximo talento.</p>
+          <a class="btn primary-action" th:href="@{/crear-postulacion}">
+            Publicar una oferta <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+        </div>
+        <div th:unless="${#lists.isEmpty(ofertasActivas)}" class="offers-grid employer-offers-grid">
+          <article class="offer-card employer-offer-card" th:each="oferta : ${ofertasActivas}">
+            <div class="company-logo logo-blue" th:text="${#strings.substring(oferta.empresa, 0, 1)}"
+              th:attr="aria-label=${'Inicial de ' + oferta.empresa}">E</div>
+            <div class="offer-info">
+              <h3><span th:text="${oferta.titulo}">Título del puesto</span>
+                <span class="premium-badge employer-company-badge" th:if="${oferta.empresaPremium}">Destacada</span>
+              </h3>
+              <p class="offer-company-name">
+                <a th:href="@{/empresas/{empleadorId}(empleadorId=${oferta.empleadorId})}"
+                  th:text="${oferta.empresa}">Nombre de la empresa</a>
+                <span class="offer-review-summary" th:with="resumen=${resenasPorEmpleador[oferta.empleadorId]}">
+                  <span th:if="${resumen != null and resumen.cantidad > 0}">
+                    · ★ <span th:text="${#numbers.formatDecimal(resumen.promedio, 1, 1)}">0,0</span>
+                    (<span th:text="${resumen.cantidad}">0</span>)
+                  </span>
+                  <span th:unless="${resumen != null and resumen.cantidad > 0}"> · Sin reseñas</span>
+                </span>
+              </p>
+              <span class="premium-badge employer-company-badge" th:if="${oferta.empresaPremium}">
+                <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium
+              </span>
+              <div class="offer-meta">
+                <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span>
+                <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span>
+                <span th:if="${oferta.jornada != null and !#strings.isEmpty(oferta.jornada)}">
+                  <i class="bi bi-hourglass-split" aria-hidden="true"></i> <span th:text="${oferta.jornada}">Jornada</span>
+                </span>
+                <span th:if="${oferta.jornada == null or #strings.isEmpty(oferta.jornada)}">
+                  <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                  <span th:text="${oferta.horario}">Horario</span>
+                </span>
+              </div>
+            </div>
+            <span class="premium-badge employer-offer-premium-badge" th:if="${oferta.empresaPremium}">
+              <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium
+            </span>
+            <span class="employer-offer-bookmark" aria-hidden="true"><i class="bi bi-bookmark"></i></span>
+            <a class="offer-link" th:href="@{/ofertas/{id}/postulantes(id=${oferta.id})}"
+              th:attr="aria-label=${'Ver candidatos para ' + oferta.titulo}">
+              <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+            <div class="employer-offer-actions">
+              <span class="employer-applicant-count"
+                th:text="${cantidadesPostulaciones[oferta.id]} + ' postulantes'">0 postulantes</span>
+              <a class="apply-button" th:href="@{/ofertas/{id}/postulantes(id=${oferta.id})}">Ver candidatos</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="employer-final-cta" aria-labelledby="final-cta-title">
+      <div class="container employer-home-container">
+        <div>
+          <p class="eyebrow"><span></span> El próximo paso</p>
+          <h2 id="final-cta-title">¿Listo para sumar talento?</h2>
+        </div>
+        <a class="btn primary-action" th:href="@{/crear-postulacion}">
+          Publicar una oferta <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content employer-home-container">
+      <a class="footer-brand" th:href="@{/empleadores/home}">
+        <span class="brand-mark"><i class="bi bi-signpost-2-fill" aria-hidden="true"></i></span> Agarra la Pala
+      </a>
+      <p>Menos búsqueda. Más talento.</p>
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+    crossorigin="anonymous"></script>
+</body>
+</html>

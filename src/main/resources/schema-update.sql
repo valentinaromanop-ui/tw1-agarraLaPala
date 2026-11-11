@@ -138,7 +138,7 @@ SET @migrar_estado_postulacion = IF(
       AND table_name = 'Postulacion'
       AND column_name = 'estado'
   ) > 0,
-  'UPDATE Postulacion SET estado = ''PENDIENTE''',
+  'UPDATE Postulacion SET estado = ''PENDIENTE'' WHERE estado IS NULL OR estado NOT IN (''PENDIENTE'', ''ENVIADA'', ''EN_REVISION'', ''ENTREVISTA'', ''REGISTRADA'', ''ACEPTADA'', ''RECHAZADA'')',
   'SELECT 1'
 );
 PREPARE migracion_estado_postulacion FROM @migrar_estado_postulacion;
@@ -173,3 +173,40 @@ CREATE TABLE IF NOT EXISTS VistaPerfil (
   INDEX idx_vista_postulante_fecha (postulante_id, fecha),
   INDEX idx_vista_deduplicacion (postulante_id, empleador_id, oferta_id, tipo, fecha)
 );
+SET @agregar_leido_mensaje = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Mensaje'
+      AND column_name = 'leido'
+  ) = 0,
+  'ALTER TABLE Mensaje ADD COLUMN leido BOOLEAN NOT NULL DEFAULT FALSE',
+  'SELECT 1'
+);
+PREPARE agregar_leido_mensaje FROM @agregar_leido_mensaje;
+EXECUTE agregar_leido_mensaje;
+DEALLOCATE PREPARE agregar_leido_mensaje;
+
+SET @agregar_visibilidad_perfil = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'PerfilPostulante'
+      AND column_name = 'visible_para_empleadores'
+  ) = 0
+  AND (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = 'PerfilPostulante'
+  ) > 0,
+  'ALTER TABLE PerfilPostulante ADD COLUMN visible_para_empleadores BOOLEAN NOT NULL DEFAULT TRUE',
+  'SELECT 1'
+);
+PREPARE migracion_visibilidad_perfil FROM @agregar_visibilidad_perfil;
+EXECUTE migracion_visibilidad_perfil;
+DEALLOCATE PREPARE migracion_visibilidad_perfil;
+
+ALTER TABLE Entrevista MODIFY COLUMN estado ENUM('INVITADA', 'AGENDADA', 'CANCELADA') NOT NULL;

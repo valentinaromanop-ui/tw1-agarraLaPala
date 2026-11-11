@@ -13,7 +13,7 @@ public class ServicioPostulacionTest {
   private RepositorioPostulacion postulaciones;
   private RepositorioCurriculumGenerado curriculums;
   private RepositorioPerfilPostulante perfiles;
-  private ServicioPostulacion servicio;
+  private ServicioPostulacionImpl servicio;
   private VacanteDTO oferta;
 
   @BeforeEach
@@ -46,7 +46,7 @@ public class ServicioPostulacionTest {
     Postulacion resultado = servicio.registrarEnVacante(1L, oferta);
 
     assertEquals("JOBICY:10", resultado.getOfertaId());
-    assertEquals(EstadoPostulacion.PENDIENTE, resultado.getEstado());
+    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
     assertEquals(oferta.getDescripcion(), resultado.getVacante().getDescripcion());
     assertEquals(oferta.getId(), resultado.getVacante().getIdExterno());
     verify(vacantes).guardar(resultado.getVacante());
@@ -73,6 +73,31 @@ public class ServicioPostulacionTest {
 
     assertSame(local, resultado.getVacante());
     verify(vacantes, never()).guardar(any());
+  }
+
+  @Test
+  public void postularseDespuesDeUnaInvitacionLaDejaAceptada() {
+    oferta.setFuente("LOCAL");
+    Vacante local = new Vacante();
+    local.setId(10L);
+    RepositorioInvitacion repositorioInvitacion = mock(RepositorioInvitacion.class);
+    Invitacion invitacion = new Invitacion();
+    invitacion.setEstado(EstadoInvitacion.PENDIENTE);
+    when(repositorioInvitacion.buscarPorCandidatoYOferta(1L, 10L)).thenReturn(invitacion);
+    ServicioInvitacion servicioInvitacion = new ServicioInvitacionImpl(
+      usuarios,
+      vacantes,
+      postulaciones,
+      repositorioInvitacion,
+      mock(ServicioPerfil.class),
+      mock(ServicioNotificacionOferta.class)
+    );
+    servicio.setServicioInvitacion(servicioInvitacion);
+    when(vacantes.obtenerPorId(10L)).thenReturn(local);
+
+    servicio.registrarEnVacante(1L, oferta);
+
+    assertEquals(EstadoInvitacion.ACEPTADA, invitacion.getEstado());
   }
 
   @Test
@@ -148,7 +173,7 @@ public class ServicioPostulacionTest {
 
     Postulacion resultado = servicio.registrarPostulacion(1L, entrada);
 
-    assertEquals(EstadoPostulacion.PENDIENTE, resultado.getEstado());
+    assertEquals(EstadoPostulacion.ENVIADA, resultado.getEstado());
     assertEquals("Empresa A", resultado.getEmpresa());
     when(postulaciones.buscarPorUsuarioYOferta(1L, "JOBICY:10")).thenReturn(resultado);
 

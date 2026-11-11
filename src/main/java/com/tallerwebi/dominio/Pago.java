@@ -39,6 +39,9 @@ public class Pago {
   @Column(name = "ultimos_cuatro", length = 4)
   private String ultimosCuatro;
 
+  @Column(length = 255)
+  private String titular;
+
   public Long getId() {
     return id;
   }
@@ -93,5 +96,13 @@ public class Pago {
 
   public void setUltimosCuatro(String ultimosCuatro) {
     this.ultimosCuatro = ultimosCuatro;
+  }
+
+  public String getTitular() {
+    return titular;
+  }
+
+  public void setTitular(String titular) {
+    this.titular = titular;
   }
 }

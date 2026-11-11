@@ -23,6 +23,10 @@ public class VacanteDTO {
   private String jornada;
   private String moneda;
   private boolean ofertaEmpleador;
+  private boolean empresaPremium;
+  private Long empleadorId;
+  private BigDecimal promedioResenas = BigDecimal.ZERO;
+  private long cantidadResenas;
   private String estado = "ABIERTA";
   private Integer limitePostulaciones;
 
@@ -152,6 +156,38 @@ public class VacanteDTO {
 
   public void setOfertaEmpleador(boolean ofertaEmpleador) {
     this.ofertaEmpleador = ofertaEmpleador;
+  }
+
+  public boolean isEmpresaPremium() {
+    return empresaPremium;
+  }
+
+  public void setEmpresaPremium(boolean empresaPremium) {
+    this.empresaPremium = empresaPremium;
+  }
+
+  public Long getEmpleadorId() {
+    return empleadorId;
+  }
+
+  public void setEmpleadorId(Long empleadorId) {
+    this.empleadorId = empleadorId;
+  }
+
+  public BigDecimal getPromedioResenas() {
+    return promedioResenas;
+  }
+
+  public void setPromedioResenas(BigDecimal promedioResenas) {
+    this.promedioResenas = promedioResenas == null ? BigDecimal.ZERO : promedioResenas;
+  }
+
+  public long getCantidadResenas() {
+    return cantidadResenas;
+  }
+
+  public void setCantidadResenas(long cantidadResenas) {
+    this.cantidadResenas = cantidadResenas;
   }
 
   public String getEstado() {

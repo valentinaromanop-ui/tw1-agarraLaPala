@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.tallerwebi.dominio.EstadoVacante;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.Usuario;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -112,6 +114,37 @@ public class ControladorOfertaEmpleadorTest {
     request = new MockHttpServletRequest();
 
     ModelAndView resultado = controlador.mostrarBusquedas(request);
+
+    assertThat(resultado.getViewName(), equalTo("redirect:/login"));
+  }
+
+  @Test
+  public void mostrarHomeEmpleadorDeberiaListarSoloOfertasActivasYPostulantes() {
+    Vacante ofertaActiva = new Vacante();
+    ofertaActiva.setId(5L);
+    Vacante ofertaCerrada = new Vacante();
+    ofertaCerrada.setId(6L);
+    ofertaCerrada.setEstado(EstadoVacante.CERRADA);
+    when(servicio.listarPorEmpleador(42L)).thenReturn(List.of(ofertaActiva, ofertaCerrada));
+    when(servicioPostulacion.contarPorOferta(5L)).thenReturn(12L);
+
+    ModelAndView resultado = controlador.mostrarHomeEmpleador(request);
+
+    assertThat(resultado.getViewName(), equalTo("home-empleador"));
+    assertThat(resultado.getModel().get("empresa"), equalTo("Empresa de prueba"));
+    assertThat(resultado.getModel().get("ofertasActivas"), equalTo(List.of(ofertaActiva)));
+    assertThat(
+      ((Map<?, ?>) resultado.getModel().get("cantidadesPostulaciones")).get(5L),
+      equalTo(12L)
+    );
+    verify(servicioPostulacion).contarPorOferta(5L);
+  }
+
+  @Test
+  public void mostrarHomeEmpleadorSinSesionDeberiaRedirigirAlLogin() {
+    request = new MockHttpServletRequest();
+
+    ModelAndView resultado = controlador.mostrarHomeEmpleador(request);
 
     assertThat(resultado.getViewName(), equalTo("redirect:/login"));
   }

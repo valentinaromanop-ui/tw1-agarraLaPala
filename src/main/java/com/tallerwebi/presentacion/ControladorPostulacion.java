@@ -7,12 +7,17 @@ import com.tallerwebi.dominio.FotoPerfilPostulanteDTO;
 import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.PerfilPostulanteDTO;
 import com.tallerwebi.dominio.PostulanteOfertaDTO;
+import com.tallerwebi.dominio.ServicioInvitacion;
+import com.tallerwebi.dominio.ServicioOfertaEmpleador;
+import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.TipoVistaPerfil;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.VacanteNoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +43,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@SuppressWarnings("PMD.CyclomaticComplexity")
 public class ControladorPostulacion {
 
   private static final String RUTA_POSTULACIONES = "/postulaciones";
@@ -52,10 +58,28 @@ public class ControladorPostulacion {
     "/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil";
   private static final String RUTA_FOTO_PERFIL_POSTULANTE = RUTA_PERFIL_POSTULANTE + "/foto";
   private final ServicioPostulacion servicioPostulacion;
+  private final ServicioOfertaEmpleador servicioOfertaEmpleador;
+  private final ServicioPago servicioPago;
+  private ServicioInvitacion servicioInvitacion;
 
   @Autowired
-  public ControladorPostulacion(ServicioPostulacion servicioPostulacion) {
+  public ControladorPostulacion(
+    ServicioPostulacion servicioPostulacion,
+    ServicioOfertaEmpleador servicioOfertaEmpleador,
+    ServicioPago servicioPago
+  ) {
     this.servicioPostulacion = servicioPostulacion;
+    this.servicioOfertaEmpleador = servicioOfertaEmpleador;
+    this.servicioPago = servicioPago;
+  }
+
+  @Autowired
+  public void setServicioInvitacion(ServicioInvitacion servicioInvitacion) {
+    this.servicioInvitacion = servicioInvitacion;
+  }
+
+  public ControladorPostulacion(ServicioPostulacion servicioPostulacion) {
+    this(servicioPostulacion, null, null);
   }
 
   @RequestMapping(path = "/postularse", method = RequestMethod.POST)
@@ -71,6 +95,7 @@ public class ControladorPostulacion {
         .body(mensaje("Iniciá sesión como postulante."));
     }
     try {
+      registrarClickSiCorresponde(ofertaId);
       servicioPostulacion.crearPostulacion(usuarioId, ofertaId);
       return ResponseEntity.ok(mensaje("Postulación registrada"));
     } catch (OfertaCerradaException excepcion) {
@@ -104,6 +129,7 @@ public class ControladorPostulacion {
       return respuesta(HttpStatus.UNAUTHORIZED, false, "Iniciá sesión como postulante.");
     }
     try {
+      registrarClickSiCorresponde(idOferta);
       servicioPostulacion.registrarEnVacante(
         usuarioId,
         crearOferta(idOferta, titulo, empresa, ubicacion, modalidad, url)
@@ -134,34 +160,158 @@ public class ControladorPostulacion {
   public ModelAndView mostrarPostulantes(
     @PathVariable("id") Long vacanteId,
     @RequestParam(value = "estado", defaultValue = FILTRO_TODOS) String estadoFiltro,
+    @RequestParam(value = "skill", required = false) String skillFiltro,
+    @RequestParam(value = "fechaDesde", required = false) String fechaDesde,
+    @RequestParam(value = "fechaHasta", required = false) String fechaHasta,
+    @RequestParam(value = "soloPremium", defaultValue = "false") boolean soloPremium,
     HttpSession session
   ) {
     Long empleadorId = obtenerEmpleadorId(session);
+    boolean premium =
+      servicioPago != null && empleadorId != null && servicioPago.esPremiumActivo(empleadorId);
     List<PostulanteOfertaDTO> todasLasPostulaciones = servicioPostulacion.obtenerPostulantes(
       vacanteId,
       empleadorId
     );
-    long pendientes = contarEstado(todasLasPostulaciones, EstadoPostulacion.PENDIENTE);
-    long aceptadas = contarEstado(todasLasPostulaciones, EstadoPostulacion.ACEPTADA);
-    long rechazadas = contarEstado(todasLasPostulaciones, EstadoPostulacion.RECHAZADA);
-    String filtroNormalizado = normalizarFiltroEstado(estadoFiltro);
-    List<PostulanteOfertaDTO> postulantes = todasLasPostulaciones
+    Map<String, Object> modelo = new ModelMap();
+    agregarResumenPostulantes(modelo, todasLasPostulaciones);
+    modelo.put(
+      "postulantes",
+      filtrarPostulantes(
+        todasLasPostulaciones,
+        premium,
+        estadoFiltro,
+        skillFiltro,
+        fechaDesde,
+        fechaHasta,
+        soloPremium,
+        modelo
+      )
+    );
+    modelo.put("premium", premium);
+    var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
+    modelo.put("vacante", vacante);
+    if (servicioInvitacion != null && empleadorId != null && vacante != null) {
+      modelo.put(
+        "candidatosSugeridos",
+        servicioInvitacion.obtenerCandidatosSugeridos(vacanteId, empleadorId)
+      );
+      modelo.put("puedeInvitar", servicioInvitacion.puedeInvitar(vacanteId, empleadorId));
+    }
+    agregarMetricas(modelo, vacanteId, vacante, premium);
+    return new ModelAndView("postulantes-oferta", modelo);
+  }
+
+  private void agregarResumenPostulantes(
+    Map<String, Object> modelo,
+    List<PostulanteOfertaDTO> postulantes
+  ) {
+    modelo.put("cantidadPostulantes", postulantes.size());
+    modelo.put("cantidadPendientes", contarEstado(postulantes, EstadoPostulacion.PENDIENTE));
+    modelo.put("cantidadAceptadas", contarEstado(postulantes, EstadoPostulacion.ACEPTADA));
+    modelo.put("cantidadRechazadas", contarEstado(postulantes, EstadoPostulacion.RECHAZADA));
+  }
+
+  private List<PostulanteOfertaDTO> filtrarPostulantes(
+    List<PostulanteOfertaDTO> postulantes,
+    boolean premium,
+    String estadoFiltro,
+    String skillFiltro,
+    String fechaDesde,
+    String fechaHasta,
+    boolean soloPremium,
+    Map<String, Object> modelo
+  ) {
+    String estado = premium ? normalizarFiltroEstado(estadoFiltro) : FILTRO_TODOS;
+    LocalDate desde = null;
+    LocalDate hasta = null;
+    String errorFiltro = null;
+    if (premium) {
+      try {
+        desde = parsearFecha(fechaDesde);
+        hasta = parsearFecha(fechaHasta);
+        if (desde != null && hasta != null && desde.isAfter(hasta)) {
+          errorFiltro = "La fecha desde no puede ser posterior a la fecha hasta.";
+        }
+      } catch (DateTimeParseException excepcion) {
+        errorFiltro = "Ingresá las fechas con un formato válido.";
+      }
+    }
+    modelo.put("estadoFiltro", estado);
+    modelo.put("skillFiltro", skillFiltro);
+    modelo.put("fechaDesde", fechaDesde);
+    modelo.put("fechaHasta", fechaHasta);
+    modelo.put("soloPremium", premium && soloPremium);
+    if (errorFiltro != null) {
+      modelo.put("errorFiltro", errorFiltro);
+    }
+    return filtrarPorValores(
+      postulantes,
+      estado,
+      premium ? skillFiltro : null,
+      desde,
+      hasta,
+      premium && soloPremium,
+      errorFiltro != null
+    );
+  }
+
+  private List<PostulanteOfertaDTO> filtrarPorValores(
+    List<PostulanteOfertaDTO> postulantes,
+    String estado,
+    String skillFiltro,
+    LocalDate desde,
+    LocalDate hasta,
+    boolean soloPremium,
+    boolean filtroFechaInvalido
+  ) {
+    String skill = skillFiltro == null ? "" : skillFiltro.trim().toLowerCase(Locale.ROOT);
+    return postulantes
       .stream()
       .filter(postulante ->
-        FILTRO_TODOS.equals(filtroNormalizado) ||
-        estadoPendiente(postulante.getEstado(), filtroNormalizado) ||
-        postulante.getEstado().name().equals(filtroNormalizado)
+        FILTRO_TODOS.equals(estado) ||
+        estadoPendiente(postulante.getEstado(), estado) ||
+        postulante.getEstado().name().equals(estado)
+      )
+      .filter(postulante ->
+        skill.isEmpty() ||
+        postulante
+          .getHabilidades()
+          .stream()
+          .anyMatch(habilidad -> habilidad.toLowerCase(Locale.ROOT).contains(skill))
+      )
+      .filter(postulante -> !soloPremium || postulante.isPremium())
+      .filter(postulante ->
+        filtroFechaInvalido ||
+        desde == null ||
+        !postulante.getFechaPostulacion().toLocalDate().isBefore(desde)
+      )
+      .filter(postulante ->
+        filtroFechaInvalido ||
+        hasta == null ||
+        !postulante.getFechaPostulacion().toLocalDate().isAfter(hasta)
       )
       .toList();
-    Map<String, Object> modelo = new ModelMap();
-    modelo.put("postulantes", postulantes);
-    modelo.put("cantidadPostulantes", todasLasPostulaciones.size());
-    modelo.put("cantidadPendientes", pendientes);
-    modelo.put("cantidadAceptadas", aceptadas);
-    modelo.put("cantidadRechazadas", rechazadas);
-    modelo.put("estadoFiltro", filtroNormalizado);
-    modelo.put("vacante", servicioPostulacion.obtenerVacante("LOCAL", vacanteId));
-    return new ModelAndView("postulantes-oferta", modelo);
+  }
+
+  private void agregarMetricas(
+    Map<String, Object> modelo,
+    Long vacanteId,
+    com.tallerwebi.dominio.Vacante vacante,
+    boolean premium
+  ) {
+    if (servicioOfertaEmpleador != null && vacante != null && premium) {
+      modelo.put("vistas", servicioOfertaEmpleador.obtenerVistas(vacanteId));
+      modelo.put("clicksPostular", servicioOfertaEmpleador.obtenerClicksPostular(vacanteId));
+      modelo.put(
+        "cantidadPostulacionesOferta",
+        servicioOfertaEmpleador.obtenerPostulaciones(vacanteId)
+      );
+    }
+  }
+
+  private LocalDate parsearFecha(String fecha) {
+    return fecha == null || fecha.isBlank() ? null : LocalDate.parse(fecha);
   }
 
   @PostMapping("/ofertas/{ofertaId}/postulantes/{postulacionId}/aceptar")
@@ -228,7 +378,9 @@ public class ControladorPostulacion {
       FILTRO_PENDIENTE.equals(filtro) &&
       (estado == EstadoPostulacion.PENDIENTE ||
         estado == EstadoPostulacion.ENVIADA ||
-        estado == EstadoPostulacion.EN_REVISION)
+        estado == EstadoPostulacion.EN_REVISION ||
+        estado == EstadoPostulacion.ENTREVISTA ||
+        estado == EstadoPostulacion.REGISTRADA)
     );
   }
 
@@ -348,7 +500,23 @@ public class ControladorPostulacion {
     }
     Map<String, Object> modelo = new ModelMap();
     modelo.put("postulaciones", servicioPostulacion.listarPostulaciones(usuarioId));
+    modelo.put("esPremium", servicioPago != null && servicioPago.esPremiumActivo(usuarioId));
     return new ModelAndView("postulaciones", modelo);
+  }
+
+  private void registrarClickSiCorresponde(String ofertaId) {
+    if (servicioOfertaEmpleador == null || ofertaId == null || !ofertaId.startsWith("LOCAL:")) {
+      return;
+    }
+    try {
+      Long vacanteId = Long.valueOf(ofertaId.substring("LOCAL:".length()));
+      var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
+      if (vacante != null && vacante.getEmpleadorId() != null) {
+        servicioOfertaEmpleador.registrarClickPostular(vacanteId);
+      }
+    } catch (NumberFormatException excepcion) {
+      return;
+    }
   }
 
   private Map<String, Object> mensaje(String texto) {

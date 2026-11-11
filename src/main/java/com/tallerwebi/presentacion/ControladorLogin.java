@@ -23,6 +23,7 @@ public class ControladorLogin {
 
   private static final String ATRIBUTO_ERROR = "error";
   private static final String RUTA_HOME = "redirect:/home";
+  private static final String ROL_EMPLEADOR = "EMPLEADOR";
   private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
   private static final List<String> HABILIDADES_DISPONIBLES = List.of(
     "Java",
@@ -108,7 +109,7 @@ public class ControladorLogin {
       );
     }
     identificarUsuarioEnSesion(usuario);
-    return new ModelAndView(RUTA_HOME);
+    return redirigirSegunRol(usuario.getRol());
   }
 
   @RequestMapping(path = "/registro/candidato", method = RequestMethod.POST)
@@ -135,7 +136,7 @@ public class ControladorLogin {
       );
     }
     identificarUsuarioEnSesion(usuario);
-    return new ModelAndView(RUTA_HOME);
+    return redirigirSegunRol(usuario.getRol());
   }
 
   private String validarRegistroCandidato(DatosRegistroCandidato datos) {
@@ -181,7 +182,7 @@ public class ControladorLogin {
       session.setAttribute("USUARIO_ID", usuarioBuscado.getId());
       session.setAttribute("EMAIL", usuarioBuscado.getEmail());
       session.setAttribute("ROL", usuarioBuscado.getRol());
-      return new ModelAndView(RUTA_HOME);
+      return redirigirSegunRol(usuarioBuscado.getRol());
     } else {
       Map<String, Object> model = new ModelMap();
       model.put(ATRIBUTO_ERROR, "Usuario o clave incorrecta");
@@ -245,5 +246,12 @@ public class ControladorLogin {
     session.setAttribute("USUARIO_ID", usuario.getId());
     session.setAttribute("EMAIL", usuario.getEmail());
     session.setAttribute("ROL", usuario.getRol());
+  }
+
+  private ModelAndView redirigirSegunRol(String rol) {
+    if (ROL_EMPLEADOR.equalsIgnoreCase(rol)) {
+      return new ModelAndView("redirect:/home-empleador");
+    }
+    return new ModelAndView("redirect:/home");
   }
 }

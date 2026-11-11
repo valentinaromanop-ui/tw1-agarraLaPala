@@ -3,7 +3,9 @@ package com.tallerwebi.presentacion;
 import com.tallerwebi.dominio.Mensaje;
 import com.tallerwebi.dominio.Postulacion;
 import com.tallerwebi.dominio.ServicioChat;
+import com.tallerwebi.dominio.ServicioMensaje;
 import com.tallerwebi.dominio.Usuario;
+import com.tallerwebi.dominio.excepcion.AccesoChatDenegado;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.time.format.DateTimeFormatter;
@@ -26,29 +28,40 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorChat {
 
   private static final DateTimeFormatter FECHA_JSON = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-  private static final String PARAM_POSTULACION_ID = "postulacionId";
+  private static final String PATH_VARIABLE_POSTULACION_ID = "postulacionId";
+  private static final String RUTA_CONVERSACIONES = "/api/chat/conversaciones";
   private final ServicioChat servicioChat;
+  private final ServicioMensaje servicioMensaje;
 
   @Autowired
-  public ControladorChat(ServicioChat servicioChat) {
+  public ControladorChat(ServicioChat servicioChat, ServicioMensaje servicioMensaje) {
     this.servicioChat = servicioChat;
+    this.servicioMensaje = servicioMensaje;
   }
 
-  @RequestMapping(path = "/chat/{postulacionId}", method = RequestMethod.GET)
+  public ControladorChat(ServicioChat servicioChat) {
+    this(servicioChat, null);
+  }
+
+  public ControladorChat(ServicioMensaje servicioMensaje) {
+    this(null, servicioMensaje);
+  }
+
+  @RequestMapping(path = "/chat/{" + PATH_VARIABLE_POSTULACION_ID + "}", method = RequestMethod.GET)
   public ModelAndView verChat(
-    @PathVariable(PARAM_POSTULACION_ID) Long postulacionId,
+    @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
     HttpServletRequest request
   ) {
     Long usuarioId = usuarioId(request);
     if (usuarioId == null) return new ModelAndView("redirect:/login");
     Map<String, Object> modelo = new LinkedHashMap<>();
     modelo.put("mensajes", servicioChat.listarMensajes(usuarioId, postulacionId));
-    modelo.put(PARAM_POSTULACION_ID, postulacionId);
+    modelo.put(PATH_VARIABLE_POSTULACION_ID, postulacionId);
     modelo.put("usuarioId", usuarioId);
     return new ModelAndView("chat", modelo);
   }
 
-  @RequestMapping(path = "/api/chat/conversaciones", method = RequestMethod.GET)
+  @RequestMapping(path = RUTA_CONVERSACIONES, method = RequestMethod.GET)
   @ResponseBody
   public ResponseEntity<?> conversaciones(HttpServletRequest request) {
     Long usuarioId = usuarioId(request);
@@ -90,14 +103,14 @@ public class ControladorChat {
 
   @RequestMapping(
     path = {
-      "/api/chat/conversaciones/{postulacionId}",
-      "/api/chat/conversaciones/{postulacionId}/mensajes",
+      RUTA_CONVERSACIONES + "/{" + PATH_VARIABLE_POSTULACION_ID + "}",
+      RUTA_CONVERSACIONES + "/{" + PATH_VARIABLE_POSTULACION_ID + "}/mensajes",
     },
     method = RequestMethod.GET
   )
   @ResponseBody
   public ResponseEntity<?> mensajes(
-    @PathVariable(PARAM_POSTULACION_ID) Long postulacionId,
+    @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
     HttpServletRequest request
   ) {
     Long usuarioId = usuarioId(request);
@@ -119,12 +132,12 @@ public class ControladorChat {
   }
 
   @RequestMapping(
-    path = "/api/chat/conversaciones/{postulacionId}/leido",
+    path = RUTA_CONVERSACIONES + "/{" + PATH_VARIABLE_POSTULACION_ID + "}/leido",
     method = RequestMethod.POST
   )
   @ResponseBody
   public ResponseEntity<?> marcarLeidos(
-    @PathVariable(PARAM_POSTULACION_ID) Long postulacionId,
+    @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
     HttpServletRequest request
   ) {
     Long usuarioId = usuarioId(request);
@@ -134,12 +147,12 @@ public class ControladorChat {
   }
 
   @RequestMapping(
-    path = "/api/chat/conversaciones/{postulacionId}/mensajes",
+    path = RUTA_CONVERSACIONES + "/{" + PATH_VARIABLE_POSTULACION_ID + "}/mensajes",
     method = RequestMethod.POST
   )
   @ResponseBody
   public ResponseEntity<?> enviar(
-    @PathVariable(PARAM_POSTULACION_ID) Long postulacionId,
+    @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
     @RequestParam("contenido") String contenido,
     HttpServletRequest request
   ) {

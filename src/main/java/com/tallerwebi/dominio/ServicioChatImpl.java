@@ -71,6 +71,7 @@ public class ServicioChatImpl implements ServicioChat {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida.");
     }
     mensaje.setRemitente(remitente);
+    mensaje.setReceptor(obtenerReceptor(postulacion, usuarioId));
     mensaje.setContenido(contenido.trim());
     mensaje.setFechaEnvio(LocalDateTime.now());
     mensaje.setLeido(false);
@@ -125,6 +126,24 @@ public class ServicioChatImpl implements ServicioChat {
       return vacante != null && usuarioId.equals(vacante.getEmpleadorId());
     } catch (NumberFormatException excepcion) {
       return false;
+    }
+  }
+
+  private Usuario obtenerReceptor(Postulacion postulacion, Long remitenteId) {
+    if (!remitenteId.equals(postulacion.getUsuario().getId())) {
+      return postulacion.getUsuario();
+    }
+    String ofertaId = postulacion.getIdOferta();
+    if (ofertaId == null || !ofertaId.startsWith("LOCAL:")) {
+      return null;
+    }
+    try {
+      Vacante vacante = repositorioVacante.obtenerPorId(Long.valueOf(ofertaId.substring(6)));
+      return vacante == null || vacante.getEmpleadorId() == null
+        ? null
+        : repositorioUsuario.buscarPorId(vacante.getEmpleadorId());
+    } catch (NumberFormatException excepcion) {
+      return null;
     }
   }
 

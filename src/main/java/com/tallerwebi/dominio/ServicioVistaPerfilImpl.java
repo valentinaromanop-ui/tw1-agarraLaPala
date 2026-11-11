@@ -46,7 +46,7 @@ public class ServicioVistaPerfilImpl implements ServicioVistaPerfil {
       ahora.minusHours(24)
     );
     if (existente != null) {
-      existente.setFecha(ahora);
+      existente.setFecha(ahora.minusNanos(1));
       return;
     }
     VistaPerfil vista = new VistaPerfil();

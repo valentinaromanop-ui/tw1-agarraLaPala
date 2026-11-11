@@ -14,4 +14,14 @@ public interface ServicioOfertaEmpleador {
   void cerrar(Long vacanteId, Long empleadorId);
 
   ResumenEmpleador obtenerResumen(Long empleadorId);
+
+  void registrarVista(Long vacanteId);
+
+  void registrarClickPostular(Long vacanteId);
+
+  long obtenerVistas(Long vacanteId);
+
+  long obtenerClicksPostular(Long vacanteId);
+
+  long obtenerPostulaciones(Long vacanteId);
 }

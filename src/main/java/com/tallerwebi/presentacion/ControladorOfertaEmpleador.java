@@ -1,6 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.EstadoVacante;
+import com.tallerwebi.dominio.LimiteOfertasAlcanzadoException;
 import com.tallerwebi.dominio.OfertaCerradaException;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPostulacion;
@@ -83,7 +84,12 @@ public class ControladorOfertaEmpleador {
     }
 
     Vacante vacante = crearVacante(datos, empleador);
-    servicioOfertaEmpleador.publicar(vacante);
+    try {
+      servicioOfertaEmpleador.publicar(vacante);
+    } catch (LimiteOfertasAlcanzadoException excepcion) {
+      errores.add(excepcion.getMessage());
+      return mostrarFormularioConErrores(datos, empleador, errores);
+    }
     return new ModelAndView("redirect:" + RUTA_BUSQUEDAS + "?publicada=true");
   }
 
@@ -120,6 +126,33 @@ public class ControladorOfertaEmpleador {
       modelo.put("mensaje", "La búsqueda se cerró correctamente.");
     }
     return new ModelAndView(VISTA_BUSQUEDAS, modelo);
+  }
+
+  @RequestMapping(path = "/empleadores/home", method = RequestMethod.GET)
+  public ModelAndView mostrarHomeEmpleador(HttpServletRequest request) {
+    Usuario empleador = obtenerEmpleador(request);
+    if (empleador == null) {
+      return new ModelAndView(REDIRECT_LOGIN);
+    }
+
+    List<Vacante> ofertasActivas = servicioOfertaEmpleador
+      .listarPorEmpleador(empleador.getId())
+      .stream()
+      .filter(vacante -> vacante.getEstado() == EstadoVacante.ABIERTA)
+      .toList();
+    Map<Long, Long> cantidadesPostulaciones = new LinkedHashMap<>();
+    for (Vacante vacante : ofertasActivas) {
+      cantidadesPostulaciones.put(
+        vacante.getId(),
+        servicioPostulacion.contarPorOferta(vacante.getId())
+      );
+    }
+
+    Map<String, Object> modelo = new ModelMap();
+    modelo.put("empresa", empleador.getEmpresa());
+    modelo.put("ofertasActivas", ofertasActivas);
+    modelo.put("cantidadesPostulaciones", cantidadesPostulaciones);
+    return new ModelAndView("home-empleador", modelo);
   }
 
   @RequestMapping(path = "/vacantes/{id}/cerrar", method = RequestMethod.POST)

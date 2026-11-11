@@ -124,4 +124,24 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
       .setParameter("estado", EstadoVacante.ABIERTA)
       .getResultList();
   }
+
+  @Override
+  public void incrementarVistas(Long vacanteId) {
+    sessionFactory
+      .getCurrentSession()
+      .createQuery("update Vacante v set v.vistas = coalesce(v.vistas, 0) + 1 where v.id = :id")
+      .setParameter("id", vacanteId)
+      .executeUpdate();
+  }
+
+  @Override
+  public void incrementarClicksPostular(Long vacanteId) {
+    sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "update Vacante v set v.clicksPostular = coalesce(v.clicksPostular, 0) + 1 where v.id = :id"
+      )
+      .setParameter("id", vacanteId)
+      .executeUpdate();
+  }
 }

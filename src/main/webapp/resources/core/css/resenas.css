@@ -1,0 +1,151 @@
+.public-company-body {
+  min-height: 100vh;
+}
+
+.company-profile-panel {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.company-reviews {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--vacantes-border, rgb(210 216 240 / 18%));
+}
+
+.offer-review-summary {
+  color: #f5c84b;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.offer-company-name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.offer-company-name a:hover,
+.offer-company-name a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.reviews-heading,
+.review-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.reviews-heading h2 {
+  margin-bottom: 0;
+}
+
+.reviews-summary {
+  color: #f5c84b;
+  font-size: 1.2rem;
+}
+
+.review-form,
+.review-card {
+  padding: 1.25rem;
+  border: 1px solid var(--vacantes-border, rgb(210 216 240 / 18%));
+  border-radius: 0.75rem;
+  background: var(--vacantes-surface, #1b2030);
+}
+
+.review-form {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1.5rem 0;
+}
+
+.review-form h3,
+.review-form h4,
+.review-card h3,
+.employer-response h4 {
+  margin: 0;
+  color: var(--vacantes-text, #f8f9ff);
+}
+
+.review-form label {
+  color: var(--vacantes-muted, #b9bfd1);
+}
+
+.review-form select,
+.review-form textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--vacantes-border, rgb(210 216 240 / 18%));
+  border-radius: 0.5rem;
+  color: var(--vacantes-text, #f8f9ff);
+  background: var(--vacantes-background, #0f121a);
+}
+
+.review-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.review-character-count,
+.review-hint,
+.empty-reviews,
+.review-card time,
+.employer-response time {
+  color: var(--vacantes-muted, #b9bfd1);
+  font-size: 0.9rem;
+}
+
+.review-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-card-heading h3 {
+  font-size: 1rem;
+}
+
+.review-stars {
+  margin: 0.4rem 0 0;
+  color: #f5c84b;
+  letter-spacing: 0.12em;
+}
+
+.review-comment,
+.employer-response p {
+  margin: 1rem 0;
+  color: var(--vacantes-text, #f8f9ff);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.employer-response {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-left: 3px solid var(--vacantes-accent, #76baff);
+  background: rgb(118 186 255 / 8%);
+}
+
+.review-edit-form {
+  margin-bottom: 0.75rem;
+}
+
+.review-action-form {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.report-review {
+  color: var(--vacantes-muted, #b9bfd1);
+}
+
+@media (max-width: 575.98px) {
+  .reviews-heading,
+  .review-card-heading {
+    flex-direction: column;
+  }
+}

@@ -52,6 +52,7 @@ class ServicioChatTest {
 
     when(repositorioPostulacion.buscarPorId(52L)).thenReturn(postulacion);
     when(repositorioVacante.obtenerPorId(33L)).thenReturn(vacante);
+    when(repositorioVacante.buscarPorEmpleador(any())).thenReturn(List.of());
   }
 
   @Test
@@ -113,10 +114,92 @@ class ServicioChatTest {
     assertThat(excepcion.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
   }
 
+  @Test
+  void mensajeDemasiadoLargoDevuelve400SinGuardar() {
+    ResponseStatusException excepcion = assertThrows(
+      ResponseStatusException.class,
+      () -> servicioChat.enviar(7L, 52L, "x".repeat(2001))
+    );
+
+    assertThat(excepcion.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+    verify(repositorioMensaje, never()).guardar(any(Mensaje.class));
+  }
+
+  @Test
+  void usuarioDeSesionInexistenteNoPuedeEnviar() {
+    when(repositorioUsuario.buscarPorId(7L)).thenReturn(null);
+
+    ResponseStatusException excepcion = assertThrows(
+      ResponseStatusException.class,
+      () -> servicioChat.enviar(7L, 52L, "Hola")
+    );
+
+    assertThat(excepcion.getStatusCode(), equalTo(HttpStatus.UNAUTHORIZED));
+    verify(repositorioMensaje, never()).guardar(any(Mensaje.class));
+  }
+
+  @Test
+  void listarConversacionesCombinaPostulacionesYVacantesDelEmpleadorYOrdenaPorUltimoMensaje() {
+    Postulacion masNueva = postulacion(54L, "LOCAL:33", EstadoPostulacion.ACEPTADA);
+    Postulacion masVieja = postulacion(53L, "LOCAL:33", EstadoPostulacion.ACEPTADA);
+    when(repositorioPostulacion.buscarPorUsuarioId(8L)).thenReturn(List.of());
+    when(repositorioVacante.buscarPorEmpleador(8L)).thenReturn(List.of(vacante));
+    when(repositorioPostulacion.buscarPorVacante(33L)).thenReturn(List.of(masVieja, masNueva));
+    when(repositorioMensaje.listarPorPostulacion(53L)).thenReturn(List.of());
+    when(repositorioMensaje.listarPorPostulacion(54L))
+      .thenReturn(List.of(mensajeConFecha(54L, LocalDateTime.of(2026, 11, 5, 10, 0))));
+
+    List<Postulacion> resultado = servicioChat.listarConversaciones(8L);
+
+    assertThat(resultado, equalTo(List.of(masNueva, masVieja)));
+  }
+
+  @Test
+  void listarConversacionesOmiteEstadosNoAceptadosYParticipantesAjeno() {
+    Postulacion pendiente = postulacion(53L, "LOCAL:33", EstadoPostulacion.PENDIENTE);
+    Postulacion ajena = postulacion(54L, "JOBICY:9", EstadoPostulacion.ACEPTADA);
+    ajena.setUsuario(usuario(99L));
+    when(repositorioPostulacion.buscarPorUsuarioId(7L)).thenReturn(List.of(pendiente, ajena));
+    when(repositorioVacante.buscarPorEmpleador(7L)).thenReturn(List.of());
+
+    List<Postulacion> resultado = servicioChat.listarConversaciones(7L);
+
+    assertThat(resultado, equalTo(List.of()));
+  }
+
+  @Test
+  void contarNoLeidosConsultaCadaConversacionAceptada() {
+    when(repositorioPostulacion.buscarPorUsuarioId(7L)).thenReturn(List.of(postulacion));
+    when(repositorioMensaje.listarPorPostulacion(52L)).thenReturn(List.of());
+    when(repositorioMensaje.contarNoLeidos(52L, 7L)).thenReturn(3L);
+
+    long cantidad = servicioChat.contarNoLeidos(7L);
+
+    assertThat(cantidad, equalTo(3L));
+    verify(repositorioMensaje).contarNoLeidos(52L, 7L);
+  }
+
   private Usuario usuario(Long id) {
     Usuario usuario = new Usuario();
     usuario.setId(id);
     usuario.setEmail(id + "@example.com");
     return usuario;
+  }
+
+  private Postulacion postulacion(Long id, String ofertaId, EstadoPostulacion estado) {
+    Postulacion postulacion = new Postulacion();
+    postulacion.setId(id);
+    postulacion.setIdOferta(ofertaId);
+    postulacion.setUsuario(postulante);
+    postulacion.setEstado(estado);
+    postulacion.setFechaPostulacion(LocalDateTime.of(2026, 11, 1, 10, 0));
+    return postulacion;
+  }
+
+  private Mensaje mensajeConFecha(Long postulacionId, LocalDateTime fecha) {
+    Mensaje mensaje = new Mensaje();
+    mensaje.setPostulacion(postulacion);
+    mensaje.setFechaEnvio(fecha);
+    return mensaje;
   }
 }

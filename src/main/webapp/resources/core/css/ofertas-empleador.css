@@ -154,7 +154,7 @@
 
 .employer-table.postulantes-table {
   width: 100%;
-  min-width: 0;
+  min-width: 68rem;
   table-layout: fixed;
 }
 .postulantes-col-candidato { width: 20%; }
@@ -353,6 +353,7 @@
 }
 
 @media (max-width: 991.98px) {
+  .employer-table.postulantes-table { min-width: 0; }
   .postulantes-table,
   .postulantes-table tbody { display: block; }
   .postulantes-table thead { display: none; }
@@ -390,4 +391,81 @@
   .postulantes-table tbody td:nth-child(6) { grid-column: 1 / -1; }
   .postulante-action-groups { gap: 0.65rem; }
   .postulante-decision-actions { max-width: 22rem; }
+}
+.suggested-candidates {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.suggested-candidates h2 {
+  margin-bottom: 0.5rem;
+}
+
+.suggested-candidates-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.suggested-candidate-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(13, 28, 48, 0.35);
+}
+
+.suggested-candidate-card h3 {
+  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+}
+
+.suggested-candidate-skills {
+  margin-bottom: 0.5rem;
+}
+
+.suggested-candidate-action {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.invitation-status {
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
+
+.notification-list,
+.invitation-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.notification-card,
+.invitation-card {
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.notification-card.unread {
+  border-color: #8bbaff;
+}
+
+@media (max-width: 640px) {
+  .suggested-candidate-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

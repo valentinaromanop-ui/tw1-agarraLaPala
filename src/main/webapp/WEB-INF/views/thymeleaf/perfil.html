@@ -44,6 +44,7 @@
         </details>
       </span>
       <h2 class="profile-name-display" th:hidden="${editarPerfil}" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Apellido</h2>
+      <span th:if="${esPremium}" class="premium-badge">Premium</span>
       <div class="profile-name-fields">
         <input
           id="nombre"
@@ -255,6 +256,16 @@
       <section class="profile-section">
         <fieldset>
           <legend class="h5">Preferencias laborales</legend>
+          <div class="form-check mb-3">
+            <input class="form-check-input" id="visibleParaEmpleadores"
+                   type="checkbox" th:field="*{visibleParaEmpleadores}">
+            <label class="form-check-label" for="visibleParaEmpleadores">
+              Visible para empleadores
+            </label>
+            <p class="form-text mb-0">
+              Si desactivás esta opción, tu perfil no aparecerá entre los candidatos sugeridos.
+            </p>
+          </div>
           <div class="form-check form-check-inline" th:each="modalidad : ${ {'Remoto', 'Híbrido', 'Presencial'} }">
             <input class="form-check-input" type="checkbox" th:field="*{modalidades}" th:value="${modalidad}" th:id="${'modalidad-' + modalidad}">
             <label class="form-check-label" th:for="${'modalidad-' + modalidad}" th:text="${modalidad}">Remoto</label>

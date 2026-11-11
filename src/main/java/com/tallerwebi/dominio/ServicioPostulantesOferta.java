@@ -2,6 +2,7 @@ package com.tallerwebi.dominio;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,18 +20,36 @@ public class ServicioPostulantesOferta {
   private final RepositorioVacante repositorioVacante;
   private final RepositorioCurriculumGenerado repositorioCurriculum;
   private final RepositorioPerfilPostulante repositorioPerfil;
+  private final ServicioPago servicioPago;
 
   @Autowired
   public ServicioPostulantesOferta(
     RepositorioPostulacion repositorioPostulacion,
     RepositorioVacante repositorioVacante,
     RepositorioCurriculumGenerado repositorioCurriculum,
-    RepositorioPerfilPostulante repositorioPerfil
+    RepositorioPerfilPostulante repositorioPerfil,
+    ServicioPago servicioPago
   ) {
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
     this.repositorioCurriculum = repositorioCurriculum;
     this.repositorioPerfil = repositorioPerfil;
+    this.servicioPago = servicioPago;
+  }
+
+  public ServicioPostulantesOferta(
+    RepositorioPostulacion repositorioPostulacion,
+    RepositorioVacante repositorioVacante,
+    RepositorioCurriculumGenerado repositorioCurriculum,
+    RepositorioPerfilPostulante repositorioPerfil
+  ) {
+    this(
+      repositorioPostulacion,
+      repositorioVacante,
+      repositorioCurriculum,
+      repositorioPerfil,
+      null
+    );
   }
 
   public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
@@ -55,9 +74,19 @@ public class ServicioPostulantesOferta {
           dividirHabilidades(usuario.getHabilidades()),
           postulacion.getFechaPostulacion(),
           usuarioIdsConCv.contains(usuario.getId()),
+          servicioPago != null && servicioPago.esPremiumActivo(usuario.getId()),
           postulacion.getEstado()
         );
       })
+      .sorted(
+        Comparator
+          .comparing(PostulanteOfertaDTO::isPremium)
+          .reversed()
+          .thenComparing(
+            PostulanteOfertaDTO::getFechaPostulacion,
+            Comparator.nullsLast(Comparator.reverseOrder())
+          )
+      )
       .toList();
   }
 
@@ -147,17 +176,37 @@ public class ServicioPostulantesOferta {
     return new FotoPerfilPostulanteDTO(usuario.getFotoPerfilTipo(), usuario.getFotoPerfil());
   }
 
-  private Postulacion buscarPostulacionPropia(
-    Long vacanteId,
-    Long postulacionId,
-    Long empleadorId
-  ) {
+  public Postulacion buscarPostulacionPropia(Long vacanteId, Long postulacionId, Long empleadorId) {
     validarPropiedadOferta(vacanteId, empleadorId);
     Postulacion postulacion = repositorioPostulacion.buscarPorIdYVacante(postulacionId, vacanteId);
     if (postulacion == null) {
       throw new VacanteNoEncontradaException("La postulación no existe.");
     }
     return postulacion;
+  }
+
+  public Vacante obtenerVacanteDePostulacion(Postulacion postulacion) {
+    String idOferta = postulacion.getIdOferta();
+    if (idOferta == null) {
+      throw new IllegalArgumentException("La postulación no tiene una oferta asociada.");
+    }
+    String identificador = idOferta.startsWith("LOCAL:") ? idOferta.substring(6) : idOferta;
+    Long vacanteId;
+    try {
+      vacanteId = Long.valueOf(identificador);
+    } catch (NumberFormatException excepcion) {
+      throw new IllegalArgumentException(
+        "Solo se pueden agendar entrevistas de ofertas locales.",
+        excepcion
+      );
+    }
+    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+    if (vacante == null || vacante.getEmpleadorId() == null) {
+      throw new IllegalArgumentException(
+        "La oferta ya no está disponible para agendar entrevistas."
+      );
+    }
+    return vacante;
   }
 
   private boolean tieneCv(Long usuarioId) {

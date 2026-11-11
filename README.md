@@ -69,6 +69,19 @@ Esto incluye la tabla `EmpleoGuardado`, que se genera desde su entidad JPA, y da
 
 Los scripts son idempotentes para los datos de prueba y no requieren tablas ni registros creados manualmente en una base local.
 
+El pago Premium es de prueba: se guardan únicamente el titular y los últimos cuatro dígitos.
+Hibernate crea/actualiza la tabla `NotificacionOferta` y las columnas de métricas y titular con
+`hibernate.hbm2ddl.auto=update`; no hace falta ejecutar un SQL adicional ni cambiar esa opción.
+Para probar el pago, usá por ejemplo `4111111111111111`, vencimiento `12/99` y CVV `123`.
+
+### Reseñas de empresas
+
+El perfil público de una empresa está disponible en `/empresas/{id}`. Solo puede publicar una reseña
+un candidato que se haya postulado a una oferta local de esa empresa; puede editar o eliminar la
+propia. La cuenta empleadora correspondiente puede agregar una única respuesta por reseña. Las
+reseñas y los reportes se crean mediante entidades JPA, por lo que Hibernate administra sus tablas
+al iniciar la aplicación.
+
 ## 2. Thymeleaf
 * [Documentación](https://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html)
 

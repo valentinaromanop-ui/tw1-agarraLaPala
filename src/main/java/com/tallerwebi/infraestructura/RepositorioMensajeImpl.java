@@ -26,6 +26,11 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
   }
 
   @Override
+  public Mensaje guardar(Mensaje mensaje) {
+    return guardarMensaje(mensaje);
+  }
+
+  @Override
   public List<Mensaje> listarPorPostulacion(Long postulacionId) {
     return sessionFactory
       .getCurrentSession()
@@ -54,10 +59,11 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "from Mensaje where receptor.id = :id and leido = false order by fecha desc",
+        "from Mensaje mensaje where mensaje.receptor.id = :usuarioId " +
+        "and mensaje.leido = false order by mensaje.fecha desc",
         Mensaje.class
       )
-      .setParameter("id", usuarioId)
+      .setParameter("usuarioId", usuarioId)
       .getResultList();
   }
 
@@ -66,8 +72,8 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "select count(m.id) from Mensaje m where m.postulacion.id = :postulacionId " +
-        "and m.receptor.id = :usuarioId and m.leido = false",
+        "select count(m.id) from Mensaje m " +
+        "where m.postulacion.id = :postulacionId and m.emisor.id <> :usuarioId and m.leido = false",
         Long.class
       )
       .setParameter("postulacionId", postulacionId)
@@ -80,8 +86,8 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     sessionFactory
       .getCurrentSession()
       .createMutationQuery(
-        "update Mensaje m set m.leido = true where m.postulacion.id = :postulacionId " +
-        "and m.receptor.id = :usuarioId and m.leido = false"
+        "update Mensaje m set m.leido = true " +
+        "where m.postulacion.id = :postulacionId and m.emisor.id <> :usuarioId and m.leido = false"
       )
       .setParameter("postulacionId", postulacionId)
       .setParameter("usuarioId", usuarioId)

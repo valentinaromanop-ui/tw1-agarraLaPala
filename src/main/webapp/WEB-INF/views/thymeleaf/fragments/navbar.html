@@ -34,8 +34,9 @@
           </form>
 
           <div class="app-navbar-page-actions"
-            th:if="${showPremium and authenticated and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')}">
-            <a class="premium-button" th:href="@{/premium/pagar}">
+            th:if="${authenticated and ((showPremium and (session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE')) or session.ROL == 'EMPLEADOR')}">
+            <a class="premium-button"
+              th:href="${session.ROL == 'EMPLEADOR'} ? @{/premium/empleador/pagar} : @{/premium/pagar}">
               <i class="bi bi-star-fill" aria-hidden="true"></i>
               <span th:if="${premiumHasta == null}">Hacete Premium</span>
               <span th:if="${premiumHasta != null}">Premium activo</span>
@@ -43,8 +44,8 @@
           </div>
 
           <ul class="navbar-nav app-navbar-links">
-            <li class="nav-item" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">
-              <a class="nav-link" th:href="@{/home}"
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{${rutaInicio}}"
                 th:classappend="${activePage == 'home'} ? ' active' : ''"
                 th:attr="aria-current=${activePage == 'home'} ? 'page' : null">
                 <i class="bi bi-house" aria-hidden="true"></i> Inicio
@@ -92,8 +93,10 @@
                 aria-expanded="false" aria-label="Notificaciones"
                 th:classappend="${activePage == 'notifications'} ? ' active' : ''">
                 <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
-                <span class="badge bg-danger" th:if="${!#lists.isEmpty(mensajesNoLeidos)}"
-                      th:text="${#lists.size(mensajesNoLeidos)}">1</span>
+                <span id="notifications-count" class="badge bg-danger"
+                  th:hidden="${#lists.isEmpty(mensajesNoLeidos) and #lists.isEmpty(alertasOfertasNoLeidas)}"
+                  th:text="${(#lists.isEmpty(mensajesNoLeidos) ? 0 : #lists.size(mensajesNoLeidos)) + (#lists.isEmpty(alertasOfertasNoLeidas) ? 0 : #lists.size(alertasOfertasNoLeidas))}"
+                  th:data-contador-url="@{/notificaciones/contador}">1</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
                   aria-label="Notificaciones recientes">
@@ -117,12 +120,23 @@
                     </span>
                   </a>
                 </li>
-                <li th:if="${#lists.isEmpty(mensajesNoLeidos)}">
+                <li th:each="n : ${alertasOfertasNoLeidas}">
+                  <a class="dropdown-item notification-item"
+                    th:href="@{/notificaciones/ofertas/{id}/abrir(id=${n.id})}">
+                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>
+                    <span class="notification-content">
+                      <span class="notification-sender">Agarra la Pala</span>
+                      <span class="notification-text" th:text="${n.mensaje}">Nueva oferta acorde a tus habilidades</span>
+                    </span>
+                  </a>
+                </li>
+                <li th:if="${#lists.isEmpty(mensajesNoLeidos) and #lists.isEmpty(alertasOfertasNoLeidas)}">
                   <span class="dropdown-item text-muted">No tenés mensajes nuevos</span>
                 </li>
                 <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
                   <hr class="dropdown-divider">
                   <a class="dropdown-item text-center" th:href="@{/postulaciones}">Ver mis postulaciones</a>
+                  <a class="dropdown-item text-center" th:href="@{/notificaciones}">Ver todas las notificaciones</a>
                 </li>
               </ul>
             </li>

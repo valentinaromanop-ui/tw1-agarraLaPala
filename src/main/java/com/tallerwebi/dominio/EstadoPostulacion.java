@@ -4,14 +4,17 @@ public enum EstadoPostulacion {
   PENDIENTE,
   ENVIADA,
   EN_REVISION,
+  ENTREVISTA,
+  REGISTRADA,
   ACEPTADA,
   RECHAZADA;
 
   public String getEtiqueta() {
     return switch (this) {
       case PENDIENTE -> "Pendiente";
-      case ENVIADA -> "Enviada";
+      case ENVIADA -> "Pendiente";
       case EN_REVISION -> "En revisión";
+      case ENTREVISTA, REGISTRADA -> "Pendiente";
       case ACEPTADA -> "Aceptada";
       case RECHAZADA -> "Rechazada";
     };
