@@ -29,6 +29,14 @@ export function createChatWidget(root, http = window.fetch.bind(window)) {
     badge.hidden = count === 0;
   }
 
+  function renderError() {
+    listView.replaceChildren();
+    const error = document.createElement("p");
+    error.className = "chat-widget-empty";
+    error.textContent = "No pudimos cargar tus conversaciones. Intentá nuevamente.";
+    listView.append(error);
+  }
+
   function renderList() {
     listView.replaceChildren();
     if (!conversations.length) {
@@ -39,13 +47,6 @@ export function createChatWidget(root, http = window.fetch.bind(window)) {
       return;
     }
 
-    function renderError() {
-      listView.replaceChildren();
-      const error = document.createElement("p");
-      error.className = "chat-widget-empty";
-      error.textContent = "No pudimos cargar tus conversaciones. Intentá nuevamente.";
-      listView.append(error);
-    }
     conversations.forEach(item => {
       const button = document.createElement("button");
       button.type = "button";
