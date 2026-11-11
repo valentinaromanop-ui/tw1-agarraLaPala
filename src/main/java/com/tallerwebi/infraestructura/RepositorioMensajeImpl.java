@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-@Repository
+@Repository("repositorioMensaje")
 @Transactional
 public class RepositorioMensajeImpl implements RepositorioMensaje {
 
@@ -26,11 +26,14 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
   }
 
   @Override
-  public List<Mensaje> listarPorPostulacion(Long id) {
+  public List<Mensaje> listarPorPostulacion(Long postulacionId) {
     return sessionFactory
       .getCurrentSession()
-      .createQuery("FROM Mensaje m WHERE m.postulacion.id = :id", Mensaje.class)
-      .setParameter("id", id)
+      .createQuery(
+        "from Mensaje where postulacion.id = :postulacionId order by fecha asc, id asc",
+        Mensaje.class
+      )
+      .setParameter("postulacionId", postulacionId)
       .getResultList();
   }
 
@@ -39,11 +42,7 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "SELECT mensaje FROM Mensaje mensaje " +
-        "JOIN FETCH mensaje.postulacion postulacion " +
-        "JOIN FETCH postulacion.usuario " +
-        "WHERE mensaje.emisor.id = :id OR mensaje.receptor.id = :id " +
-        "ORDER BY mensaje.fecha DESC",
+        "from Mensaje where emisor.id = :id or receptor.id = :id order by fecha desc",
         Mensaje.class
       )
       .setParameter("id", usuarioId)
@@ -55,7 +54,7 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "FROM Mensaje mensaje where mensaje.receptor.id = :id AND mensaje.leido = false ORDER BY mensaje.fecha DESC",
+        "from Mensaje where receptor.id = :id and leido = false order by fecha desc",
         Mensaje.class
       )
       .setParameter("id", usuarioId)
@@ -63,12 +62,26 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
   }
 
   @Override
+  public long contarNoLeidos(Long postulacionId, Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select count(m.id) from Mensaje m where m.postulacion.id = :postulacionId " +
+        "and m.receptor.id = :usuarioId and m.leido = false",
+        Long.class
+      )
+      .setParameter("postulacionId", postulacionId)
+      .setParameter("usuarioId", usuarioId)
+      .getSingleResult();
+  }
+
+  @Override
   public void marcarLeidos(Long postulacionId, Long usuarioId) {
     sessionFactory
       .getCurrentSession()
       .createMutationQuery(
-        "UPDATE Mensaje mensaje SET mensaje.leido = true " +
-        "WHERE mensaje.postulacion.id = :postulacionId AND mensaje.receptor.id = :usuarioId AND mensaje.leido = false"
+        "update Mensaje m set m.leido = true where m.postulacion.id = :postulacionId " +
+        "and m.receptor.id = :usuarioId and m.leido = false"
       )
       .setParameter("postulacionId", postulacionId)
       .setParameter("usuarioId", usuarioId)

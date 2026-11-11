@@ -73,6 +73,21 @@ PREPARE migracion_id_oferta FROM @copiar_id_oferta;
 EXECUTE migracion_id_oferta;
 DEALLOCATE PREPARE migracion_id_oferta;
 
+SET @agregar_leido_mensaje = IF(
+  (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'Mensaje'
+      AND column_name = 'leido'
+  ) = 0,
+  'ALTER TABLE Mensaje ADD COLUMN leido BOOLEAN NOT NULL DEFAULT FALSE',
+  'SELECT 1'
+);
+PREPARE agregar_leido_mensaje FROM @agregar_leido_mensaje;
+EXECUTE agregar_leido_mensaje;
+DEALLOCATE PREPARE agregar_leido_mensaje;
+
 SET @permitir_oferta_id_nulo = IF(
   (
     SELECT COUNT(*)

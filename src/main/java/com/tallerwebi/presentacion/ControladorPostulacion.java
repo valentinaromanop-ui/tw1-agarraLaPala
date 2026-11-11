@@ -42,6 +42,7 @@ public class ControladorPostulacion {
 
   private static final String RUTA_POSTULACIONES = "/postulaciones";
   private static final String FILTRO_TODOS = "TODOS";
+  private static final String FILTRO_PENDIENTE = "PENDIENTE";
   private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
   private static final String PATH_VARIABLE_OFERTA_ID = "ofertaId";
   private static final String PATH_VARIABLE_POSTULACION_ID = "postulacionId";
@@ -148,6 +149,7 @@ public class ControladorPostulacion {
       .stream()
       .filter(postulante ->
         FILTRO_TODOS.equals(filtroNormalizado) ||
+        estadoPendiente(postulante.getEstado(), filtroNormalizado) ||
         postulante.getEstado().name().equals(filtroNormalizado)
       )
       .toList();
@@ -211,7 +213,23 @@ public class ControladorPostulacion {
   }
 
   private long contarEstado(List<PostulanteOfertaDTO> postulantes, EstadoPostulacion estado) {
-    return postulantes.stream().filter(postulante -> postulante.getEstado() == estado).count();
+    return postulantes
+      .stream()
+      .filter(postulante ->
+        estado == EstadoPostulacion.PENDIENTE
+          ? estadoPendiente(postulante.getEstado(), FILTRO_PENDIENTE)
+          : postulante.getEstado() == estado
+      )
+      .count();
+  }
+
+  private boolean estadoPendiente(EstadoPostulacion estado, String filtro) {
+    return (
+      FILTRO_PENDIENTE.equals(filtro) &&
+      (estado == EstadoPostulacion.PENDIENTE ||
+        estado == EstadoPostulacion.ENVIADA ||
+        estado == EstadoPostulacion.EN_REVISION)
+    );
   }
 
   private String normalizarFiltroEstado(String estadoFiltro) {

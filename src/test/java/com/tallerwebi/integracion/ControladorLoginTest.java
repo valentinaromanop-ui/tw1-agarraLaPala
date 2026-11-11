@@ -102,6 +102,7 @@ public class ControladorLoginTest {
 
     MockHttpSession session = (MockHttpSession) resultado.getRequest().getSession(false);
     assertThat(session.getAttribute("ROL"), is("EMPLEADOR"));
+    assertThat(resultado.getResponse().getRedirectedUrl(), is("/home"));
     Usuario usuario = servicioLogin.consultarUsuario(email, "secreto");
     assertThat(usuario.getEmpresa(), is("Empresa SA"));
     assertThat(usuario.getLegajo(), is("12345"));
