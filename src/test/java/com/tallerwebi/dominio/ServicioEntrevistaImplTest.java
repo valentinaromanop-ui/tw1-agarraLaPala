@@ -597,6 +597,115 @@ public class ServicioEntrevistaImplTest {
     verifyNoInteractions(clienteGoogleCalendarMock);
   }
 
+  @Test
+  public void modificarDeberiaConservarElEventoYElMeet() {
+    Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
+
+    servicioEntrevista.modificar(20L, 30L, 7L, hora("2026-11-03T10:00"));
+
+    assertThat(entrevista.getInicio(), equalTo(hora("2026-11-03T10:00")));
+    assertThat(entrevista.getFin(), equalTo(hora("2026-11-03T10:30")));
+    assertThat(entrevista.getGoogleEventId(), equalTo("evento-google"));
+    assertThat(entrevista.getUrlMeet(), equalTo("https://meet.google.com/abc-defg-hij"));
+    verify(clienteGoogleCalendarMock).modificarHorario(eq("acceso"), eq("evento-google"), any());
+  }
+
+  @Test
+  public void modificarUnHorarioOcupadoDeberiaConservarElAnterior() {
+    Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
+    dadoQueGoogleDevuelveOcupados(
+      new IntervaloHorario(hora("2026-11-03T10:00"), hora("2026-11-03T10:30"))
+    );
+
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.modificar(20L, 30L, 7L, hora("2026-11-03T10:00"))
+    );
+
+    assertThat(entrevista.getInicio(), equalTo(hora("2026-11-02T09:00")));
+    verify(clienteGoogleCalendarMock, never()).modificarHorario(anyString(), anyString(), any());
+  }
+
+  @Test
+  public void cancelarDosVecesDeberiaEliminarElEventoUnaSolaVez() {
+    Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
+
+    servicioEntrevista.cancelar(20L, 30L, 7L);
+    servicioEntrevista.cancelar(20L, 30L, 7L);
+
+    assertThat(entrevista.getEstado(), equalTo(EstadoEntrevista.CANCELADA));
+    verify(clienteGoogleCalendarMock, times(1)).eliminarEvento("acceso", "evento-google");
+  }
+
+  @Test
+  public void siGoogleFallaNoDeberiaCancelarNiCambiarElHorario() {
+    Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
+    doThrow(new ConexionGoogleException())
+      .when(clienteGoogleCalendarMock)
+      .eliminarEvento("acceso", "evento-google");
+    doThrow(new ConexionGoogleException())
+      .when(clienteGoogleCalendarMock)
+      .modificarHorario(anyString(), anyString(), any());
+
+    assertThrows(ConexionGoogleException.class, () -> servicioEntrevista.cancelar(20L, 30L, 7L));
+    assertThrows(
+      ConexionGoogleException.class,
+      () -> servicioEntrevista.modificar(20L, 30L, 7L, hora("2026-11-03T10:00"))
+    );
+
+    assertThat(entrevista.getEstado(), equalTo(EstadoEntrevista.AGENDADA));
+    assertThat(entrevista.getInicio(), equalTo(hora("2026-11-02T09:00")));
+  }
+
+  @Test
+  public void otroEmpleadorNoDeberiaGestionarLaEntrevista() {
+    when(servicioPostulantesOfertaMock.buscarPostulacionPropia(20L, 30L, 8L))
+      .thenThrow(new AccesoOfertaDenegadoException());
+
+    assertThrows(
+      AccesoOfertaDenegadoException.class,
+      () -> servicioEntrevista.obtenerParaEmpleador(20L, 30L, 8L)
+    );
+    assertThrows(
+      AccesoOfertaDenegadoException.class,
+      () -> servicioEntrevista.modificar(20L, 30L, 8L, hora("2026-11-03T10:00"))
+    );
+    assertThrows(
+      AccesoOfertaDenegadoException.class,
+      () -> servicioEntrevista.cancelar(20L, 30L, 8L)
+    );
+    verifyNoInteractions(clienteGoogleCalendarMock);
+  }
+
+  @Test
+  public void unaCanceladaNoDeberiaVolverAConfirmarse() {
+    Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
+    entrevista.cancelar();
+
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.confirmar(30L, 12L, hora("2026-11-03T10:00"))
+    );
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.obtenerTurnosParaInvitacion(30L, 12L)
+    );
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicioEntrevista.modificar(20L, 30L, 7L, hora("2026-11-03T10:00"))
+    );
+    verifyNoInteractions(clienteGoogleCalendarMock);
+  }
+
+  private Entrevista dadoQueExisteUnaEntrevistaAgendada() {
+    Entrevista entrevista = dadoQueExisteUnaInvitacion();
+    entrevista.agendar(
+      new IntervaloHorario(hora("2026-11-02T09:00"), hora("2026-11-02T09:30")),
+      new EventoGoogleCalendar("evento-google", "https://meet.google.com/abc-defg-hij")
+    );
+    return entrevista;
+  }
+
   private Entrevista dadoQueExisteUnaInvitacion() {
     Postulacion postulacion = dadoQueExisteUnaPostulacionParaInvitar();
     Entrevista entrevista = new Entrevista(postulacion, LocalDateTime.parse("2026-11-02T08:00"));

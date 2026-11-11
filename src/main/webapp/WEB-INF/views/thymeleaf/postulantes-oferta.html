@@ -200,6 +200,8 @@
                       <i class="bi bi-calendar-plus" aria-hidden="true"></i> Citar a entrevista
                     </button>
                   </form>
+                  <a class="btn btn-sm applicant-action-button"
+                    th:href="@{/ofertas/{ofertaId}/postulantes/{id}/entrevista(ofertaId=${vacante.id}, id=${postulante.postulacionId})}">Ver entrevista</a>
                   <div class="postulante-contact-actions">
                     <a class="btn btn-sm applicant-icon-button" title="Ver perfil" aria-label="Ver perfil"
                       th:href="@{/ofertas/{ofertaId}/postulantes/{postulacionId}/perfil(ofertaId=${vacante.id}, postulacionId=${postulante.postulacionId})}">

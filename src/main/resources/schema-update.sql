@@ -159,3 +159,5 @@ SET @agregar_leido_mensaje = IF(
 PREPARE agregar_leido_mensaje FROM @agregar_leido_mensaje;
 EXECUTE agregar_leido_mensaje;
 DEALLOCATE PREPARE agregar_leido_mensaje;
+
+ALTER TABLE Entrevista MODIFY COLUMN estado ENUM('INVITADA', 'AGENDADA', 'CANCELADA') NOT NULL;
