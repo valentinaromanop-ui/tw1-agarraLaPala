@@ -337,7 +337,13 @@ function iniciarResultados() {
     parametros.set("texto", formularioBusqueda.value);
     for (const campo of formularioFiltros.elements) {
       if (campo.name && !campo.disabled) {
-        if (campo.value) {
+        if (campo.type === "checkbox") {
+          if (campo.checked) {
+            parametros.set(campo.name, "true");
+          } else {
+            parametros.delete(campo.name);
+          }
+        } else if (campo.value) {
           parametros.set(campo.name, campo.value);
         } else {
           parametros.delete(campo.name);
@@ -419,6 +425,13 @@ function iniciarResultados() {
     skills.className = "result-skills";
     skills.textContent = `Skills: ${(oferta.skills || []).join(", ") || "No informadas"}`;
     informacion.append(titulo, empresa, detalles, skills);
+    if (oferta.porcentajeCoincidenciaCv > 0) {
+      const coincidencia = document.createElement("p");
+      coincidencia.className = "result-cv-match";
+      coincidencia.textContent = `Coincidencia con tu CV: ${oferta.porcentajeCoincidenciaCv}% `
+        + `(${(oferta.palabrasCoincidentesCv || []).join(", ")})`;
+      informacion.append(coincidencia);
+    }
     tarjeta.append(informacion);
     if (oferta.url) {
       const enlace = document.createElement("a");
@@ -465,6 +478,9 @@ function iniciarResultados() {
     try {
       const respuesta = await fetch(`${resultados.dataset.endpoint}?${parametros.toString()}`);
       if (!respuesta.ok) {
+        if (respuesta.status === 400 || respuesta.status === 403) {
+          throw new Error("Necesitás ser candidato Premium y tener un CV disponible.");
+        }
         throw new Error("La búsqueda falló");
       }
       ofertas = await respuesta.json();
@@ -483,8 +499,8 @@ function iniciarResultados() {
         estado.textContent = `${ofertas.length} ofertas encontradas`;
         mostrarOfertas();
       }
-    } catch {
-      estado.textContent = "No pudimos cargar las ofertas. Intentá nuevamente.";
+    } catch (error) {
+      estado.textContent = error.message || "No pudimos cargar las ofertas. Intentá nuevamente.";
     } finally {
       resultados.setAttribute("aria-busy", "false");
     }
@@ -494,7 +510,11 @@ function iniciarResultados() {
     if (campo.name && !campo.disabled) {
       const valorInicial = new URLSearchParams(window.location.search).get(campo.name);
       if (valorInicial !== null) {
-        campo.value = valorInicial;
+        if (campo.type === "checkbox") {
+          campo.checked = valorInicial === "true";
+        } else {
+          campo.value = valorInicial;
+        }
       }
       campo.addEventListener("change", () => cargarOfertas(true));
     }
@@ -503,7 +523,11 @@ function iniciarResultados() {
     evento.preventDefault();
     for (const campo of formularioFiltros.elements) {
       if (campo.name && !campo.disabled) {
-        campo.value = "";
+        if (campo.type === "checkbox") {
+          campo.checked = false;
+        } else {
+          campo.value = "";
+        }
       }
     }
     cargarOfertas(true);

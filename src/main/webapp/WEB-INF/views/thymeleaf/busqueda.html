@@ -40,6 +40,19 @@
 				<details class="filters-panel" open>
 					<summary>Filtros</summary>
 					<form id="filtros-busqueda" class="filter-fields">
+						<div th:if="${esPremium}" class="cv-filter">
+							<label for="filtro-cv">
+								<input id="filtro-cv" name="usarCv" type="checkbox" value="true"
+									th:disabled="${!tieneCv}">
+								Usar mi CV para filtrar ofertas
+							</label>
+							<p th:if="${!tieneCv}" class="pending-filter-note">
+								Subí o seleccioná un CV desde tu perfil para activar este filtro.
+							</p>
+						</div>
+						<p th:unless="${esPremium}" class="pending-filter-note">
+							El filtro por CV está disponible para candidatos Premium.
+						</p>
 						<label for="filtro-zona">Zona / ubicación
 							<input id="filtro-zona" name="zona" type="search" placeholder="Ej.: Buenos Aires">
 						</label>
