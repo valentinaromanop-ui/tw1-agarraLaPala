@@ -74,7 +74,18 @@ describe("Chat Widget", function() {
     const root = document.querySelector("#chat-widget");
     const widget = createChatWidget(root, async () => ({ ok: true, json: async () => [] }));
     await widget.loadConversations();
+
     expect(root.querySelector(".chat-widget-empty").textContent).toBe("No tenés conversaciones todavía");
+    widget.destroy();
+  });
+
+  it("muestra un mensaje de error si falla la carga de conversaciones", async function() {
+    const root = document.querySelector("#chat-widget");
+    const widget = createChatWidget(root, async () => Promise.reject(new Error("network")));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(root.querySelector(".chat-widget-empty").textContent)
+      .toBe("No pudimos cargar tus conversaciones. Intentá nuevamente.");
     widget.destroy();
   });
 });
