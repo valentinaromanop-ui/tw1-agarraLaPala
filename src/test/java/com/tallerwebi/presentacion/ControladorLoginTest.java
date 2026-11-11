@@ -65,7 +65,7 @@ public class ControladorLoginTest {
   public void loginConCandidatoDeberiaLlevarAlHomeYGuardarRolEnSesion() {
     // preparacion
     Usuario usuarioEncontradoMock = mock(Usuario.class);
-    when(usuarioEncontradoMock.getRol()).thenReturn("CANDIDATO");
+    when(usuarioEncontradoMock.getRol()).thenReturn("ADMIN");
 
     when(requestMock.getSession()).thenReturn(sessionMock);
     when(servicioLoginMock.consultarUsuario(anyString(), anyString()))

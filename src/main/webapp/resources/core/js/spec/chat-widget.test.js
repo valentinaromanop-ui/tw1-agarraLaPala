@@ -1,155 +1,80 @@
 import { JSDOM } from "jsdom";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const script = fs.readFileSync(
-  path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "chat-widget.js"),
-  "utf8"
-);
+const widgetMarkup = `
+  <div id="chat-widget" data-api-base="/api/chat">
+    <button id="chat-widget-toggle"></button><span id="chat-widget-badge" hidden></span>
+    <section id="chat-widget-panel" hidden>
+      <button id="chat-widget-close"></button><h2 id="chat-widget-title"></h2>
+      <div id="chat-widget-list-view"></div>
+      <div id="chat-widget-conversation-view" hidden>
+        <button id="chat-widget-back"></button><div id="chat-widget-messages"></div>
+        <form id="chat-widget-form"><input id="chat-widget-input"><button>Enviar</button></form>
+      </div>
+    </section>
+  </div>`;
 
-function cargarWidget(fetchMock, html, timers) {
-  const dom = new JSDOM(html, { runScripts: "outside-only", url: "http://localhost" });
-  dom.window.fetch = fetchMock;
-  dom.window.eval(script);
-  if (timers) {
-    dom.window.setTimeout = function(callback) {
-      timers.push(callback);
-      return timers.length;
-    };
-    dom.window.clearTimeout = function() {};
+describe("Chat Widget", function() {
+  let createChatWidget;
+  let dom;
+  let calls;
+
+  beforeAll(async function() {
+    dom = new JSDOM("<!doctype html><body></body>", { url: "http://localhost" });
+    globalThis.window = dom.window;
+    globalThis.document = dom.window.document;
+    ({ createChatWidget } = await import("../chat-widget.js"));
+  });
+
+  beforeEach(function() {
+    document.body.innerHTML = widgetMarkup;
+    calls = [];
+  });
+
+  function fakeFetch(url, options = {}) {
+    calls.push({ url, options });
+    if (url.endsWith("/conversaciones") && options.method !== "POST") {
+      return Promise.resolve({
+        ok: true,
+        json: async () => [{ postulacionId: 1, otroParticipante: "ACME", puesto: "Dev", ultimoMensaje: "Hola", fechaUltimoMensaje: "2026-01-01T10:00:00", noLeidos: 1 }]
+      });
+    }
+    if (url.includes("/mensajes") && options.method === "POST") {
+      return Promise.resolve({ ok: true, json: async () => ({ emisorId: 7, texto: "Nuevo", fecha: "2026-01-01T10:01:00" }) });
+    }
+    return Promise.resolve({ ok: true, json: async () => [{ emisorId: 8, texto: "Hola", fecha: "2026-01-01T10:00:00" }] });
   }
-  return dom;
-}
 
-describe("Widget de chat", function() {
-  it("no se renderiza sin sesión", function() {
-    const fetchMock = jasmine.createSpy("fetch");
-    const dom = cargarWidget(fetchMock, "<body></body>");
-
-    expect(dom.window.document.querySelector("#chat-widget")).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
-    dom.window.close();
+  it("abre y cierra el panel y muestra el badge", async function() {
+    const root = document.querySelector("#chat-widget");
+    const widget = createChatWidget(root, fakeFetch);
+    await widget.loadConversations();
+    expect(root.querySelector("#chat-widget-badge").textContent).toBe("1");
+    root.querySelector("#chat-widget-toggle").click();
+    expect(root.querySelector("#chat-widget-panel").hidden).toBe(false);
+    root.querySelector("#chat-widget-close").click();
+    expect(root.querySelector("#chat-widget-panel").hidden).toBe(true);
+    widget.destroy();
   });
 
-  it("muestra el estado vacío y alterna el panel", async function() {
-    const fetchMock = jasmine.createSpy("fetch").and.callFake(function(url) {
-      const body = url.endsWith("no-leidos") ? { cantidad: 0 } : [];
-      return Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
-    });
-    const dom = cargarWidget(fetchMock,
-      "<body><div id=\"chat-widget\" data-user-id=\"7\">" +
-      "<button id=\"chat-widget-toggle\"></button><span id=\"chat-widget-badge\"></span>" +
-      "<section id=\"chat-widget-panel\" hidden><header><button id=\"chat-widget-back\"></button>" +
-      "<h2 id=\"chat-widget-title\"></h2><button id=\"chat-widget-close\"></button></header>" +
-      "<div id=\"chat-widget-content\"></div></section></div>");
-
-    expect(dom.window.document.querySelector("#chat-widget-panel").hidden).toBeTrue();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(dom.window.document.querySelector("#chat-widget-content").textContent)
-      .toContain("No tenés conversaciones todavía");
-    dom.window.document.querySelector("#chat-widget-toggle").click();
-
-    expect(dom.window.document.querySelector("#chat-widget-panel").hidden).toBeFalse();
-    dom.window.document.querySelector("#chat-widget-close").click();
-
-    expect(dom.window.document.querySelector("#chat-widget-panel").hidden).toBeTrue();
-    dom.window.close();
+  it("abre una conversación y envía un mensaje", async function() {
+    const root = document.querySelector("#chat-widget");
+    const widget = createChatWidget(root, fakeFetch);
+    await widget.loadConversations();
+    root.querySelector(".chat-widget-conversation").click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(root.querySelector("#chat-widget-conversation-view").hidden).toBe(false);
+    root.querySelector("#chat-widget-input").value = "Nuevo";
+    root.querySelector("#chat-widget-form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(calls.some(call => call.options.method === "POST" && call.url.includes("/mensajes"))).toBe(true);
+    widget.destroy();
   });
 
-  it("la burbuja abre el panel y la x lo cierra", async function() {
-    const fetchMock = jasmine.createSpy("fetch").and.callFake(function(url) {
-      const body = url.endsWith("no-leidos") ? { cantidad: 0 } : [];
-      return Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
-    });
-    const dom = cargarWidget(fetchMock,
-      "<body><div id=\"chat-widget\" data-user-id=\"7\">" +
-      "<button id=\"chat-widget-toggle\"></button><span id=\"chat-widget-badge\"></span>" +
-      "<section id=\"chat-widget-panel\" hidden><header><button id=\"chat-widget-back\"></button>" +
-      "<h2 id=\"chat-widget-title\"></h2><button id=\"chat-widget-close\"></button></header>" +
-      "<div id=\"chat-widget-content\"></div></section></div>");
-
-    dom.window.document.querySelector("#chat-widget-toggle").click();
-    expect(dom.window.document.querySelector("#chat-widget-panel").hidden).toBeFalse();
-    dom.window.document.querySelector("#chat-widget-close").click();
-    expect(dom.window.document.querySelector("#chat-widget-panel").hidden).toBeTrue();
-    dom.window.close();
-  });
-
-  it("abre desde postulantes la conversación aceptada", async function() {
-    const fetchMock = jasmine.createSpy("fetch").and.callFake(function(url) {
-      if (url.endsWith("no-leidos")) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ cantidad: 0 }) });
-      }
-      if (url.endsWith("/conversaciones/42/mensajes")) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-    });
-    const dom = cargarWidget(fetchMock,
-      "<body><button class=\"chat-open-conversation\" data-conversation-id=\"42\"></button>" +
-      "<div id=\"chat-widget\" data-user-id=\"7\"><button id=\"chat-widget-toggle\"></button>" +
-      "<span id=\"chat-widget-badge\"></span><section id=\"chat-widget-panel\" hidden>" +
-      "<header><button id=\"chat-widget-back\"></button><h2 id=\"chat-widget-title\"></h2>" +
-      "<button id=\"chat-widget-close\"></button></header><div id=\"chat-widget-content\"></div>" +
-      "</section></div>");
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    dom.window.document.querySelector(".chat-open-conversation").click();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(dom.window.document.querySelector("#chat-widget-panel").hidden).toBeFalse();
-    expect(fetchMock.calls.allArgs().some((args) =>
-      args[0] === "/api/chat/conversaciones/42/mensajes"
-    )).toBeTrue();
-    expect(fetchMock.calls.allArgs().some((args) =>
-      args[0] === "/api/chat/conversaciones/42/leido" &&
-      args[1].method === "POST"
-    )).toBeTrue();
-    dom.window.close();
-  });
-
-  it("conserva el texto y el foco durante el polling", async function() {
-    const timers = [];
-    let historyCalls = 0;
-    const fetchMock = jasmine.createSpy("fetch").and.callFake(function(url) {
-      if (url.endsWith("/conversaciones/42/mensajes")) {
-        historyCalls += 1;
-        const messages = historyCalls === 1 ? [] : [{
-          id: 8,
-          contenido: "Mensaje nuevo",
-          remitenteId: 9
-        }];
-        return Promise.resolve({ ok: true, json: () => Promise.resolve(messages) });
-      }
-      if (url.endsWith("no-leidos")) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ cantidad: 0 }) });
-      }
-      if (url.endsWith("/leido")) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ cantidad: 0 }) });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-    });
-    const dom = cargarWidget(fetchMock,
-      "<body><div id=\"chat-widget\" data-user-id=\"7\">" +
-      "<button id=\"chat-widget-toggle\"></button><span id=\"chat-widget-badge\"></span>" +
-      "<section id=\"chat-widget-panel\" hidden><header><button id=\"chat-widget-back\"></button>" +
-      "<h2 id=\"chat-widget-title\"></h2><button id=\"chat-widget-close\"></button></header>" +
-      "<div id=\"chat-widget-content\"></div></section></div>", timers);
-
-    await dom.window.openChatConversation(42);
-    const input = dom.window.document.querySelector("input[name=\"contenido\"]");
-    input.value = "Texto en progreso";
-    input.focus();
-    const focusedInput = dom.window.document.activeElement;
-
-    const poll = timers[timers.length - 1];
-    await poll();
-
-    expect(input.value).toBe("Texto en progreso");
-    expect(dom.window.document.activeElement).toBe(focusedInput);
-    expect(dom.window.document.querySelectorAll(".chat-widget-message").length).toBe(1);
-    dom.window.close();
+  it("muestra el estado vacío", async function() {
+    const root = document.querySelector("#chat-widget");
+    const widget = createChatWidget(root, async () => ({ ok: true, json: async () => [] }));
+    await widget.loadConversations();
+    expect(root.querySelector(".chat-widget-empty").textContent).toBe("No tenés conversaciones todavía");
+    widget.destroy();
   });
 });

@@ -19,6 +19,7 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   private final RepositorioPostulacion repositorioPostulacion;
   private final RepositorioVacante repositorioVacante;
   private final ServicioPostulantesOferta servicioPostulantesOferta;
+  private final ServicioVistaPerfil servicioVistaPerfil;
   private ServicioInvitacion servicioInvitacion;
 
   @Autowired
@@ -26,12 +27,14 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     RepositorioUsuario repositorioUsuario,
     RepositorioPostulacion repositorioPostulacion,
     RepositorioVacante repositorioVacante,
-    ServicioPostulantesOferta servicioPostulantesOferta
+    ServicioPostulantesOferta servicioPostulantesOferta,
+    ServicioVistaPerfil servicioVistaPerfil
   ) {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
     this.servicioPostulantesOferta = servicioPostulantesOferta;
+    this.servicioVistaPerfil = servicioVistaPerfil;
   }
 
   @Autowired
@@ -42,9 +45,16 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   public ServicioPostulacionImpl(
     RepositorioUsuario repositorioUsuario,
     RepositorioPostulacion repositorioPostulacion,
-    RepositorioVacante repositorioVacante
+    RepositorioVacante repositorioVacante,
+    ServicioPostulantesOferta servicioPostulantesOferta
   ) {
-    this(repositorioUsuario, repositorioPostulacion, repositorioVacante, null);
+    this(
+      repositorioUsuario,
+      repositorioPostulacion,
+      repositorioVacante,
+      servicioPostulantesOferta,
+      null
+    );
   }
 
   @Override
@@ -253,6 +263,57 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     Long empleadorId
   ) {
     return servicioPostulantesOferta.obtenerCvPostulante(vacanteId, postulacionId, empleadorId);
+  }
+
+  @Override
+  public void registrarVistaPostulante(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId,
+    TipoVistaPerfil tipo
+  ) {
+    if (servicioVistaPerfil == null) {
+      return;
+    }
+    Postulacion postulacion = repositorioPostulacion.buscarPorIdYVacante(postulacionId, vacanteId);
+    Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
+    if (!puedeRegistrarVista(postulacion, vacante, empleadorId)) {
+      return;
+    }
+    String empresa = obtenerEmpresa(empleadorId, vacante);
+    servicioVistaPerfil.registrarVista(
+      postulacion.getUsuario().getId(),
+      empleadorId,
+      empresa,
+      vacanteId,
+      vacante.getTitulo(),
+      tipo
+    );
+    pasarARevisionSiCorresponde(postulacion, tipo);
+  }
+
+  private boolean puedeRegistrarVista(Postulacion postulacion, Vacante vacante, Long empleadorId) {
+    return (
+      postulacion != null &&
+      vacante != null &&
+      empleadorId != null &&
+      empleadorId.equals(vacante.getEmpleadorId()) &&
+      postulacion.getUsuario() != null
+    );
+  }
+
+  private String obtenerEmpresa(Long empleadorId, Vacante vacante) {
+    Usuario empleador = repositorioUsuario.buscarPorId(empleadorId);
+    if (empleador != null && empleador.getEmpresa() != null && !empleador.getEmpresa().isBlank()) {
+      return empleador.getEmpresa();
+    }
+    return vacante.getEmpresa();
+  }
+
+  private void pasarARevisionSiCorresponde(Postulacion postulacion, TipoVistaPerfil tipo) {
+    if (tipo == TipoVistaPerfil.CV && postulacion.getEstado() == EstadoPostulacion.ENVIADA) {
+      postulacion.setEstado(EstadoPostulacion.EN_REVISION);
+    }
   }
 
   @Override

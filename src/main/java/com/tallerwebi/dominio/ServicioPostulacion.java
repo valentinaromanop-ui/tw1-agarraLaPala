@@ -18,6 +18,12 @@ public interface ServicioPostulacion {
     EstadoPostulacion nuevoEstado
   );
   ArchivoCvPostulanteDTO obtenerCvPostulante(Long vacanteId, Long postulacionId, Long empleadorId);
+  void registrarVistaPostulante(
+    Long vacanteId,
+    Long postulacionId,
+    Long empleadorId,
+    TipoVistaPerfil tipo
+  );
   PerfilPostulanteDTO obtenerPerfilPostulante(Long vacanteId, Long postulacionId, Long empleadorId);
   FotoPerfilPostulanteDTO obtenerFotoPerfilPostulante(
     Long vacanteId,
