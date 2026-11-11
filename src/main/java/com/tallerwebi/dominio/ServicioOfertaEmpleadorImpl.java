@@ -116,13 +116,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   }
 
   private Set<String> obtenerSkills(Vacante vacante) {
-    Set<String> skills = new HashSet<>();
-    for (VacanteSkill relacion : vacante.getVacanteSkills()) {
-      if (relacion.getSkill() != null && relacion.getSkill().getNombre() != null) {
-        skills.add(relacion.getSkill().getNombre().trim().toLowerCase(Locale.ROOT));
-      }
-    }
-    return skills;
+    return CalculadorCoincidenciaSkills.obtenerSkillsOferta(vacante);
   }
 
   private boolean coincideSkill(List<String> habilidades, Set<String> skillsOferta) {
@@ -135,10 +129,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   }
 
   private void avisarPostulantes(Vacante vacante) {
-    Set<String> skills = new HashSet<>();
-    for (VacanteSkill relacion : vacante.getVacanteSkills()) {
-      skills.add(relacion.getSkill().getNombre().trim().toLowerCase(Locale.ROOT));
-    }
+    Set<String> skills = CalculadorCoincidenciaSkills.obtenerSkillsOferta(vacante);
     if (skills.isEmpty()) {
       return;
     }
@@ -163,14 +154,10 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   private List<String> obtenerDestinatarios(Set<String> skills) {
     List<String> destinatarios = new ArrayList<>();
     for (Usuario usuario : repositorioUsuario.buscarPostulantes()) {
-      Set<String> coincidencias = new HashSet<>();
-      for (String habilidad : servicioPerfil.obtenerHabilidades(usuario.getId())) {
-        String nombre = habilidad.trim().toLowerCase(Locale.ROOT);
-        if (skills.contains(nombre)) {
-          coincidencias.add(nombre);
-        }
-      }
-      double porcentaje = (coincidencias.size() * 100.0) / skills.size();
+      double porcentaje = CalculadorCoincidenciaSkills.porcentaje(
+        servicioPerfil.obtenerHabilidades(usuario.getId()),
+        skills
+      );
       if (porcentaje >= PORCENTAJE_MINIMO && !destinatarios.contains(usuario.getEmail())) {
         destinatarios.add(usuario.getEmail());
       }

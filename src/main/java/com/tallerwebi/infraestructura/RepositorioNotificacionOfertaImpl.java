@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RepositorioNotificacionOfertaImpl implements RepositorioNotificacionOferta {
 
+  private static final String PARAMETRO_USUARIO_ID = "usuarioId";
   private final SessionFactory sessionFactory;
 
   @Autowired
@@ -24,15 +25,45 @@ public class RepositorioNotificacionOfertaImpl implements RepositorioNotificacio
   }
 
   @Override
+  public List<NotificacionOferta> buscarPorUsuario(Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "from NotificacionOferta where usuario.id = :" +
+        PARAMETRO_USUARIO_ID +
+        " order by fecha desc",
+        NotificacionOferta.class
+      )
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
+      .getResultList();
+  }
+
+  @Override
   public List<NotificacionOferta> buscarNoLeidas(Long usuarioId) {
     return sessionFactory
       .getCurrentSession()
       .createQuery(
-        "from NotificacionOferta where usuario.id = :usuarioId and leida = false order by fecha desc",
+        "from NotificacionOferta where usuario.id = :" +
+        PARAMETRO_USUARIO_ID +
+        " and leida = false order by fecha desc",
         NotificacionOferta.class
       )
-      .setParameter("usuarioId", usuarioId)
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
       .getResultList();
+  }
+
+  @Override
+  public long contarNoLeidas(Long usuarioId) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select count(n.id) from NotificacionOferta n where n.usuario.id = :" +
+        PARAMETRO_USUARIO_ID +
+        " and n.leida = false",
+        Long.class
+      )
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
+      .getSingleResult();
   }
 
   @Override
