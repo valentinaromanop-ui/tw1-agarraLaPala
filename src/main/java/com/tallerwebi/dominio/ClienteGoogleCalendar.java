@@ -23,4 +23,6 @@ public interface ClienteGoogleCalendar {
     IntervaloHorario horario
   );
   String obtenerEnlaceMeet(String tokenAcceso, String eventoId);
+  void modificarHorario(String tokenAcceso, String eventoId, IntervaloHorario horario);
+  void eliminarEvento(String tokenAcceso, String eventoId);
 }

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tallerwebi.config.GoogleCalendarConfig;
 import com.tallerwebi.dominio.ClienteGoogleCalendar;
 import com.tallerwebi.dominio.EventoGoogleCalendar;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
@@ -415,6 +417,69 @@ public class ClienteGoogleCalendarTest {
       () -> cuandoCreoElEvento()
     );
     assertFalse(error.toString().contains("Error privado de Google"));
+    servidor.verify();
+  }
+
+  @Test
+  public void modificarDeberiaActualizarSoloLasFechasDelEvento() {
+    servidor
+      .expect(
+        requestTo(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events/evento123?conferenceDataVersion=1&sendUpdates=all"
+        )
+      )
+      .andExpect(method(HttpMethod.PATCH))
+      .andExpect(header("Authorization", "Bearer acceso"))
+      .andExpect(request -> {
+        var cuerpo = new ObjectMapper()
+          .readTree(((MockClientHttpRequest) request).getBodyAsString());
+        assertThat(cuerpo.size(), equalTo(2));
+        assertThat(cuerpo.path("start").path("dateTime").asText(), equalTo("2026-11-03T13:00:00Z"));
+        assertThat(cuerpo.path("end").path("dateTime").asText(), equalTo("2026-11-03T13:30:00Z"));
+      })
+      .andRespond(withSuccess("{\"id\":\"evento123\"}", MediaType.APPLICATION_JSON));
+
+    cliente.modificarHorario(
+      "acceso",
+      "evento123",
+      new IntervaloHorario(
+        Instant.parse("2026-11-03T13:00:00Z"),
+        Instant.parse("2026-11-03T13:30:00Z")
+      )
+    );
+
+    servidor.verify();
+  }
+
+  @Test
+  public void cancelarDeberiaEliminarElEventoYAvisarAlInvitado() {
+    servidor
+      .expect(
+        requestTo(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events/evento123?sendUpdates=all"
+        )
+      )
+      .andExpect(method(HttpMethod.DELETE))
+      .andExpect(header("Authorization", "Bearer acceso"))
+      .andRespond(withNoContent());
+
+    cliente.eliminarEvento("acceso", "evento123");
+
+    servidor.verify();
+  }
+
+  @Test
+  public void cancelarUnEventoYaEliminadoDeberiaPermitirCompletarLaCancelacion() {
+    servidor
+      .expect(
+        requestTo(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events/evento123?sendUpdates=all"
+        )
+      )
+      .andRespond(withStatus(HttpStatus.GONE));
+
+    cliente.eliminarEvento("acceso", "evento123");
+
     servidor.verify();
   }
 

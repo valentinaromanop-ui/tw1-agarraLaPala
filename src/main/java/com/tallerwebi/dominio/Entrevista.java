@@ -96,4 +96,13 @@ public class Entrevista {
   public void actualizarUrlMeet(String urlMeet) {
     this.urlMeet = urlMeet;
   }
+
+  public void cambiarHorario(IntervaloHorario horario) {
+    inicio = horario.getInicio();
+    fin = horario.getFin();
+  }
+
+  public void cancelar() {
+    estado = EstadoEntrevista.CANCELADA;
+  }
 }

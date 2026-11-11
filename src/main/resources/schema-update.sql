@@ -180,3 +180,5 @@ SET @agregar_visibilidad_perfil = IF(
 PREPARE migracion_visibilidad_perfil FROM @agregar_visibilidad_perfil;
 EXECUTE migracion_visibilidad_perfil;
 DEALLOCATE PREPARE migracion_visibilidad_perfil;
+
+ALTER TABLE Entrevista MODIFY COLUMN estado ENUM('INVITADA', 'AGENDADA', 'CANCELADA') NOT NULL;
