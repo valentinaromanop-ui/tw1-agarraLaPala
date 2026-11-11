@@ -22,6 +22,8 @@ public class VacanteResultadoBusqueda {
   private final Long empleadorId;
   private final BigDecimal promedioResenas;
   private final long cantidadResenas;
+  private final int porcentajeCoincidenciaCv;
+  private final List<String> palabrasCoincidentesCv;
 
   public VacanteResultadoBusqueda(VacanteDTO vacante) {
     titulo = vacante.getTitulo();
@@ -38,6 +40,8 @@ public class VacanteResultadoBusqueda {
     empleadorId = vacante.getEmpleadorId();
     promedioResenas = vacante.getPromedioResenas();
     cantidadResenas = vacante.getCantidadResenas();
+    porcentajeCoincidenciaCv = vacante.getPorcentajeCoincidenciaCv();
+    palabrasCoincidentesCv = vacante.getPalabrasCoincidentesCv();
     // El formato ISO evita necesitar un módulo JSON adicional para LocalDateTime.
     fechaPublicacion =
       Optional.ofNullable(vacante.getFechaPublicacion()).map(Object::toString).orElse("");
@@ -101,5 +105,13 @@ public class VacanteResultadoBusqueda {
 
   public long getCantidadResenas() {
     return cantidadResenas;
+  }
+
+  public int getPorcentajeCoincidenciaCv() {
+    return porcentajeCoincidenciaCv;
+  }
+
+  public List<String> getPalabrasCoincidentesCv() {
+    return palabrasCoincidentesCv;
   }
 }
