@@ -30,12 +30,7 @@ public class ServicioNewsletterTest {
     when(templateEngine.process(eq("correos/bienvenida-newsletter"), any(Context.class)))
       .thenReturn("<h1>Bienvenida</h1>");
     servicio =
-      new ServicioNewsletterImpl(
-        repositorio,
-        eventos,
-        templateEngine,
-        "http://localhost:8080/spring"
-      );
+      new ServicioNewsletterImpl(repositorio, eventos, templateEngine, "http://localhost:8080");
   }
 
   @Test
@@ -46,7 +41,7 @@ public class ServicioNewsletterTest {
         repositorio,
         enviados::add,
         templateEngine,
-        "http://localhost:8080/spring"
+        "http://localhost:8080"
       );
 
     boolean nueva = servicio.suscribir("  Persona@correo.com  ");

@@ -247,7 +247,7 @@ class ServicioOfertaEmpleadorTest {
       servicioPago,
       servicioNotificacionOferta,
       publicador,
-      "http://localhost:8080/spring"
+      "http://localhost:8080"
     );
   }
 

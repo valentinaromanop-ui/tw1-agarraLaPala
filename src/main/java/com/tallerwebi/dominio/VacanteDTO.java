@@ -236,6 +236,6 @@ public class VacanteDTO {
 
   public void setPalabrasCoincidentesCv(List<String> palabrasCoincidentesCv) {
     this.palabrasCoincidentesCv =
-            palabrasCoincidentesCv == null ? List.of() : palabrasCoincidentesCv;
+      palabrasCoincidentesCv == null ? List.of() : palabrasCoincidentesCv;
   }
 }
