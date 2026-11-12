@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -152,5 +153,24 @@ public class ServicioCVTest {
     }
     String texto = servicio.extraerTexto(salida.toByteArray());
     assertThat(texto, containsString("Hola CV"));
+  }
+
+  @Test
+  public void deberiaDetectarHabilidadesSinDistinguirMayusculasNiTildes() {
+    assertThat(
+      servicio.extraerHabilidades(
+        "Experiencia en JAVA y programación en análisis de datos",
+        List.of("java", "Analisis")
+      ),
+      equalTo(List.of("java", "Analisis"))
+    );
+  }
+
+  @Test
+  public void deberiaDevolverListaVaciaSiElCvNoTieneHabilidades() {
+    assertThat(
+      servicio.extraerHabilidades("Experiencia laboral general", List.of("Java", "SQL")),
+      equalTo(List.of())
+    );
   }
 }
