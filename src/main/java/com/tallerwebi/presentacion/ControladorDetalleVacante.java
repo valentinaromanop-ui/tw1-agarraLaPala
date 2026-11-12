@@ -1,13 +1,6 @@
 package com.tallerwebi.presentacion;
 
-import com.tallerwebi.dominio.BusquedaVacanteDTO;
-import com.tallerwebi.dominio.ResumenResenas;
-import com.tallerwebi.dominio.ServicioEmpleoGuardado;
-import com.tallerwebi.dominio.ServicioOfertaEmpleador;
-import com.tallerwebi.dominio.ServicioPostulacion;
-import com.tallerwebi.dominio.ServicioResena;
-import com.tallerwebi.dominio.Vacante;
-import com.tallerwebi.dominio.VacanteDTO;
+import com.tallerwebi.dominio.*;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +29,12 @@ public class ControladorDetalleVacante {
   private final ServicioEmpleoGuardado servicioEmpleoGuardado;
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
   private ServicioResena servicioResena;
+  private ServicioPerfil servicioPerfil;
+
+  @Autowired(required = false)
+  public void setServicioPerfil(ServicioPerfil servicioPerfil) {
+    this.servicioPerfil = servicioPerfil;
+  }
 
   @Autowired
   public ControladorDetalleVacante(
@@ -103,6 +102,7 @@ public class ControladorDetalleVacante {
     }
     modelo.put("ofertaCerrada", estaCerrada(oferta));
     modelo.put("puedePostularse", esPostulante(session));
+    agregarMatch(modelo, fuente, id, session);
     modelo.put(
       "yaPostulado",
       servicioPostulacion
@@ -175,6 +175,30 @@ public class ControladorDetalleVacante {
         : servicioEmpleoGuardado.listarIds((Long) session.getAttribute(USUARIO_ID))
     );
     return new ModelAndView(VACANTES, modelo);
+  }
+
+  private void agregarMatch(
+    Map<String, Object> modelo,
+    String fuente,
+    Long ofertaId,
+    HttpSession session
+  ) {
+    if (servicioPerfil == null || !esPostulante(session)) {
+      return;
+    }
+
+    // 1. Obtenemos las habilidades del candidato
+    List<String> habilidadesUsuario = servicioPerfil.obtenerHabilidades(
+      (Long) session.getAttribute(USUARIO_ID)
+    );
+
+    // Load the lazy skills inside the transactional service.
+    List<String> skillsOferta = servicioPostulacion.obtenerHabilidadesOferta(fuente, ofertaId);
+
+    // 4. Calculamos el match usando nuestro CalculadorMatch
+    ResultadoMatch match = CalculoMatch.calcular(habilidadesUsuario, skillsOferta);
+    modelo.put("match", match);
+    modelo.put("cursos", CatalogoCursos.paraHabilidades(match.faltantes()));
   }
 
   private void refrescarEstadoOfertasLocales(HttpSession session) {

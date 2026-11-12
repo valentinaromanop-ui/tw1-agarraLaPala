@@ -14,4 +14,5 @@ public interface RepositorioMensaje {
   List<Mensaje> listarNoLeidos(Long usuarioId);
   long contarNoLeidos(Long postulacionId, Long usuarioId);
   void marcarLeidos(Long postulacionId, Long usuarioId);
+  void marcarTodosLeidos(Long usuarioId);
 }

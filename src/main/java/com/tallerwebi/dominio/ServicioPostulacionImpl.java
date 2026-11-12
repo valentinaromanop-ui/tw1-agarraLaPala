@@ -1,6 +1,7 @@
 package com.tallerwebi.dominio;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,10 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   private final RepositorioPostulacion repositorioPostulacion;
   private final RepositorioVacante repositorioVacante;
   private final ServicioPostulantesOferta servicioPostulantesOferta;
+
   private final ServicioVistaPerfil servicioVistaPerfil;
   private ServicioInvitacion servicioInvitacion;
+  private final ServicioNotificacionOferta servicioNotificacionOferta;
 
   @Autowired
   public ServicioPostulacionImpl(
@@ -28,33 +31,22 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     RepositorioPostulacion repositorioPostulacion,
     RepositorioVacante repositorioVacante,
     ServicioPostulantesOferta servicioPostulantesOferta,
-    ServicioVistaPerfil servicioVistaPerfil
+    ServicioVistaPerfil servicioVistaPerfil,
+    ServicioInvitacion servicioInvitacion,
+    ServicioNotificacionOferta servicioNotificacionOferta
   ) {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioPostulacion = repositorioPostulacion;
     this.repositorioVacante = repositorioVacante;
     this.servicioPostulantesOferta = servicioPostulantesOferta;
     this.servicioVistaPerfil = servicioVistaPerfil;
+    this.servicioInvitacion = servicioInvitacion;
+    this.servicioNotificacionOferta = servicioNotificacionOferta;
   }
 
   @Autowired
   public void setServicioInvitacion(ServicioInvitacion servicioInvitacion) {
     this.servicioInvitacion = servicioInvitacion;
-  }
-
-  public ServicioPostulacionImpl(
-    RepositorioUsuario repositorioUsuario,
-    RepositorioPostulacion repositorioPostulacion,
-    RepositorioVacante repositorioVacante,
-    ServicioPostulantesOferta servicioPostulantesOferta
-  ) {
-    this(
-      repositorioUsuario,
-      repositorioPostulacion,
-      repositorioVacante,
-      servicioPostulantesOferta,
-      null
-    );
   }
 
   @Override
@@ -248,12 +240,18 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     Long empleadorId,
     EstadoPostulacion nuevoEstado
   ) {
-    return servicioPostulantesOferta.cambiarEstado(
+    Postulacion postulacion = servicioPostulantesOferta.cambiarEstado(
       vacanteId,
       postulacionId,
       empleadorId,
       nuevoEstado
     );
+
+    if (servicioNotificacionOferta != null && postulacion != null) {
+      servicioNotificacionOferta.notificarDecision(postulacion, nuevoEstado);
+    }
+
+    return postulacion;
   }
 
   @Override
@@ -336,6 +334,23 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
       postulacionId,
       empleadorId
     );
+  }
+
+  @Override
+  public List<String> obtenerHabilidadesOferta(String fuente, Long id) {
+    List<String> nombres = new ArrayList<>();
+    if (!FUENTE_LOCAL.equals(fuente)) {
+      return nombres;
+    }
+    Vacante vacante = repositorioVacante.obtenerPorId(id);
+    if (vacante != null) {
+      for (VacanteSkill vs : vacante.getVacanteSkills()) {
+        if (vs.getSkill() != null) {
+          nombres.add(vs.getSkill().getNombre());
+        }
+      }
+    }
+    return nombres;
   }
 
   private Vacante obtenerOfertaParaPostularse(VacanteDTO oferta) {

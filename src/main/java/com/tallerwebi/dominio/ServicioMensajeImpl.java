@@ -125,6 +125,11 @@ public class ServicioMensajeImpl implements ServicioMensaje {
     return resultado;
   }
 
+  @Override
+  public void marcarTodosLeidos(Long usuarioId) {
+    repositorioMensaje.marcarTodosLeidos(usuarioId);
+  }
+
   private Usuario obtenerReceptor(Postulacion postulacion, Long emisorId) {
     if (!postulacion.getUsuario().getId().equals(emisorId)) {
       return postulacion.getUsuario();

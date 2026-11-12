@@ -1,5 +1,6 @@
 package com.tallerwebi.presentacion;
 
+@SuppressWarnings("PMD.TooManyFields")
 public class DatosOfertaEmpleador {
 
   private String titulo;
@@ -7,7 +8,10 @@ public class DatosOfertaEmpleador {
   private String ubicacion;
   private String modalidad;
   private String horario;
+  private String seniority;
+  private String jornada;
   private String salario;
+  private String moneda;
   private String skills;
   private String limitePostulaciones;
 
@@ -51,12 +55,36 @@ public class DatosOfertaEmpleador {
     this.horario = horario;
   }
 
+  public String getSeniority() {
+    return seniority;
+  }
+
+  public void setSeniority(String seniority) {
+    this.seniority = seniority;
+  }
+
+  public String getJornada() {
+    return jornada;
+  }
+
+  public void setJornada(String jornada) {
+    this.jornada = jornada;
+  }
+
   public String getSalario() {
     return salario;
   }
 
   public void setSalario(String salario) {
     this.salario = salario;
+  }
+
+  public String getMoneda() {
+    return moneda;
+  }
+
+  public void setMoneda(String moneda) {
+    this.moneda = moneda;
   }
 
   public String getSkills() {

@@ -285,7 +285,9 @@
               <div class="offer-meta">
                 <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span>
                 <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span>
-                <span th:if="${oferta.salario != null}"><i class="bi bi-cash" aria-hidden="true"></i> $<span th:text="${oferta.salario}">Salario</span></span>
+                <span th:if="${oferta.jornada != null and !#strings.isEmpty(oferta.jornada)}"
+                  th:text="${oferta.jornada == 'full-time' ? 'Tiempo completo' : (oferta.jornada == 'part-time' ? 'Medio tiempo' : oferta.jornada)}">Jornada</span>
+                <span th:if="${oferta.salario != null}"><i class="bi bi-cash" aria-hidden="true"></i> <span th:text="${oferta.moneda ?: 'Moneda no especificada'}">ARS</span> <span th:text="${oferta.salario}">Salario</span></span>
               </div>
             </div>
             <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">

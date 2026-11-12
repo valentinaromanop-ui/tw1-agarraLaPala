@@ -73,17 +73,44 @@
 
         <div class="row">
           <div class="col-md-6 mb-3">
+            <label class="form-label" for="seniority">Seniority</label>
+            <select id="seniority" class="form-select" th:field="*{seniority}">
+              <option value="">Seleccioná un nivel (opcional)</option>
+              <option value="internship">Trainee / Pasantía</option>
+              <option value="junior">Junior</option>
+              <option value="mid-level">Semi senior</option>
+              <option value="senior">Senior</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="jornada">Jornada</label>
+            <select id="jornada" class="form-select" th:field="*{jornada}">
+              <option value="">Seleccioná una jornada (opcional)</option>
+              <option value="full-time">Tiempo completo</option>
+              <option value="part-time">Medio tiempo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
             <label class="form-label" for="horario">Horario</label>
             <input id="horario" class="form-control" type="text" th:field="*{horario}" maxlength="120"
               placeholder="Ej.: lunes a viernes, de 9 a 18" required>
           </div>
           <div class="col-md-6 mb-3">
             <label class="form-label" for="salario">Salario ofrecido</label>
-            <div class="input-group">
-              <span class="input-group-text">$</span>
-              <input id="salario" class="form-control" type="number" th:field="*{salario}" min="0.01" step="0.01"
-                required>
-            </div>
+            <input id="salario" class="form-control" type="number" th:field="*{salario}" min="0.01" step="0.01"
+              required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="moneda">Moneda</label>
+            <select id="moneda" class="form-select" th:field="*{moneda}" required>
+              <option value="">Seleccioná una moneda</option>
+              <option value="ARS">ARS - Peso argentino</option>
+              <option value="USD">USD - Dólar estadounidense</option>
+              <option value="EUR">EUR - Euro</option>
+            </select>
           </div>
         </div>
 

@@ -78,4 +78,16 @@ public class RepositorioNotificacionOfertaImpl implements RepositorioNotificacio
       .setParameter("usuarioId", usuarioId)
       .uniqueResult();
   }
+
+  @Override
+  public void marcarTodasLeidas(Long usuarioId) {
+    sessionFactory
+      .getCurrentSession()
+      .createMutationQuery(
+        "update NotificacionOferta n set n.leida = true " +
+        "where n.usuario.id = :usuarioId and n.leida = false"
+      )
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
+      .executeUpdate();
+  }
 }

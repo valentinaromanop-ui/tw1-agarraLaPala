@@ -15,6 +15,7 @@ public class ServicioPostulacionTest {
   private RepositorioPerfilPostulante perfiles;
   private ServicioPostulacionImpl servicio;
   private VacanteDTO oferta;
+  private ServicioNotificacionOferta servicioNotificacionOferta;
 
   @BeforeEach
   public void init() {
@@ -23,13 +24,24 @@ public class ServicioPostulacionTest {
     postulaciones = mock(RepositorioPostulacion.class);
     curriculums = mock(RepositorioCurriculumGenerado.class);
     perfiles = mock(RepositorioPerfilPostulante.class);
+    servicioNotificacionOferta = mock(ServicioNotificacionOferta.class);
     servicio =
-      new ServicioPostulacionImpl(
-        usuarios,
-        postulaciones,
-        vacantes,
-        new ServicioPostulantesOferta(postulaciones, vacantes, curriculums, perfiles)
-      );
+      servicio =
+        new ServicioPostulacionImpl(
+          usuarios,
+          postulaciones,
+          vacantes,
+          new ServicioPostulantesOferta(
+            postulaciones,
+            vacantes,
+            curriculums,
+            perfiles,
+            mock(ServicioPago.class)
+          ),
+          mock(ServicioVistaPerfil.class),
+          mock(ServicioInvitacion.class),
+          servicioNotificacionOferta
+        );
     Usuario usuario = new Usuario();
     usuario.setRol("CANDIDATO");
     when(usuarios.buscarPorId(1L)).thenReturn(usuario);

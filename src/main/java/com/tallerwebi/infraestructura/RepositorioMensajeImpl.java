@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RepositorioMensajeImpl implements RepositorioMensaje {
 
+  private static final String PARAMETRO_USUARIO_ID = "usuarioId";
+  private static final String CONDICION_NO_LEIDO = "leido = false";
   private final SessionFactory sessionFactory;
 
   @Autowired
@@ -60,10 +62,12 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
       .getCurrentSession()
       .createQuery(
         "from Mensaje mensaje where mensaje.receptor.id = :usuarioId " +
-        "and mensaje.leido = false order by mensaje.fecha desc",
+        "and " +
+        CONDICION_NO_LEIDO +
+        " order by mensaje.fecha desc",
         Mensaje.class
       )
-      .setParameter("usuarioId", usuarioId)
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
       .getResultList();
   }
 
@@ -73,11 +77,14 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
       .getCurrentSession()
       .createQuery(
         "select count(m.id) from Mensaje m " +
-        "where m.postulacion.id = :postulacionId and m.emisor.id <> :usuarioId and m.leido = false",
+        "where m.postulacion.id = :postulacionId and m.emisor.id <> :" +
+        PARAMETRO_USUARIO_ID +
+        " and " +
+        CONDICION_NO_LEIDO,
         Long.class
       )
       .setParameter("postulacionId", postulacionId)
-      .setParameter("usuarioId", usuarioId)
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
       .getSingleResult();
   }
 
@@ -87,10 +94,28 @@ public class RepositorioMensajeImpl implements RepositorioMensaje {
       .getCurrentSession()
       .createMutationQuery(
         "update Mensaje m set m.leido = true " +
-        "where m.postulacion.id = :postulacionId and m.emisor.id <> :usuarioId and m.leido = false"
+        "where m.postulacion.id = :postulacionId and m.emisor.id <> :" +
+        PARAMETRO_USUARIO_ID +
+        " and " +
+        CONDICION_NO_LEIDO
       )
       .setParameter("postulacionId", postulacionId)
-      .setParameter("usuarioId", usuarioId)
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
+      .executeUpdate();
+  }
+
+  @Override
+  public void marcarTodosLeidos(Long usuarioId) {
+    sessionFactory
+      .getCurrentSession()
+      .createMutationQuery(
+        "update Mensaje m set m.leido = true " +
+        "where m.receptor.id = :" +
+        PARAMETRO_USUARIO_ID +
+        " and " +
+        CONDICION_NO_LEIDO
+      )
+      .setParameter(PARAMETRO_USUARIO_ID, usuarioId)
       .executeUpdate();
   }
 }

@@ -151,12 +151,12 @@
       <div th:if="${!#lists.isEmpty(postulantes)}" class="table-responsive postulantes-responsive">
         <table class="table employer-table postulantes-table align-middle">
           <colgroup>
-            <col class="postulantes-col-candidato">
-            <col class="postulantes-col-habilidades">
-            <col class="postulantes-col-fecha">
-            <col class="postulantes-col-estado">
-            <col class="postulantes-col-cv">
-            <col class="postulantes-col-acciones">
+            <col style="width: 19%">
+            <col style="width: 19%">
+            <col style="width: 16%">
+            <col style="width: 10%">
+            <col style="width: 12%">
+            <col style="width: 24%">
           </colgroup>
           <thead>
             <tr>
@@ -166,6 +166,7 @@
               <th scope="col">Estado</th>
               <th scope="col">CV</th>
               <th scope="col">Acciones</th>
+
             </tr>
           </thead>
           <tbody>
@@ -176,6 +177,14 @@
                   th:text="${postulante.nombreCompleto}">Nombre Apellido</a>
                 <span th:if="${postulante.premium}" class="premium-badge">Premium</span>
                 <span class="postulante-email" th:text="${postulante.email}">candidato@correo.com</span>
+                <span th:if="${postulante.porcentajeMatch != null}" class="applicant-match"
+                  th:classappend="${postulante.porcentajeMatch >= 70 ? ' applicant-match-high' :
+                    (postulante.porcentajeMatch >= 40 ? ' applicant-match-medium' : ' applicant-match-low')}"
+                  th:aria-label="${'Compatibilidad con la oferta: ' + postulante.porcentajeMatch + '%'}">
+                  <i class="bi bi-bullseye" aria-hidden="true"></i>
+                  <span>Compatibilidad</span>
+                  <strong th:text="${postulante.porcentajeMatch + '%'}">33%</strong>
+                </span>
               </td>
               <td data-label="Habilidades">
                 <div th:if="${!#lists.isEmpty(postulante.habilidades)}" class="postulante-skills">

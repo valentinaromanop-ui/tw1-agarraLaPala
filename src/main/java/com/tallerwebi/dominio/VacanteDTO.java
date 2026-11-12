@@ -209,4 +209,14 @@ public class VacanteDTO {
   public void setLimitePostulaciones(Integer limitePostulaciones) {
     this.limitePostulaciones = limitePostulaciones;
   }
+
+  private Integer porcentajeMatch;
+
+  public Integer getPorcentajeMatch() {
+    return porcentajeMatch;
+  }
+
+  public void setPorcentajeMatch(Integer porcentajeMatch) {
+    this.porcentajeMatch = porcentajeMatch;
+  }
 }

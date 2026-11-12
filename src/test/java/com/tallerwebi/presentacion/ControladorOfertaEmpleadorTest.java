@@ -57,7 +57,10 @@ public class ControladorOfertaEmpleadorTest {
     datos.setUbicacion("Buenos Aires");
     datos.setModalidad("remoto");
     datos.setHorario("Lunes a viernes");
+    datos.setSeniority("junior");
+    datos.setJornada("full-time");
     datos.setSalario("1200000");
+    datos.setMoneda("ARS");
     datos.setSkills("Java, SQL");
 
     ModelAndView resultado = controlador.crearOferta(datos, request);
@@ -72,7 +75,10 @@ public class ControladorOfertaEmpleadorTest {
     assertThat(guardada.getEmpresa(), equalTo("Empresa de prueba"));
     assertThat(guardada.getEmpleadorId(), equalTo(42L));
     assertThat(guardada.getSalario(), equalTo(new BigDecimal("1200000")));
+    assertThat(guardada.getMoneda(), equalTo("ARS"));
     assertThat(guardada.getHorario(), equalTo("Lunes a viernes"));
+    assertThat(guardada.getSeniority(), equalTo("junior"));
+    assertThat(guardada.getJornada(), equalTo("full-time"));
     assertThat(guardada.getFechaPublicacion() != null, is(true));
     assertThat(guardada.getVacanteSkills().size(), equalTo(2));
   }

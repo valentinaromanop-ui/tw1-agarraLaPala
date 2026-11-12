@@ -47,6 +47,28 @@ public class ServicioNotificacionOfertaImpl implements ServicioNotificacionOfert
       return null;
     }
     notificacion.setLeida(true);
+    repositorio.guardar(notificacion);
     return notificacion.getEnlace();
+  }
+
+  @Override
+  public void marcarTodasLeidas(Long usuarioId) {
+    repositorio.marcarTodasLeidas(usuarioId);
+  }
+
+  @Override
+  public void notificarDecision(Postulacion postulacion, EstadoPostulacion nuevoEstado) {
+    if (nuevoEstado != EstadoPostulacion.ACEPTADA && nuevoEstado != EstadoPostulacion.RECHAZADA) {
+      return;
+    }
+    String resultado = nuevoEstado == EstadoPostulacion.ACEPTADA ? "aceptada" : "rechazada";
+    String oferta = postulacion.getTitulo() == null ? "la oferta" : postulacion.getTitulo();
+
+    // Llamada directa al método notificar de esta misma clase
+    notificar(
+      postulacion.getUsuario(),
+      "Tu postulación a " + oferta + " fue " + resultado,
+      "/postulaciones"
+    );
   }
 }

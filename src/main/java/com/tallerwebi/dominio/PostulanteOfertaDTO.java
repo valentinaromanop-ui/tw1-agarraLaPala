@@ -14,6 +14,26 @@ public class PostulanteOfertaDTO {
   private final boolean premium;
   private final EstadoPostulacion estado;
 
+  public List<String> getHabilidadesFaltantes() {
+    return habilidadesFaltantes;
+  }
+
+  public void setHabilidadesFaltantes(List<String> habilidadesFaltantes) {
+    this.habilidadesFaltantes = habilidadesFaltantes;
+  }
+
+  Integer porcentajeMatch;
+
+  public Integer getPorcentajeMatch() {
+    return porcentajeMatch;
+  }
+
+  public void setPorcentajeMatch(Integer porcentajeMatch) {
+    this.porcentajeMatch = porcentajeMatch;
+  }
+
+  List<String> habilidadesFaltantes;
+
   public PostulanteOfertaDTO(
     Long postulacionId,
     String nombreCompleto,

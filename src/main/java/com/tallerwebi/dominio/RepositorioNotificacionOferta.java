@@ -8,4 +8,5 @@ public interface RepositorioNotificacionOferta {
   List<NotificacionOferta> buscarNoLeidas(Long usuarioId);
   long contarNoLeidas(Long usuarioId);
   NotificacionOferta buscarPorIdYUsuario(Long notificacionId, Long usuarioId);
+  void marcarTodasLeidas(Long usuarioId);
 }

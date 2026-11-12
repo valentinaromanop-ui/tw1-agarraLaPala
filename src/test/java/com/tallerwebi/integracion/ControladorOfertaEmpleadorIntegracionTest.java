@@ -94,7 +94,10 @@ public class ControladorOfertaEmpleadorIntegracionTest {
           .param("ubicacion", "Buenos Aires")
           .param("modalidad", "híbrido")
           .param("horario", "Lunes a viernes")
+          .param("seniority", "mid-level")
+          .param("jornada", "full-time")
           .param("salario", "1150000.50")
+          .param("moneda", "ARS")
           .param("skills", "Java, SQL")
       )
       .andExpect(status().is3xxRedirection())
@@ -108,6 +111,7 @@ public class ControladorOfertaEmpleadorIntegracionTest {
     assertThat(contenidoListado, containsString("Analista de Integración"));
     assertThat(contenidoListado, containsString("Buenos Aires"));
     assertThat(contenidoListado, containsString("1150000.50"));
+    assertThat(contenidoListado, containsString("ARS"));
     assertThat(contenidoListado, containsString("La postulación se publicó correctamente."));
 
     MvcResult home = mockMvc.perform(get("/home")).andExpect(status().isOk()).andReturn();
@@ -150,7 +154,10 @@ public class ControladorOfertaEmpleadorIntegracionTest {
           .param("ubicacion", "Buenos Aires")
           .param("modalidad", "remoto")
           .param("horario", "Lunes a viernes")
+          .param("seniority", "senior")
+          .param("jornada", "part-time")
           .param("salario", "1000000")
+          .param("moneda", "ARS")
           .param("skills", "Java")
           .param("limitePostulaciones", "10")
       )
