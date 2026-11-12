@@ -28,7 +28,7 @@ public class ServicioNewsletterImpl implements ServicioNewsletter {
     RepositorioNewsletter repositorio,
     ApplicationEventPublisher eventos,
     SpringTemplateEngine templateEngine,
-    @Value("${app.url:http://localhost:8080/spring}") String urlBase
+    @Value("${app.url:http://localhost:8080}") String urlBase
   ) {
     this.repositorio = repositorio;
     this.eventos = eventos;

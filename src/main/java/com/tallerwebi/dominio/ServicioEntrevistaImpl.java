@@ -45,7 +45,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     ServicioPostulantesOferta servicioPostulantesOferta,
     RepositorioUsuario repositorioUsuario,
     ApplicationEventPublisher eventos,
-    @Value("${app.url:http://localhost:8080/spring}") String urlBase
+    @Value("${app.url:http://localhost:8080}") String urlBase
   ) {
     this(
       servicioConexionGoogle,

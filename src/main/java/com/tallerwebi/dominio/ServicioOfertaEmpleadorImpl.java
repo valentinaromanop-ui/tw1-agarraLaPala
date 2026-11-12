@@ -41,7 +41,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     ServicioPago servicioPago,
     ServicioNotificacionOferta servicioNotificacionOferta,
     ApplicationEventPublisher eventos,
-    @Value("${app.url:http://localhost:8080/spring}") String urlBase
+    @Value("${app.url:http://localhost:8080}") String urlBase
   ) {
     this.repositorioUsuario = repositorioUsuario;
     this.repositorioVacante = repositorioVacante;

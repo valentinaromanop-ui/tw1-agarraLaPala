@@ -151,7 +151,7 @@ public class ServicioEntrevistaImplTest {
         servicioPostulantesOfertaMock,
         repositorioUsuarioMock,
         eventosMock,
-        "http://localhost:8080/spring",
+        "http://localhost:8080",
         relojUtc
       );
 
@@ -738,7 +738,7 @@ public class ServicioEntrevistaImplTest {
         servicioPostulantesOfertaMock,
         repositorioUsuarioMock,
         eventosMock,
-        "http://localhost:8080/spring",
+        "http://localhost:8080",
         reloj
       );
   }
