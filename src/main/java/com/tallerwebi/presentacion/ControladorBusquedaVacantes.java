@@ -1,8 +1,9 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.CalculadorCoincidenciaCv;
-import com.tallerwebi.dominio.CoincidenciaCv;
 import com.tallerwebi.dominio.CurriculumGenerado;
+import com.tallerwebi.dominio.ServicioCV;
+import com.tallerwebi.dominio.ServicioCVImpl;
 import com.tallerwebi.dominio.ServicioCurriculumGenerado;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPago;
@@ -30,16 +31,16 @@ import org.springframework.web.servlet.ModelAndView;
 public class ControladorBusquedaVacantes {
 
   private static final String PARAMETRO_TEXTO = "texto";
-  private static final int MINIMO_COINCIDENCIA_CV = 30;
   private final CatalogoVacantesPrueba catalogo;
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
   private final VacanteMapper vacanteMapper;
   private final ServicioPago servicioPago;
   private final ServicioCurriculumGenerado servicioCurriculum;
+  private final ServicioCV servicioCV;
   private ServicioResena servicioResena;
 
   public ControladorBusquedaVacantes(CatalogoVacantesPrueba catalogo) {
-    this(catalogo, null, new VacanteMapper(), null, null);
+    this(catalogo, null, new VacanteMapper(), null, null, null);
   }
 
   @Autowired
@@ -48,13 +49,25 @@ public class ControladorBusquedaVacantes {
     ServicioOfertaEmpleador servicioOfertaEmpleador,
     VacanteMapper vacanteMapper,
     ServicioPago servicioPago,
-    ServicioCurriculumGenerado servicioCurriculum
+    ServicioCurriculumGenerado servicioCurriculum,
+    ServicioCV servicioCV
   ) {
     this.catalogo = catalogo;
     this.servicioOfertaEmpleador = servicioOfertaEmpleador;
     this.vacanteMapper = vacanteMapper;
     this.servicioPago = servicioPago;
     this.servicioCurriculum = servicioCurriculum;
+    this.servicioCV = servicioCV == null ? new ServicioCVImpl() : servicioCV;
+  }
+
+  public ControladorBusquedaVacantes(
+    CatalogoVacantesPrueba catalogo,
+    ServicioOfertaEmpleador servicioOfertaEmpleador,
+    VacanteMapper vacanteMapper,
+    ServicioPago servicioPago,
+    ServicioCurriculumGenerado servicioCurriculum
+  ) {
+    this(catalogo, servicioOfertaEmpleador, vacanteMapper, servicioPago, servicioCurriculum, null);
   }
 
   @Autowired(required = false)
@@ -79,6 +92,9 @@ public class ControladorBusquedaVacantes {
     boolean candidato = esCandidato(session);
     modelo.put("esPremium", candidato && usuarioId != null && esPremium(usuarioId));
     modelo.put("tieneCv", candidato && usuarioId != null && tieneCv(usuarioId));
+    if (candidato && usuarioId != null && modelo.get("tieneCv").equals(true)) {
+      agregarInformacionCv(modelo, usuarioId, List.of());
+    }
     return new ModelAndView("busqueda", modelo);
   }
 
@@ -107,7 +123,8 @@ public class ControladorBusquedaVacantes {
     @RequestParam(name = "usarCv", defaultValue = "false") boolean usarCv,
     HttpSession session
   ) {
-    String textoCv = validarFiltroCv(usarCv, session);
+    CurriculumGenerado curriculum = validarFiltroCv(usarCv, session);
+    String textoCv = curriculum == null ? "" : textoCv(curriculum);
     List<VacanteResultadoBusqueda> resultados = new ArrayList<>();
     List<VacanteDTO> ofertasPublicadas = new ArrayList<>();
     if (servicioOfertaEmpleador != null) {
@@ -124,7 +141,7 @@ public class ControladorBusquedaVacantes {
       ofertasPublicadas
     );
     if (usarCv) {
-      vacantes = filtrarPorCv(vacantes, textoCv);
+      filtrarPorCv(vacantes, textoCv);
     }
     vacantes.sort(
       Comparator
@@ -142,26 +159,46 @@ public class ControladorBusquedaVacantes {
     return resultados;
   }
 
-  private List<VacanteDTO> filtrarPorCv(List<VacanteDTO> vacantes, String textoCv) {
+  private void filtrarPorCv(List<VacanteDTO> vacantes, String textoCv) {
+    List<String> habilidadesDisponibles = vacantes
+      .stream()
+      .filter(vacante -> vacante.getSkills() != null)
+      .flatMap(vacante -> vacante.getSkills().stream())
+      .distinct()
+      .toList();
+    List<String> habilidadesCv = servicioCV.extraerHabilidades(textoCv, habilidadesDisponibles);
+    if (habilidadesCv.isEmpty()) {
+      return;
+    }
     List<VacanteDTO> filtradas = new ArrayList<>();
     for (VacanteDTO vacante : vacantes) {
-      CoincidenciaCv coincidencia = CalculadorCoincidenciaCv.calcular(textoCv, vacante);
-      if (coincidencia.getPorcentaje() >= MINIMO_COINCIDENCIA_CV) {
-        vacante.setPorcentajeCoincidenciaCv(coincidencia.getPorcentaje());
-        vacante.setPalabrasCoincidentesCv(coincidencia.getPalabrasCoincidentes());
+      List<String> coincidentes = servicioCV.extraerHabilidades(textoCv, vacante.getSkills());
+      if (!coincidentes.isEmpty()) {
+        int porcentaje = (int) Math.round(
+          (coincidentes.size() * 100.0) / vacante.getSkills().size()
+        );
+        vacante.setPorcentajeCoincidenciaCv(porcentaje);
+        vacante.setPalabrasCoincidentesCv(
+          coincidentes.stream().map(CalculadorCoincidenciaCv::normalizar).toList()
+        );
         filtradas.add(vacante);
       }
     }
     filtradas.sort(Comparator.comparing(VacanteDTO::getPorcentajeCoincidenciaCv).reversed());
-    return filtradas;
+    vacantes.clear();
+    vacantes.addAll(filtradas);
   }
 
-  private String validarFiltroCv(boolean usarCv, HttpSession session) {
+  private CurriculumGenerado validarFiltroCv(boolean usarCv, HttpSession session) {
     if (!usarCv) {
-      return "";
+      return null;
     }
     Long usuarioId = validarUsuarioPremium(session);
-    return obtenerTextoCv(usuarioId);
+    CurriculumGenerado curriculum = obtenerCurriculum(usuarioId);
+    if (curriculum == null || textoCv(curriculum).isBlank()) {
+      throw errorCvNoDisponible();
+    }
+    return curriculum;
   }
 
   private Long validarUsuarioPremium(HttpSession session) {
@@ -175,11 +212,11 @@ public class ControladorBusquedaVacantes {
     );
   }
 
-  private String obtenerTextoCv(Long usuarioId) {
-    CurriculumGenerado curriculum = servicioCurriculum.obtener(usuarioId);
-    if (curriculum == null) {
-      throw errorCvNoDisponible();
-    }
+  private CurriculumGenerado obtenerCurriculum(Long usuarioId) {
+    return servicioCurriculum == null ? null : servicioCurriculum.obtener(usuarioId);
+  }
+
+  private String textoCv(CurriculumGenerado curriculum) {
     String texto = curriculum.getContenidoAts();
     if (texto == null || texto.isBlank()) {
       texto = curriculum.getTextoOriginal();
@@ -188,6 +225,28 @@ public class ControladorBusquedaVacantes {
       throw errorCvNoDisponible();
     }
     return texto;
+  }
+
+  private void agregarInformacionCv(
+    Map<String, Object> modelo,
+    Long usuarioId,
+    List<VacanteDTO> vacantes
+  ) {
+    CurriculumGenerado curriculum = obtenerCurriculum(usuarioId);
+    if (curriculum == null || textoCv(curriculum).isBlank()) {
+      return;
+    }
+    List<String> skills = vacantes
+      .stream()
+      .filter(vacante -> vacante.getSkills() != null)
+      .flatMap(vacante -> vacante.getSkills().stream())
+      .toList();
+    modelo.put("cvTipo", curriculum.getContenidoAts() != null ? "ATS" : "seleccionado");
+    modelo.put(
+      "cvNombre",
+      curriculum.getContenidoAts() != null ? "CV ATS" : curriculum.getNombreArchivoOriginal()
+    );
+    modelo.put("cvSkills", servicioCV.extraerHabilidades(textoCv(curriculum), skills));
   }
 
   private ResponseStatusException errorCvNoDisponible() {

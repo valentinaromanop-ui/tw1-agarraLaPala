@@ -30,9 +30,30 @@
       </a>
       <h1>Vacantes recomendadas</h1>
       <p class="recommended-skills">Ofertas para: <span th:text="${#strings.listJoin(skills, ', ')}"></span></p>
+      <div th:if="${esPremium}" class="cv-filter">
+        <label for="filtro-cv-recomendadas">
+          <input id="filtro-cv-recomendadas" name="usarCv" type="checkbox" value="true"
+            form="filtros-vacantes" th:checked="${usarCv}" th:disabled="${!tieneCv}">
+          Usar mi CV para filtrar ofertas
+        </label>
+        <p th:if="${!tieneCv}" class="pending-filter-note">
+          Subí o seleccioná un CV desde tu perfil para activar este filtro.
+        </p>
+        <div th:if="${tieneCv and usarCv}" class="cv-details">
+          <p>CV en uso: <strong th:text="${cvTipo}">ATS</strong>
+            <span th:if="${cvNombre != null}" th:text="' - ' + ${cvNombre}"></span>
+          </p>
+          <p th:if="${cvSkills != null and !#lists.isEmpty(cvSkills)}">
+            Habilidades detectadas: <span th:text="${#strings.listJoin(cvSkills, ', ')}"></span>
+          </p>
+          <p th:if="${cvSinSkills}" class="pending-filter-note">
+            No detectamos habilidades del CV en las ofertas disponibles; se muestran sin aplicar este filtro.
+          </p>
+        </div>
+      </div>
     </header>
 
-    <form class="vacancy-filters" method="get" th:action="@{/vacantes/filtrar}" th:object="${busqueda}">
+    <form id="filtros-vacantes" class="vacancy-filters" method="get" th:action="@{/vacantes/filtrar}" th:object="${busqueda}">
       <div class="vacancy-filter-fields">
         <label for="modalidad">Modalidad
           <select id="modalidad" th:field="*{modalidad}">

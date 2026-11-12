@@ -3,9 +3,11 @@ package com.tallerwebi.dominio;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public final class CalculadorCoincidenciaCv {
     "años",
     "ano"
   );
+  private static final Map<String, String> SINONIMOS = crearSinonimos();
 
   private CalculadorCoincidenciaCv() {}
 
@@ -81,5 +84,37 @@ public final class CalculadorCoincidenciaCv {
       .normalize(texto, Normalizer.Form.NFD)
       .replaceAll("\\p{M}", "")
       .toLowerCase(Locale.ROOT);
+  }
+
+  public static String normalizarSkill(String skill) {
+    String normalizada = normalizar(skill).trim();
+    return SINONIMOS.getOrDefault(normalizada, normalizada);
+  }
+
+  public static Set<String> extraerPalabrasClaveNormalizadas(String texto) {
+    Set<String> palabras = new LinkedHashSet<>();
+    for (String palabra : extraerPalabrasClave(texto)) {
+      palabras.add(normalizarSkill(palabra));
+    }
+    return palabras;
+  }
+
+  private static Map<String, String> crearSinonimos() {
+    Map<String, String> sinonimos = new HashMap<>();
+    agregarSinonimos(sinonimos, "javascript", "js");
+    agregarSinonimos(sinonimos, "postgresql", "postgres");
+    agregarSinonimos(sinonimos, "nodejs", "node");
+    agregarSinonimos(sinonimos, "typescript", "ts");
+    agregarSinonimos(sinonimos, "python", "py");
+    return Collections.unmodifiableMap(sinonimos);
+  }
+
+  private static void agregarSinonimos(
+    Map<String, String> sinonimos,
+    String canonico,
+    String alias
+  ) {
+    sinonimos.put(canonico, canonico);
+    sinonimos.put(alias, canonico);
   }
 }

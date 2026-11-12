@@ -46,6 +46,18 @@
 									th:disabled="${!tieneCv}">
 								Usar mi CV para filtrar ofertas
 							</label>
+							<div th:if="${tieneCv}" class="cv-details">
+								<p>CV en uso: <strong th:text="${cvTipo}">ATS</strong>
+									<span th:if="${cvNombre != null}" th:text="' - ' + ${cvNombre}"></span>
+								</p>
+								<p th:if="${cvSkills != null and !#lists.isEmpty(cvSkills)}">
+									Habilidades detectadas:
+									<span th:text="${#strings.listJoin(cvSkills, ', ')}"></span>
+								</p>
+								<p th:if="${cvSkills == null or #lists.isEmpty(cvSkills)}" class="pending-filter-note">
+									Las habilidades del CV se detectarán al buscar.
+								</p>
+							</div>
 							<p th:if="${!tieneCv}" class="pending-filter-note">
 								Subí o seleccioná un CV desde tu perfil para activar este filtro.
 							</p>

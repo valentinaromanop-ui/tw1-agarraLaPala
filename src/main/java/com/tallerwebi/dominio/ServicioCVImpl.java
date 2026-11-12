@@ -3,7 +3,12 @@ package com.tallerwebi.dominio;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -96,12 +101,44 @@ public class ServicioCVImpl implements ServicioCV {
         return limpiarTexto(extractor.getText());
       }
     }
+
     try (
       XWPFDocument docx = new XWPFDocument(new ByteArrayInputStream(contenido));
       XWPFWordExtractor extractor = new XWPFWordExtractor(docx)
     ) {
       return limpiarTexto(extractor.getText());
     }
+  }
+
+  @Override
+  @SuppressWarnings("PMD.CyclomaticComplexity")
+  public List<String> extraerHabilidades(String texto, Collection<String> habilidadesDisponibles) {
+    if (texto == null || texto.isBlank() || habilidadesDisponibles == null) {
+      return List.of();
+    }
+    Set<String> palabrasCv = new HashSet<>(extraerPalabrasClave(texto));
+    Set<String> detectadas = new HashSet<>();
+    List<String> resultado = new ArrayList<>();
+    for (String habilidad : habilidadesDisponibles) {
+      if (habilidad == null || habilidad.isBlank()) {
+        continue;
+      }
+      String normalizada = CalculadorCoincidenciaCv.normalizarSkill(habilidad);
+      if (
+        !normalizada.isEmpty() && palabrasCv.contains(normalizada) && detectadas.add(normalizada)
+      ) {
+        resultado.add(habilidad);
+      }
+    }
+    return resultado;
+  }
+
+  @Override
+  public List<String> extraerPalabrasClave(String texto) {
+    if (texto == null || texto.isBlank()) {
+      return List.of();
+    }
+    return new ArrayList<>(CalculadorCoincidenciaCv.extraerPalabrasClaveNormalizadas(texto));
   }
 
   private boolean empiezaCon(byte[] contenido, byte[] firma) {

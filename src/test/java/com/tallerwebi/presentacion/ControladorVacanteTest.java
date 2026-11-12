@@ -14,6 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tallerwebi.dominio.BusquedaVacanteDTO;
+import com.tallerwebi.dominio.CurriculumGenerado;
+import com.tallerwebi.dominio.ServicioCVImpl;
+import com.tallerwebi.dominio.ServicioCurriculumGenerado;
 import com.tallerwebi.dominio.ServicioEmpleoGuardado;
 import com.tallerwebi.dominio.ServicioPago;
 import com.tallerwebi.dominio.ServicioPerfil;
@@ -269,5 +272,101 @@ public class ControladorVacanteTest {
       modelAndView.getModel().get("error").toString(),
       equalToIgnoringCase("No pudimos consultar Jobicy. Intentá nuevamente más tarde.")
     );
+  }
+
+  @Test
+  public void filtroCvPriorizaAtsSobreCvSeleccionado() {
+    ServicioCurriculumGenerado curriculumService = mock(ServicioCurriculumGenerado.class);
+    ServicioPago pago = mock(ServicioPago.class);
+    CurriculumGenerado curriculum = curriculum("Java", "Python", "cv-original.pdf");
+    when(pago.esPremiumActivo(1L)).thenReturn(true);
+    when(curriculumService.obtener(1L)).thenReturn(curriculum);
+    ControladorVacante controlador = controladorConCv(pago, curriculumService);
+    when(servicioVacanteMock.obtenerVacantesPorSkills(any())).thenReturn(vacantesConSkills());
+
+    ModelAndView vista = controlador.filtrarVacantes(
+      new BusquedaVacanteDTO(),
+      new BeanPropertyBindingResult(new BusquedaVacanteDTO(), "busqueda"),
+      true,
+      session
+    );
+
+    assertThat(((List<VacanteDTO>) vista.getModel().get("vacantes")).size(), equalTo(1));
+    assertThat(vista.getModel().get("cvTipo"), equalTo("ATS"));
+    assertThat(vista.getModel().get("cvSkills"), equalTo(List.of("java")));
+  }
+
+  @Test
+  public void filtroCvUsaSeleccionadoSiNoHayAts() {
+    ServicioCurriculumGenerado curriculumService = mock(ServicioCurriculumGenerado.class);
+    ServicioPago pago = mock(ServicioPago.class);
+    CurriculumGenerado curriculum = curriculum(null, "Python", "cv-original.pdf");
+    when(pago.esPremiumActivo(1L)).thenReturn(true);
+    when(curriculumService.obtener(1L)).thenReturn(curriculum);
+    ControladorVacante controlador = controladorConCv(pago, curriculumService);
+    when(servicioVacanteMock.obtenerVacantesPorSkills(any())).thenReturn(vacantesConSkills());
+
+    ModelAndView vista = controlador.filtrarVacantes(
+      new BusquedaVacanteDTO(),
+      new BeanPropertyBindingResult(new BusquedaVacanteDTO(), "busqueda"),
+      true,
+      session
+    );
+
+    assertThat(vista.getModel().get("cvTipo"), equalTo("seleccionado"));
+    assertThat(((List<VacanteDTO>) vista.getModel().get("vacantes")).size(), equalTo(1));
+  }
+
+  @Test
+  public void filtroCvSinCvMuestraErrorSinConsultarVacantes() {
+    ServicioCurriculumGenerado curriculumService = mock(ServicioCurriculumGenerado.class);
+    ServicioPago pago = mock(ServicioPago.class);
+    when(pago.esPremiumActivo(1L)).thenReturn(true);
+    when(curriculumService.obtener(1L)).thenReturn(null);
+    ControladorVacante controlador = controladorConCv(pago, curriculumService);
+
+    ModelAndView vista = controlador.filtrarVacantes(
+      new BusquedaVacanteDTO(),
+      new BeanPropertyBindingResult(new BusquedaVacanteDTO(), "busqueda"),
+      true,
+      session
+    );
+
+    assertThat(
+      vista.getModel().get("error"),
+      equalTo("Subí o seleccioná un CV antes de usar este filtro.")
+    );
+    verify(servicioVacanteMock, times(0)).obtenerVacantesPorSkills(any());
+  }
+
+  private ControladorVacante controladorConCv(
+    ServicioPago pago,
+    ServicioCurriculumGenerado curriculumService
+  ) {
+    return new ControladorVacante(
+      servicioVacanteMock,
+      servicioPostulacionMock,
+      servicioPerfilMock,
+      pago,
+      servicioEmpleoGuardadoMock,
+      curriculumService,
+      new ServicioCVImpl()
+    );
+  }
+
+  private CurriculumGenerado curriculum(String ats, String original, String nombre) {
+    CurriculumGenerado curriculum = new CurriculumGenerado();
+    curriculum.setContenidoAts(ats);
+    curriculum.setTextoOriginal(original);
+    curriculum.setNombreArchivoOriginal(nombre);
+    return curriculum;
+  }
+
+  private List<VacanteDTO> vacantesConSkills() {
+    VacanteDTO java = new VacanteDTO();
+    java.setSkills(List.of("java"));
+    VacanteDTO python = new VacanteDTO();
+    python.setSkills(List.of("python"));
+    return List.of(java, python);
   }
 }
