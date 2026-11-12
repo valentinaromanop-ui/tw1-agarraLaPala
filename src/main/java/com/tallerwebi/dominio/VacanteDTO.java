@@ -29,6 +29,8 @@ public class VacanteDTO {
   private long cantidadResenas;
   private String estado = "ABIERTA";
   private Integer limitePostulaciones;
+  private int porcentajeCoincidenciaCv;
+  private List<String> palabrasCoincidentesCv = List.of();
 
   public Long getId() {
     return id;
@@ -218,5 +220,22 @@ public class VacanteDTO {
 
   public void setPorcentajeMatch(Integer porcentajeMatch) {
     this.porcentajeMatch = porcentajeMatch;
+  }
+
+  public int getPorcentajeCoincidenciaCv() {
+    return porcentajeCoincidenciaCv;
+  }
+
+  public void setPorcentajeCoincidenciaCv(int porcentajeCoincidenciaCv) {
+    this.porcentajeCoincidenciaCv = porcentajeCoincidenciaCv;
+  }
+
+  public List<String> getPalabrasCoincidentesCv() {
+    return palabrasCoincidentesCv;
+  }
+
+  public void setPalabrasCoincidentesCv(List<String> palabrasCoincidentesCv) {
+    this.palabrasCoincidentesCv =
+            palabrasCoincidentesCv == null ? List.of() : palabrasCoincidentesCv;
   }
 }
