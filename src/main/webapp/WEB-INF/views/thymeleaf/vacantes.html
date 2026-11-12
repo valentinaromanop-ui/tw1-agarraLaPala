@@ -47,7 +47,7 @@
             Habilidades detectadas: <span th:text="${#strings.listJoin(cvSkills, ', ')}"></span>
           </p>
           <p th:if="${cvSinSkills}" class="pending-filter-note">
-            No detectamos habilidades del CV en las ofertas disponibles; se muestran sin aplicar este filtro.
+            No hay ofertas con al menos 30% de coincidencia con tu CV.
           </p>
         </div>
       </div>
@@ -152,6 +152,8 @@
                th:text="|${vacante.porcentajeMatch}% match|">
               80% match
             </p>
+                      <span class="badge bg-success" th:if="${usarCv and vacante.porcentajeCoincidenciaCv != null}"
+            th:text="${vacante.porcentajeCoincidenciaCv} + '% de coincidencia con tu CV'"></span>
           <p class="publication-date">
             Publicación (UTC):
             <span th:if="${vacante.fechaPublicacion != null}"
