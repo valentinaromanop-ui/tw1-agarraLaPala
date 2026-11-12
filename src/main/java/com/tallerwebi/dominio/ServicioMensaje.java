@@ -11,4 +11,5 @@ public interface ServicioMensaje {
   List<ResumenConversacion> listarConversaciones(Long usuarioId);
   void marcarComoLeidos(Long postulacionId, Long usuarioId) throws AccesoChatDenegado;
   List<NotificacionMensaje> listarNoLeidos(Long usuarioId);
+  void marcarTodosLeidos(Long usuarioId);
 }

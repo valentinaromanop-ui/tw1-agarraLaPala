@@ -8,4 +8,7 @@ public interface ServicioNotificacionOferta {
   List<NotificacionOferta> listarNoLeidas(Long usuarioId);
   long contarNoLeidas(Long usuarioId);
   String marcarLeidaYObtenerEnlace(Long notificacionId, Long usuarioId);
+  void marcarTodasLeidas(Long usuarioId);
+
+  void notificarDecision(Postulacion postulacion, EstadoPostulacion nuevoEstado);
 }

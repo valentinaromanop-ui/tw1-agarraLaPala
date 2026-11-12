@@ -50,11 +50,12 @@
       <dl class="detalle-datos">
         <div><dt>Ubicación</dt><dd th:text="${vacante.ubicacion ?: 'No informada'}"></dd></div>
         <div><dt>Modalidad</dt><dd th:text="${vacante.modalidad ?: 'No informada'}"></dd></div>
-        <div><dt>Seniority</dt><dd th:text="${vacante.seniority ?: 'No informado'}"></dd></div>
-        <div><dt>Jornada</dt><dd th:text="${vacante.jornada ?: 'No informada'}"></dd></div>
+        <div><dt>Seniority</dt><dd th:text="${vacante.seniority == 'internship' ? 'Trainee / Pasantía' : (vacante.seniority == 'junior' ? 'Junior' : (vacante.seniority == 'mid-level' ? 'Semi senior' : (vacante.seniority == 'senior' ? 'Senior' : 'No informado')))}"></dd></div>
+        <div><dt>Jornada</dt><dd th:text="${vacante.jornada == 'full-time' ? 'Tiempo completo' : (vacante.jornada == 'part-time' ? 'Medio tiempo' : 'No informada')}"></dd></div>
         <div><dt>Horario</dt><dd th:text="${vacante.horario ?: 'No informado'}"></dd></div>
         <div><dt>Sueldo mensual</dt><dd>
-          <span th:if="${vacante.salario != null}"><span th:text="${vacante.salario}"></span> <span th:text="${vacante.moneda ?: 'Moneda no informada'}"></span></span>
+          <span th:if="${vacante.salario != null}"
+            th:text="${(vacante.moneda ?: 'Moneda no especificada') + ' ' + vacante.salario}">ARS 850000</span>
           <span th:if="${vacante.salario == null}">No informado</span>
         </dd></div>
         <div><dt>Publicación (UTC)</dt><dd th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha informada'}"></dd></div>
@@ -71,6 +72,63 @@
           th:action="@{/vacantes/postular}" th:object="${datosPostulacion}">
           <input type="hidden" th:field="*{fuente}">
           <input type="hidden" th:field="*{id}">
+          <section th:if="${match != null and match.porcentaje() != null}" class="match-box">
+            <div class="match-heading">
+              <div>
+                <p class="match-eyebrow">Análisis de perfil</p>
+                <h3>Tu compatibilidad</h3>
+              </div>
+              <span class="match-percentage" th:text="${match.porcentaje() + '%'}">70%</span>
+            </div>
+            <div class="match-progress" role="progressbar"
+              aria-label="Compatibilidad de tu perfil con la oferta"
+              th:attr="aria-valuenow=${match.porcentaje()}"
+              aria-valuemin="0" aria-valuemax="100">
+              <span th:style="|width: ${match.porcentaje()}%|"></span>
+            </div>
+            <div class="match-skills-grid">
+              <div class="match-skill-group match-skill-group-owned">
+                <h4><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Habilidades que ya tenés</h4>
+                <div class="match-skill-list">
+                  <span class="match-skill-chip" th:each="habilidad : ${match.coincidentes()}"
+                    th:text="${habilidad}">Git</span>
+                  <span th:if="${#lists.isEmpty(match.coincidentes())}" class="match-empty">
+                    Todavía no hay coincidencias.
+                  </span>
+                </div>
+              </div>
+              <div class="match-skill-group match-skill-group-missing"
+                th:if="${!#lists.isEmpty(match.faltantes())}">
+                <h4><i class="bi bi-plus-circle" aria-hidden="true"></i> Habilidades por desarrollar</h4>
+                <div class="match-skill-list">
+                  <span class="match-skill-chip" th:each="habilidad : ${match.faltantes()}"
+                    th:text="${habilidad}">React</span>
+                </div>
+              </div>
+            </div>
+            <div th:if="${!#lists.isEmpty(match.faltantes())}">
+              <section th:if="${!#maps.isEmpty(cursos)}" class="recommended-courses">
+                <div class="recommended-courses-heading">
+                  <h4><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> Cursos recomendados</h4>
+                  <p>Potenciá tu perfil aprendiendo las habilidades que te faltan.</p>
+                </div>
+                <div class="recommended-course" th:each="entrada : ${cursos}">
+                  <div class="recommended-course-info">
+                    <span class="recommended-course-label">Aprendé</span>
+                    <strong class="recommended-course-skill" th:text="${entrada.key}">React</strong>
+                  </div>
+                  <span class="recommended-course-links">
+                    <a th:each="curso, estado : ${entrada.value}"
+                      th:href="${curso.url}"
+                      th:text="${curso.plataforma}"
+                      th:attr="aria-label=${'Buscar ' + entrada.key + ' en ' + curso.plataforma}"
+                      target="_blank"
+                      rel="noopener noreferrer">Coursera</a>
+                  </span>
+                </div>
+              </section>
+            </div>
+          </section>
           <button type="submit" class="btn primary-action">Postularme</button>
         </form>
       </section>

@@ -40,7 +40,7 @@ public class ClienteGoogleCalendarTest {
       .withProperty("google.calendar.client-secret", "secreto")
       .withProperty(
         "google.calendar.redirect-uri",
-        "http://localhost:8080/spring/google-calendar/callback"
+        "http://localhost:8080/google-calendar/callback"
       );
     configuracion = new GoogleCalendarConfig(entorno);
     RestClient.Builder builder = RestClient.builder();

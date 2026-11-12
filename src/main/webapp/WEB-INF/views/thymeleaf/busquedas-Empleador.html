@@ -70,8 +70,8 @@
         <p th:if="${#lists.isEmpty(vacantesActivas)}" class="empty-searches" role="status">
           No tenés búsquedas activas en este momento.
         </p>
-        <div th:unless="${#lists.isEmpty(vacantesActivas)}" class="table-responsive">
-          <table class="table employer-table align-middle">
+        <div th:unless="${#lists.isEmpty(vacantesActivas)}" class="table-responsive employer-searches-responsive">
+          <table class="table employer-table employer-searches-table align-middle">
             <thead>
               <tr>
                 <th scope="col">Cargo</th>
@@ -86,19 +86,19 @@
             </thead>
             <tbody>
               <tr th:each="vacante : ${vacantesActivas}">
-                <th scope="row" th:text="${vacante.titulo}"></th>
-                <td th:text="${vacante.ubicacion}"></td>
-                <td th:text="${vacante.modalidad}"></td>
-                <td><span>$</span> <span th:text="${vacante.salario}"></span></td>
-                <td th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
-                <td>
+                <th scope="row" data-label="Cargo" th:text="${vacante.titulo}"></th>
+                <td data-label="Ubicación" th:text="${vacante.ubicacion}"></td>
+                <td data-label="Modalidad" th:text="${vacante.modalidad}"></td>
+                <td data-label="Salario"><span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span> <span th:text="${vacante.salario}"></span></td>
+                <td data-label="Fecha de publicación" th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
+                <td data-label="Postulaciones">
                   <span th:if="${vacante.limitePostulaciones != null}"
                     th:text="${cantidadesPostulaciones[vacante.id] + ' de ' + vacante.limitePostulaciones + ' postulaciones'}"></span>
                   <span th:if="${vacante.limitePostulaciones == null}"
                     th:text="${cantidadesPostulaciones[vacante.id] + ' postulaciones'}"></span>
                 </td>
-                <td th:text="${vacante.estado}"></td>
-                <td class="d-flex flex-wrap gap-2">
+                <td data-label="Estado" th:text="${vacante.estado}"></td>
+                <td data-label="Acciones" class="searches-actions">
                   <a class="btn btn-outline-light btn-sm"
                     th:href="@{/ofertas/{id}/postulantes(id=${vacante.id})}">Ver postulantes</a>
                   <form method="post" th:action="@{/vacantes/{id}/cerrar(id=${vacante.id})}"
@@ -114,8 +114,8 @@
 
       <section th:if="${!#lists.isEmpty(vacantesCerradas)}" aria-labelledby="historial-title">
         <h2 id="historial-title" class="h4 mt-4">Historial</h2>
-        <div class="table-responsive">
-          <table class="table employer-table align-middle">
+        <div class="table-responsive employer-searches-responsive">
+          <table class="table employer-table employer-searches-table align-middle">
             <thead>
               <tr>
                 <th scope="col">Cargo</th>
@@ -130,19 +130,19 @@
             </thead>
             <tbody>
               <tr th:each="vacante : ${vacantesCerradas}">
-                <th scope="row" th:text="${vacante.titulo}"></th>
-                <td th:text="${vacante.ubicacion}"></td>
-                <td th:text="${vacante.modalidad}"></td>
-                <td><span>$</span> <span th:text="${vacante.salario}"></span></td>
-                <td th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
-                <td>
+                <th scope="row" data-label="Cargo" th:text="${vacante.titulo}"></th>
+                <td data-label="Ubicación" th:text="${vacante.ubicacion}"></td>
+                <td data-label="Modalidad" th:text="${vacante.modalidad}"></td>
+                <td data-label="Salario"><span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span> <span th:text="${vacante.salario}"></span></td>
+                <td data-label="Fecha de publicación" th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
+                <td data-label="Postulaciones">
                   <span th:if="${vacante.limitePostulaciones != null}"
                     th:text="${cantidadesPostulaciones[vacante.id] + ' de ' + vacante.limitePostulaciones + ' postulaciones'}"></span>
                   <span th:if="${vacante.limitePostulaciones == null}"
                     th:text="${cantidadesPostulaciones[vacante.id] + ' postulaciones'}"></span>
                 </td>
-                <td th:text="${vacante.estado}"></td>
-                <td>
+                <td data-label="Estado" th:text="${vacante.estado}"></td>
+                <td data-label="Acciones" class="searches-actions">
                   <a class="btn btn-outline-light btn-sm"
                     th:href="@{/ofertas/{id}/postulantes(id=${vacante.id})}">Ver postulantes</a>
                 </td>

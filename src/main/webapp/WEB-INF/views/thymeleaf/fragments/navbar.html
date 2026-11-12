@@ -91,6 +91,7 @@
               <button class="nav-link dropdown-toggle" id="notifications-dropdown-toggle" type="button"
                 data-bs-toggle="dropdown" aria-controls="notifications-dropdown" aria-haspopup="true"
                 aria-expanded="false" aria-label="Notificaciones"
+                th:data-marcar-leidas-url="@{/notificaciones/marcar-leidas}"
                 th:classappend="${activePage == 'notifications'} ? ' active' : ''">
                 <i class="bi bi-bell" aria-hidden="true"></i> Notificaciones
                 <span id="notifications-count" class="badge bg-danger"
@@ -101,15 +102,15 @@
               <ul class="dropdown-menu dropdown-menu-end notification-menu" id="notifications-dropdown"
                   aria-label="Notificaciones recientes">
                 <li><h2 class="dropdown-header">Notificaciones recientes</h2></li>
-                <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
-                  <a class="dropdown-item notification-item" th:href="@{/postulaciones}">
-                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>
-                    <span class="notification-content">
-                      <span class="notification-sender">Agarra la Pala</span>
-                      <span class="notification-text">Consultá el estado de tus postulaciones</span>
-                    </span>
-                  </a>
-                </li>
+<!--                <li th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">-->
+<!--                  <a class="dropdown-item notification-item" th:href="@{/postulaciones}">-->
+<!--                    <span class="notification-avatar notification-avatar-company" aria-hidden="true">AP</span>-->
+<!--                    <span class="notification-content">-->
+<!--                      <span class="notification-sender">Agarra la Pala</span>-->
+<!--                      <span class="notification-text">Consultá el estado de tus postulaciones</span>-->
+<!--                    </span>-->
+<!--                  </a>-->
+<!--                </li>-->
                 <li th:each="n : ${mensajesNoLeidos}">
                   <a class="dropdown-item notification-item" th:href="@{/chat/{id}(id=${n.postulacionId})}">
                     <span class="notification-avatar notification-avatar-company" aria-hidden="true"
@@ -178,6 +179,7 @@
         </div>
       </div>
     </nav>
+    <script type="module" th:src="@{/js/notificaciones.js}"></script>
     <th:block th:if="${authenticated}" th:replace="~{fragments/chat-widget :: chatWidget}"></th:block>
   </th:block>
 </body>

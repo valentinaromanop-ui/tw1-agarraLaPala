@@ -1,5 +1,6 @@
 package com.tallerwebi.infraestructura;
 
+import com.tallerwebi.dominio.CalculoMatch;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.dominio.VacanteDTO;
 import com.tallerwebi.dominio.VacanteSkill;
@@ -40,6 +41,14 @@ public class VacanteMapper {
       }
     }
     dto.setSkills(coincidencias);
+    List<String> skillsRequeridas = vacante
+      .getVacanteSkills()
+      .stream()
+      .map(relacion -> relacion.getSkill().getNombre())
+      .toList();
+
+    dto.setSkills(coincidencias);
+    dto.setPorcentajeMatch(CalculoMatch.calcular(skillsBuscadas, skillsRequeridas).porcentaje());
     return dto;
   }
 

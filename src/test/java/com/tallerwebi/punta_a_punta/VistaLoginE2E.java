@@ -83,7 +83,7 @@ public class VistaLoginE2E {
 
   private void dadoQueElUsuarioEstaEnLaVistaDeLogin() throws MalformedURLException {
     URL urlLogin = vistaLogin.obtenerURLActual();
-    assertThat(urlLogin.getPath(), matchesPattern("^/spring/login(?:;jsessionid=[^/\\s]+)?$"));
+    assertThat(urlLogin.getPath(), matchesPattern("^/login(?:;jsessionid=[^/\\s]+)?$"));
   }
 
   private void cuandoElUsuarioTocaElBotonDeLogin() {
@@ -92,10 +92,7 @@ public class VistaLoginE2E {
 
   private void entoncesDeberiaSerRedirigidoALasVacantesRecomendadas() throws MalformedURLException {
     URL url = vistaLogin.obtenerURLActual();
-    assertThat(
-      url.getPath(),
-      matchesPattern("^/spring/vacantes/recomendadas(?:;jsessionid=[^/\\s]+)?$")
-    );
+    assertThat(url.getPath(), matchesPattern("^/vacantes/recomendadas(?:;jsessionid=[^/\\s]+)?$"));
   }
 
   private void entoncesDeberiaVerUnMensajeDeError() {

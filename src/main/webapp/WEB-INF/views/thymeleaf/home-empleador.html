@@ -13,59 +13,7 @@
   <link rel="stylesheet" th:href="@{/css/home-empleador.css}">
 </head>
 <body class="employer-home-page">
-  <nav class="navbar navbar-expand-lg app-navbar employer-home-navbar" aria-label="Navegación principal">
-    <div class="container-fluid app-navbar-container">
-      <a class="navbar-brand app-navbar-brand" th:href="@{/empleadores/home}">
-        <img th:src="@{/img/HormigaLogo.png}" alt="Logo de Agarra la Pala" id="Logo-ant">
-        <span>Agarra la Pala</span>
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#employer-home-menu"
-        aria-controls="employer-home-menu" aria-expanded="false" aria-label="Abrir menú">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse app-navbar-collapse" id="employer-home-menu">
-        <div class="search-shell employer-home-search" role="search">
-          <i class="bi bi-search" aria-hidden="true"></i>
-          <input type="search" aria-label="Buscar candidatos, puestos o habilidades"
-            placeholder="Buscar candidatos, puestos o habilidades">
-        </div>
-        <ul class="navbar-nav app-navbar-links">
-          <li class="nav-item">
-            <a class="nav-link active" th:href="@{${rutaInicio}}" aria-current="page">
-              <i class="bi bi-house" aria-hidden="true"></i> Inicio
-            </a>
-          </li>
-          <li class="nav-item dropdown">
-            <button class="nav-link dropdown-toggle" id="employer-business-dropdown-toggle" type="button"
-              data-bs-toggle="dropdown" aria-controls="employer-business-dropdown" aria-haspopup="true"
-              aria-expanded="false">
-              <i class="bi bi-building" aria-hidden="true"></i> Para empresas
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" id="employer-business-dropdown">
-              <li><a class="dropdown-item" href="#mis-ofertas"><i class="bi bi-people" aria-hidden="true"></i> Mis ofertas</a></li>
-              <li><a class="dropdown-item" th:href="@{/crear-postulacion}"><i class="bi bi-plus-circle" aria-hidden="true"></i> Publicar oferta</a></li>
-              <li><a class="dropdown-item" th:href="@{/busquedas-Empleador}"><i class="bi bi-list-check" aria-hidden="true"></i> Mis búsquedas activas</a></li>
-            </ul>
-          </li>
-        </ul>
-        <div class="app-navbar-actions employer-home-actions">
-          <a class="premium-button" th:href="@{/premium/empleador/pagar}">
-            <i class="bi bi-star-fill" aria-hidden="true"></i>
-            <span th:if="${premiumHasta == null}">Hacete Premium</span>
-            <span th:if="${premiumHasta != null}">Premium activo</span>
-          </a>
-          <a class="btn btn-outline-light nav-action" th:href="@{/empleador/perfil}">
-            <i class="bi bi-person-circle" aria-hidden="true"></i> Perfil de empresa
-          </a>
-          <form th:action="@{/logout}" method="post">
-            <button class="btn btn-outline-light nav-action" type="submit">
-              <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </nav>
+<nav th:replace="~{fragments/navbar :: appNavbar('home', true, true)}"></nav>
 
   <main id="inicio">
     <section class="hero-section employer-hero" aria-labelledby="employer-hero-title">
@@ -226,7 +174,8 @@
                 <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span>
                 <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span>
                 <span th:if="${oferta.jornada != null and !#strings.isEmpty(oferta.jornada)}">
-                  <i class="bi bi-hourglass-split" aria-hidden="true"></i> <span th:text="${oferta.jornada}">Jornada</span>
+                  <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                  <span th:text="${oferta.jornada == 'full-time' ? 'Tiempo completo' : (oferta.jornada == 'part-time' ? 'Medio tiempo' : oferta.jornada)}">Jornada</span>
                 </span>
                 <span th:if="${oferta.jornada == null or #strings.isEmpty(oferta.jornada)}">
                   <i class="bi bi-hourglass-split" aria-hidden="true"></i>

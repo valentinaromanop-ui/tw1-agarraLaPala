@@ -2,8 +2,11 @@ package com.tallerwebi.presentacion;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tallerwebi.dominio.EstadoInvitacion;
 import com.tallerwebi.dominio.Invitacion;
@@ -131,5 +134,29 @@ class ControladorNotificacionOfertaTest {
       .getResponse();
 
     assertTrue(respuesta.getContentAsString().contains("\"count\":1"));
+  }
+
+  @Test
+  void abrirElCentroMarcaMensajesYAlertasComoLeidos() throws Exception {
+    ServicioNotificacionOferta servicioNotificaciones = mock(ServicioNotificacionOferta.class);
+    ServicioInvitacion servicioInvitacion = mock(ServicioInvitacion.class);
+    ServicioMensaje servicioMensaje = mock(ServicioMensaje.class);
+    ControladorNotificacionOferta controlador = new ControladorNotificacionOferta(
+      servicioNotificaciones
+    );
+    controlador.setServicioInvitacion(servicioInvitacion);
+    controlador.setServicioMensaje(servicioMensaje);
+    MockHttpSession session = new MockHttpSession();
+    session.setAttribute("ROL", "CANDIDATO");
+    session.setAttribute("USUARIO_ID", 20L);
+
+    MockMvcBuilders
+      .standaloneSetup(controlador)
+      .build()
+      .perform(post("/notificaciones/marcar-leidas").session(session))
+      .andExpect(status().isNoContent());
+
+    verify(servicioMensaje).marcarTodosLeidos(20L);
+    verify(servicioNotificaciones).marcarTodasLeidas(20L);
   }
 }

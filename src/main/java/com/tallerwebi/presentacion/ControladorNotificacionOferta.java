@@ -13,12 +13,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class ControladorNotificacionOferta {
 
+  private static final String ATRIBUTO_ROL = "ROL";
+  private static final String ATRIBUTO_USUARIO_ID = "USUARIO_ID";
+  private static final String ROL_EMPLEADOR = "EMPLEADOR";
   private final ServicioNotificacionOferta servicioNotificacionOferta;
   private ServicioInvitacion servicioInvitacion;
   private ServicioMensaje servicioMensaje;
@@ -56,8 +60,8 @@ public class ControladorNotificacionOferta {
     if (usuarioId == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-    String rol = String.valueOf(session.getAttribute("ROL"));
-    if (!esCandidato(rol) && !"EMPLEADOR".equalsIgnoreCase(rol)) {
+    String rol = String.valueOf(session.getAttribute(ATRIBUTO_ROL));
+    if (!esCandidato(rol) && !ROL_EMPLEADOR.equalsIgnoreCase(rol)) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
     long cantidad = servicioMensaje.listarNoLeidos(usuarioId).size();
@@ -67,6 +71,24 @@ public class ControladorNotificacionOferta {
     Map<String, Long> respuesta = new HashMap<>();
     respuesta.put("count", cantidad);
     return ResponseEntity.ok(respuesta);
+  }
+
+  @PostMapping("/notificaciones/marcar-leidas")
+  @ResponseBody
+  public ResponseEntity<Void> marcarTodasLeidas(HttpSession session) {
+    Long usuarioId = obtenerUsuarioId(session);
+    if (usuarioId == null) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    String rol = String.valueOf(session.getAttribute(ATRIBUTO_ROL));
+    if (!esCandidato(rol) && !ROL_EMPLEADOR.equalsIgnoreCase(rol)) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+    servicioMensaje.marcarTodosLeidos(usuarioId);
+    if (esCandidato(rol)) {
+      servicioNotificacionOferta.marcarTodasLeidas(usuarioId);
+    }
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping({ "/notificaciones/{id}/abrir", "/notificaciones/ofertas/{id}/abrir" })
@@ -80,17 +102,17 @@ public class ControladorNotificacionOferta {
   }
 
   private Long obtenerCandidatoId(HttpSession session) {
-    if (session == null || !esCandidato(String.valueOf(session.getAttribute("ROL")))) {
+    if (session == null || !esCandidato(String.valueOf(session.getAttribute(ATRIBUTO_ROL)))) {
       return null;
     }
     return obtenerUsuarioId(session);
   }
 
   private Long obtenerUsuarioId(HttpSession session) {
-    if (session == null || session.getAttribute("ROL") == null) {
+    if (session == null || session.getAttribute(ATRIBUTO_ROL) == null) {
       return null;
     }
-    Object id = session.getAttribute("USUARIO_ID");
+    Object id = session.getAttribute(ATRIBUTO_USUARIO_ID);
     return id instanceof Number ? ((Number) id).longValue() : null;
   }
 
@@ -99,6 +121,6 @@ public class ControladorNotificacionOferta {
   }
 
   private boolean sesionIniciada(HttpSession session) {
-    return session != null && session.getAttribute("USUARIO_ID") instanceof Number;
+    return session != null && session.getAttribute(ATRIBUTO_USUARIO_ID) instanceof Number;
   }
 }

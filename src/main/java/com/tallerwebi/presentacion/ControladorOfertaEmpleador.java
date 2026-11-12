@@ -42,6 +42,14 @@ public class ControladorOfertaEmpleador {
   private static final String REDIRECT_LOGIN = "redirect:/login";
   private static final String PUBLICADA_TRUE = Boolean.TRUE.toString();
   private static final List<String> MODALIDADES = List.of("presencial", "remoto", "híbrido");
+  private static final List<String> MONEDAS = List.of("ARS", "USD", "EUR");
+  private static final List<String> SENIORITIES = List.of(
+    "internship",
+    "junior",
+    "mid-level",
+    "senior"
+  );
+  private static final List<String> JORNADAS = List.of("full-time", "part-time");
 
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
   private final ServicioPostulacion servicioPostulacion;
@@ -189,7 +197,10 @@ public class ControladorOfertaEmpleador {
   private void validar(DatosOfertaEmpleador datos, List<String> errores) {
     validarCamposObligatorios(datos, errores);
     validarModalidad(datos.getModalidad(), errores);
+    validarOpcion(datos.getSeniority(), SENIORITIES, "seniority", errores);
+    validarOpcion(datos.getJornada(), JORNADAS, "jornada", errores);
     validarSalario(datos.getSalario(), errores);
+    validarMoneda(datos.getMoneda(), errores);
     validarSkills(datos.getSkills(), errores);
     validarLimitePostulaciones(datos.getLimitePostulaciones(), errores);
   }
@@ -215,6 +226,20 @@ public class ControladorOfertaEmpleador {
     }
   }
 
+  private void validarOpcion(
+    String valor,
+    List<String> opciones,
+    String nombreCampo,
+    List<String> errores
+  ) {
+    if (vacio(valor)) {
+      return;
+    }
+    if (!opciones.contains(valor.trim().toLowerCase(Locale.ROOT))) {
+      errores.add("Elegí una opción válida para " + nombreCampo + ".");
+    }
+  }
+
   private void validarSalario(String salario, List<String> errores) {
     if (vacio(salario)) {
       errores.add("Ingresá el salario ofrecido.");
@@ -226,6 +251,12 @@ public class ControladorOfertaEmpleador {
       } catch (NumberFormatException excepcion) {
         errores.add("Ingresá un salario numérico válido.");
       }
+    }
+  }
+
+  private void validarMoneda(String moneda, List<String> errores) {
+    if (vacio(moneda) || !MONEDAS.contains(moneda.trim().toUpperCase(Locale.ROOT))) {
+      errores.add("Elegí una moneda válida: ARS, USD o EUR.");
     }
   }
 
@@ -256,7 +287,14 @@ public class ControladorOfertaEmpleador {
     vacante.setUbicacion(datos.getUbicacion().trim());
     vacante.setModalidad(datos.getModalidad().trim().toLowerCase(Locale.ROOT));
     vacante.setHorario(datos.getHorario().trim());
+    if (!vacio(datos.getSeniority())) {
+      vacante.setSeniority(datos.getSeniority().trim().toLowerCase(Locale.ROOT));
+    }
+    if (!vacio(datos.getJornada())) {
+      vacante.setJornada(datos.getJornada().trim().toLowerCase(Locale.ROOT));
+    }
     vacante.setSalario(new BigDecimal(datos.getSalario().trim()));
+    vacante.setMoneda(datos.getMoneda().trim().toUpperCase(Locale.ROOT));
     vacante.setEmpleadorId(empleador.getId());
     vacante.setFechaPublicacion(LocalDateTime.now());
     if (!vacio(datos.getLimitePostulaciones())) {

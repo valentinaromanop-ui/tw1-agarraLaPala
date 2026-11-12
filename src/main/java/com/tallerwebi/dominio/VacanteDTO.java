@@ -212,6 +212,16 @@ public class VacanteDTO {
     this.limitePostulaciones = limitePostulaciones;
   }
 
+  private Integer porcentajeMatch;
+
+  public Integer getPorcentajeMatch() {
+    return porcentajeMatch;
+  }
+
+  public void setPorcentajeMatch(Integer porcentajeMatch) {
+    this.porcentajeMatch = porcentajeMatch;
+  }
+
   public int getPorcentajeCoincidenciaCv() {
     return porcentajeCoincidenciaCv;
   }
@@ -226,6 +236,6 @@ public class VacanteDTO {
 
   public void setPalabrasCoincidentesCv(List<String> palabrasCoincidentesCv) {
     this.palabrasCoincidentesCv =
-      palabrasCoincidentesCv == null ? List.of() : palabrasCoincidentesCv;
+            palabrasCoincidentesCv == null ? List.of() : palabrasCoincidentesCv;
   }
 }

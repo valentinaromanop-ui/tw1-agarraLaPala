@@ -42,7 +42,7 @@
     window.onload = scrollToBottom;
 
     const client = new StompJs.Client({
-      brokerURL: (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/spring/ws-chat'
+      brokerURL: (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws-chat'
     });
 
     client.onConnect = () => {

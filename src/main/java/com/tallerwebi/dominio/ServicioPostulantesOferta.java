@@ -2,12 +2,7 @@ package com.tallerwebi.dominio;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +49,7 @@ public class ServicioPostulantesOferta {
 
   public List<PostulanteOfertaDTO> obtenerPostulantes(Long vacanteId, Long empleadorId) {
     validarPropiedadOferta(vacanteId, empleadorId);
+    List<String> skillsOferta = nombresSkills(repositorioVacante.obtenerPorId(vacanteId));
     List<Postulacion> postulaciones = repositorioPostulacion.buscarPorVacante(vacanteId);
     List<Long> usuarioIds = postulaciones
       .stream()
@@ -67,7 +63,8 @@ public class ServicioPostulantesOferta {
       .stream()
       .map(postulacion -> {
         Usuario usuario = postulacion.getUsuario();
-        return new PostulanteOfertaDTO(
+        List<String> habilidades = dividirHabilidades(usuario.getHabilidades());
+        PostulanteOfertaDTO dto = new PostulanteOfertaDTO(
           postulacion.getId(),
           nombreCompleto(usuario),
           usuario.getEmail(),
@@ -77,6 +74,10 @@ public class ServicioPostulantesOferta {
           servicioPago != null && servicioPago.esPremiumActivo(usuario.getId()),
           postulacion.getEstado()
         );
+        ResultadoMatch match = CalculoMatch.calcular(habilidades, skillsOferta);
+        dto.setPorcentajeMatch(match.porcentaje());
+        dto.setHabilidadesFaltantes(match.faltantes());
+        return dto;
       })
       .sorted(
         Comparator
@@ -88,6 +89,16 @@ public class ServicioPostulantesOferta {
           )
       )
       .toList();
+  }
+
+  private List<String> nombresSkills(Vacante vacante) {
+    List<String> nombres = new ArrayList<>();
+    if (vacante != null) {
+      for (VacanteSkill vs : vacante.getVacanteSkills()) {
+        if (vs.getSkill() != null) nombres.add(vs.getSkill().getNombre());
+      }
+    }
+    return nombres;
   }
 
   public Postulacion cambiarEstado(

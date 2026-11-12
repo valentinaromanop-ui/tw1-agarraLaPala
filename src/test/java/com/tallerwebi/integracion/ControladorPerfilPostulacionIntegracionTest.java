@@ -19,11 +19,13 @@ import com.tallerwebi.config.CorreoConfig;
 import com.tallerwebi.dominio.EstadoPostulacion;
 import com.tallerwebi.dominio.PerfilPostulante;
 import com.tallerwebi.dominio.Postulacion;
+import com.tallerwebi.dominio.PostulanteSkill;
 import com.tallerwebi.dominio.ServicioLogin;
 import com.tallerwebi.dominio.Skill;
 import com.tallerwebi.dominio.Suscripcion;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.Vacante;
+import com.tallerwebi.dominio.VacanteSkill;
 import com.tallerwebi.dominio.excepcion.UsuarioExistente;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
 import com.tallerwebi.integracion.config.SpringWebTestConfig;
@@ -460,5 +462,70 @@ class ControladorPerfilPostulacionIntegracionTest {
         sessionFactory.getCurrentSession().persist(skill);
         return skill;
       });
+  }
+
+  @Test
+  void detalleDeVacanteCargaSkillsYRenderizaMatchYCursosSinErrorLazy() throws Exception {
+    MockHttpSession session = crearSesionPostulante();
+    Long candidatoId = ((Number) session.getAttribute("USUARIO_ID")).longValue();
+
+    Long ofertaId = new TransactionTemplate(transactionManager)
+      .execute(status -> {
+        var sesion = sessionFactory.getCurrentSession();
+        Usuario candidato = sesion.get(Usuario.class, candidatoId);
+
+        Skill java = new Skill();
+        java.setNombre("Java-" + UUID.randomUUID());
+        sesion.persist(java);
+
+        Skill sql = new Skill();
+        sql.setNombre("SQL-" + UUID.randomUUID());
+        sesion.persist(sql);
+
+        PerfilPostulante perfil = new PerfilPostulante();
+        perfil.setUsuario(candidato);
+        sesion.persist(perfil);
+
+        PostulanteSkill habilidadCandidato = new PostulanteSkill();
+        habilidadCandidato.setPostulante(perfil);
+        habilidadCandidato.setSkill(java);
+        sesion.persist(habilidadCandidato);
+
+        Vacante oferta = new Vacante();
+        oferta.setFuente("LOCAL");
+        oferta.setTitulo("Desarrollador Java");
+        sesion.persist(oferta);
+
+        VacanteSkill habilidadOfertaJava = new VacanteSkill();
+        habilidadOfertaJava.setVacante(oferta);
+        habilidadOfertaJava.setSkill(java);
+        sesion.persist(habilidadOfertaJava);
+
+        VacanteSkill habilidadOfertaSql = new VacanteSkill();
+        habilidadOfertaSql.setVacante(oferta);
+        habilidadOfertaSql.setSkill(sql);
+        sesion.persist(habilidadOfertaSql);
+
+        sesion.flush();
+        return oferta.getId();
+      });
+
+    String html = mockMvc
+      .perform(
+        get("/vacantes/detalle")
+          .session(session)
+          .param("fuente", "LOCAL")
+          .param("id", ofertaId.toString())
+      )
+      .andExpect(status().isOk())
+      .andReturn()
+      .getResponse()
+      .getContentAsString();
+
+    assertTrue(html.contains("Tu compatibilidad"));
+    assertTrue(html.contains("50%"));
+    assertTrue(html.contains("Cursos recomendados"));
+    assertTrue(html.contains("Coursera"));
+    assertTrue(html.contains("SQL-"));
   }
 }

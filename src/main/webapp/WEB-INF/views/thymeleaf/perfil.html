@@ -141,10 +141,6 @@
             <a class="cv-card-link"
                th:if="${#strings.toLowerCase(curriculumGenerado.nombreArchivoOriginal).endsWith('.pdf')}"
                th:href="@{/cv/original/ver}">
-              <div class="cv-thumb">
-                <iframe th:src="@{/cv/original/ver} + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH'"
-                        tabindex="-1" loading="lazy" scrolling="no" title="Vista previa del CV original"></iframe>
-              </div>
               <span>CV original</span>
               <small th:text="${curriculumGenerado.nombreArchivoOriginal}">archivo.pdf</small>
             </a>
@@ -162,10 +158,6 @@
           </div>
           <div class="cv-entry" th:if="${curriculumGenerado.archivoAtsPdf != null}">
             <a class="cv-card-link" th:href="@{/cv/ats/ver}">
-              <div class="cv-thumb">
-                <iframe th:src="@{/cv/ats/ver} + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH'"
-                        tabindex="-1" loading="lazy" scrolling="no" title="Vista previa del CV ATS"></iframe>
-              </div>
               <span>CV optimizado para ATS</span>
               <small>PDF</small>
             </a>

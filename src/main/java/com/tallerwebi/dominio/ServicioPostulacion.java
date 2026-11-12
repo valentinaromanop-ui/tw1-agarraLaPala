@@ -30,4 +30,5 @@ public interface ServicioPostulacion {
     Long postulacionId,
     Long empleadorId
   );
+  List<String> obtenerHabilidadesOferta(String fuente, Long id);
 }

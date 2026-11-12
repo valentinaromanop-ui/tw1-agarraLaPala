@@ -623,6 +623,47 @@ body.vacantes-page {
 .detalle-datos dt { margin-bottom: 0.4rem; }
 .detalle-descripcion { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.8; }
 .detalle-postulacion { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.match-box {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, rgb(118 186 255 / 8%), rgb(40 45 199 / 7%));
+}
+.match-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.match-eyebrow { margin: 0 0 0.2rem; color: var(--muted); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.match-box h3 { margin: 0; font-size: clamp(1.15rem, 3vw, 1.4rem); }
+.match-percentage { padding: 0.35rem 0.7rem; border: 1px solid rgb(118 186 255 / 35%); border-radius: 999px; color: #dcecff; background: rgb(40 45 199 / 30%); font-size: 1.1rem; font-weight: 800; white-space: nowrap; }
+.match-progress { height: 0.55rem; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / 10%); }
+.match-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #76baff, #77e0bd); transition: width 250ms ease; }
+.match-skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 0.75rem; }
+.match-skill-group { padding: 0.85rem; border: 1px solid var(--border); border-radius: 0.7rem; background: rgb(16 20 31 / 45%); }
+.match-skill-group h4 { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.65rem; color: var(--text); font-size: 0.9rem; font-weight: 700; }
+.match-skill-group-owned h4 i { color: #77e0bd; }
+.match-skill-group-missing h4 i { color: #ffc96b; }
+.match-skill-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.match-skill-chip { display: inline-flex; padding: 0.28rem 0.6rem; border: 1px solid rgb(119 224 189 / 35%); border-radius: 999px; color: #c9f5e4; background: rgb(45 145 109 / 14%); font-size: 0.82rem; }
+.match-skill-group-missing .match-skill-chip { border-color: rgb(255 201 107 / 35%); color: #ffe1a3; background: rgb(190 145 25 / 12%); }
+.match-empty { color: var(--muted); font-size: 0.85rem; }
+.recommended-courses { margin-top: 0.35rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.recommended-courses-heading { margin-bottom: 0.85rem; }
+.recommended-courses-heading h4 { display: flex; align-items: center; gap: 0.55rem; margin: 0 0 0.35rem; color: var(--text); font-size: 1.25rem; font-weight: 800; }
+.recommended-courses-heading h4 i { color: #9fa3ff; }
+.recommended-courses-heading p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.recommended-course { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.55rem; padding: 0.75rem 0.85rem; border: 1px solid var(--border); border-radius: 0.65rem; background: rgb(16 20 31 / 40%); }
+.recommended-course-info { display: grid; gap: 0.1rem; }
+.recommended-course-label { color: var(--muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.recommended-course-skill { color: var(--text); font-size: 0.95rem; }
+.recommended-course-links { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+.recommended-course-links a { padding: 0.3rem 0.6rem; border: 1px solid rgb(118 186 255 / 35%); border-radius: 999px; color: #cfe7ff; background: rgb(40 45 199 / 22%); font-size: 0.78rem; font-weight: 600; text-decoration: none; transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease; }
+.recommended-course-links a:hover,
+.recommended-course-links a:focus-visible { transform: translateY(-1px); border-color: #9bcfff; color: #fff; background: rgb(40 45 199 / 42%); }
+.recommended-course-links a:focus-visible { outline: 2px solid #9bcfff; outline-offset: 2px; }
+@media (max-width: 576px) {
+  .recommended-course { align-items: flex-start; flex-direction: column; }
+}
 .postulada-label { color: var(--nav-accent); font-weight: 600; }
 .premium-status {
   color: #9a6700;
