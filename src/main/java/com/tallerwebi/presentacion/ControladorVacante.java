@@ -17,8 +17,11 @@ import com.tallerwebi.dominio.excepcion.BusquedaVacanteInvalida;
 import com.tallerwebi.dominio.excepcion.FuenteVacanteNoDisponible;
 import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -230,31 +233,41 @@ public class ControladorVacante {
     return new ModelAndView(VISTA_VACANTES, modelo);
   }
 
+  private static final int UMBRAL_COINCIDENCIA_CV = 30;
+
   private List<VacanteDTO> aplicarFiltroCv(
     List<VacanteDTO> vacantes,
     String textoCv,
     Map<String, Object> modelo
   ) {
-    List<VacanteDTO> filtrables = new ArrayList<>(vacantes);
-    List<String> disponibles = new ArrayList<>();
-    for (VacanteDTO vacante : filtrables) {
-      if (vacante.getSkills() != null) {
-        disponibles.addAll(vacante.getSkills());
+    Set<String> palabrasCv = CalculadorCoincidenciaCv.extraerPalabrasClaveNormalizadas(textoCv);
+    String textoNorm = CalculadorCoincidenciaCv.normalizar(textoCv);
+    Set<String> detectadas = new LinkedHashSet<>();
+    List<VacanteDTO> resultado = new ArrayList<>();
+    for (VacanteDTO vacante : vacantes) {
+      if (vacante.getSkills() == null || vacante.getSkills().isEmpty()) continue;
+      List<String> coinc = vacante
+        .getSkills()
+        .stream()
+        .filter(skill -> {
+          String normalizada = CalculadorCoincidenciaCv.normalizarSkill(skill);
+          return palabrasCv.contains(normalizada) || textoNorm.contains(normalizada);
+        })
+        .toList();
+      int porcentaje = (int) Math.round((coinc.size() * 100.0) / vacante.getSkills().size());
+      if (porcentaje >= UMBRAL_COINCIDENCIA_CV) {
+        vacante.setPorcentajeCoincidenciaCv(porcentaje);
+        vacante.setPalabrasCoincidentesCv(coinc);
+        detectadas.addAll(coinc);
+        resultado.add(vacante);
       }
     }
-    List<String> detectadas = servicioCV.extraerHabilidades(textoCv, disponibles);
+    resultado.sort(Comparator.comparing(VacanteDTO::getPorcentajeCoincidenciaCv).reversed());
     modelo.put("cvSkills", detectadas);
-    if (detectadas.isEmpty()) {
+    if (resultado.isEmpty()) {
       modelo.put("cvSinSkills", true);
-      return vacantes;
     }
-    return filtrables
-      .stream()
-      .filter(vacante ->
-        vacante.getSkills() != null &&
-        !servicioCV.extraerHabilidades(textoCv, vacante.getSkills()).isEmpty()
-      )
-      .toList();
+    return resultado;
   }
 
   private CurriculumGenerado obtenerCurriculum(Long usuarioId) {
