@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Transactional
+@SuppressWarnings("PMD.CyclomaticComplexity")
 public class ServicioInvitacionImpl implements ServicioInvitacion {
 
   private static final String FUENTE_LOCAL = "LOCAL";
@@ -72,7 +74,7 @@ public class ServicioInvitacionImpl implements ServicioInvitacion {
 
       List<String> habilidades = servicioPerfil.obtenerHabilidades(candidato.getId());
       double porcentaje = CalculadorCoincidenciaSkills.porcentaje(habilidades, skillsOferta);
-      if (porcentaje > 0) {
+      if (porcentaje >= PORCENTAJE_MINIMO_COINCIDENCIA) {
         sugeridos.add(
           new CandidatoSugeridoDTO(
             candidato.getId(),
@@ -114,9 +116,109 @@ public class ServicioInvitacionImpl implements ServicioInvitacion {
     invitacion.setOferta(oferta);
     invitacion.setEstado(EstadoInvitacion.PENDIENTE);
     invitacion.setFecha(LocalDateTime.now());
-    Invitacion guardada = repositorioInvitacion.guardar(invitacion);
-    notificarInvitacion(empleador, candidato, oferta);
-    return guardada;
+    return guardarYNotificar(invitacion, empleador, candidato, oferta);
+  }
+
+  @Override
+  public ResumenInvitacionMasiva invitarMasivamente(
+    Long empleadorId,
+    Long ofertaId,
+    int porcentajeMinimo,
+    List<String> skills
+  ) {
+    Usuario empleador = obtenerEmpleadorValido(empleadorId);
+    Vacante oferta = obtenerOfertaParaInvitacionMasiva(empleador, ofertaId);
+    validarOfertaInvitable(oferta);
+
+    int umbral = Math.max(PORCENTAJE_MINIMO_COINCIDENCIA, Math.min(100, porcentajeMinimo));
+    Set<String> skillsOferta = CalculadorCoincidenciaSkills.obtenerSkillsOferta(oferta);
+    Set<String> skillsRequeridas = normalizarSkills(skills);
+    ConteoInvitaciones conteo = new ConteoInvitaciones();
+    for (Usuario candidato : repositorioUsuario.buscarPostulantes()) {
+      conteo.registrar(
+        invitarSiCumple(
+          candidato,
+          ofertaId,
+          oferta,
+          empleador,
+          skillsOferta,
+          skillsRequeridas,
+          umbral
+        )
+      );
+    }
+    return conteo.comoResumen();
+  }
+
+  private Vacante obtenerOfertaParaInvitacionMasiva(Usuario empleador, Long ofertaId) {
+    Vacante oferta = ofertaId == null
+      ? null
+      : repositorioVacante.obtenerPorIdParaActualizar(ofertaId);
+    if (
+      oferta == null ||
+      !empleador.getId().equals(oferta.getEmpleadorId()) ||
+      !FUENTE_LOCAL.equalsIgnoreCase(oferta.getFuente())
+    ) {
+      throw new IllegalArgumentException("La oferta no pertenece a este empleador.");
+    }
+    return oferta;
+  }
+
+  private Set<String> normalizarSkills(List<String> skills) {
+    Set<String> skillsNormalizadas = new HashSet<>();
+    if (skills != null) {
+      for (String skill : skills) {
+        String normalizada = CalculadorCoincidenciaSkills.normalizar(skill);
+        if (!normalizada.isEmpty()) {
+          skillsNormalizadas.add(normalizada);
+        }
+      }
+    }
+    return skillsNormalizadas;
+  }
+
+  private ResultadoInvitacion invitarSiCumple(
+    Usuario candidato,
+    Long ofertaId,
+    Vacante oferta,
+    Usuario empleador,
+    Set<String> skillsOferta,
+    Set<String> skillsRequeridas,
+    int umbral
+  ) {
+    if (!esCandidato(candidato)) {
+      return ResultadoInvitacion.NO_CUMPLE;
+    }
+    List<String> habilidades = servicioPerfil.obtenerHabilidades(candidato.getId());
+    if (
+      CalculadorCoincidenciaSkills.porcentaje(habilidades, skillsOferta) < umbral ||
+      !tieneSkillsRequeridas(habilidades, skillsRequeridas)
+    ) {
+      return ResultadoInvitacion.NO_CUMPLE;
+    }
+    if (!esVisible(candidato.getId())) {
+      return ResultadoInvitacion.NO_VISIBLE;
+    }
+    if (
+      repositorioPostulacion.buscarPorUsuarioYOferta(
+        candidato.getId(),
+        FUENTE_LOCAL + ":" + ofertaId
+      ) !=
+      null
+    ) {
+      return ResultadoInvitacion.POSTULADO;
+    }
+    if (repositorioInvitacion.buscarPorCandidatoYOferta(candidato.getId(), ofertaId) != null) {
+      return ResultadoInvitacion.YA_INVITADO;
+    }
+    Invitacion invitacion = new Invitacion();
+    invitacion.setEmpleador(empleador);
+    invitacion.setCandidato(candidato);
+    invitacion.setOferta(oferta);
+    invitacion.setEstado(EstadoInvitacion.PENDIENTE);
+    invitacion.setFecha(LocalDateTime.now());
+    guardarYNotificar(invitacion, empleador, candidato, oferta);
+    return ResultadoInvitacion.INVITADO;
   }
 
   @Override
@@ -227,13 +329,39 @@ public class ServicioInvitacionImpl implements ServicioInvitacion {
       CalculadorCoincidenciaSkills.porcentaje(
         servicioPerfil.obtenerHabilidades(candidatoId),
         skillsOferta
-      ) <=
-      0
+      ) <
+      PORCENTAJE_MINIMO_COINCIDENCIA
     ) {
       throw new IllegalArgumentException(
-        "El candidato no coincide con las habilidades de la oferta."
+        "El candidato debe coincidir al menos un " +
+        PORCENTAJE_MINIMO_COINCIDENCIA +
+        "% con las habilidades de la oferta."
       );
     }
+  }
+
+  private boolean tieneSkillsRequeridas(List<String> habilidades, Set<String> requeridas) {
+    if (requeridas.isEmpty()) {
+      return true;
+    }
+    Set<String> normalizadas = new HashSet<>();
+    if (habilidades != null) {
+      for (String habilidad : habilidades) {
+        normalizadas.add(CalculadorCoincidenciaSkills.normalizar(habilidad));
+      }
+    }
+    return normalizadas.containsAll(requeridas);
+  }
+
+  private Invitacion guardarYNotificar(
+    Invitacion invitacion,
+    Usuario empleador,
+    Usuario candidato,
+    Vacante oferta
+  ) {
+    Invitacion guardada = repositorioInvitacion.guardar(invitacion);
+    notificarInvitacion(empleador, candidato, oferta);
+    return guardada;
   }
 
   private void notificarInvitacion(Usuario empleador, Usuario candidato, Vacante oferta) {
@@ -294,5 +422,43 @@ public class ServicioInvitacionImpl implements ServicioInvitacion {
 
   private EstadoInvitacion estadoInvitacion(Invitacion invitacion) {
     return invitacion == null ? null : invitacion.getEstado();
+  }
+
+  private enum ResultadoInvitacion {
+    INVITADO,
+    POSTULADO,
+    YA_INVITADO,
+    NO_VISIBLE,
+    NO_CUMPLE,
+  }
+
+  private static class ConteoInvitaciones {
+
+    private int invitados;
+    private int postulados;
+    private int yaInvitados;
+    private int noVisibles;
+
+    private void registrar(ResultadoInvitacion resultado) {
+      switch (resultado) {
+        case INVITADO -> {
+          invitados += 1;
+        }
+        case POSTULADO -> {
+          postulados += 1;
+        }
+        case YA_INVITADO -> {
+          yaInvitados += 1;
+        }
+        case NO_VISIBLE -> {
+          noVisibles += 1;
+        }
+        case NO_CUMPLE -> {}
+      }
+    }
+
+    private ResumenInvitacionMasiva comoResumen() {
+      return new ResumenInvitacionMasiva(invitados, postulados, yaInvitados, noVisibles);
+    }
   }
 }
