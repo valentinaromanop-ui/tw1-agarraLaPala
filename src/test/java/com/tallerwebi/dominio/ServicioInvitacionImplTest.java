@@ -114,6 +114,21 @@ class ServicioInvitacionImplTest {
   }
 
   @Test
+  void invitacionManualSiguePermitiendoUnaCoincidenciaDelCincuentaPorCiento() {
+    Skill sql = new Skill();
+    sql.setNombre("SQL");
+    VacanteSkill relacionSql = new VacanteSkill();
+    relacionSql.setSkill(sql);
+    oferta.setVacanteSkills(Set.of(oferta.getVacanteSkills().iterator().next(), relacionSql));
+    when(servicioPerfil.obtenerHabilidades(20L)).thenReturn(List.of("Java"));
+
+    Invitacion invitacion = servicio.invitar(10L, 20L, 5L);
+
+    assertEquals(EstadoInvitacion.PENDIENTE, invitacion.getEstado());
+    verify(repositorioInvitacion).guardar(any());
+  }
+
+  @Test
   void noPermiteInvitarAUnaOfertaCerrada() {
     oferta.setEstado(EstadoVacante.CERRADA);
 
@@ -195,6 +210,107 @@ class ServicioInvitacionImplTest {
   }
 
   @Test
+  void candidatosConMenosDelCincuentaPorCientoNoSeSugieren() {
+    Skill sql = new Skill();
+    sql.setNombre("SQL");
+    Skill git = new Skill();
+    git.setNombre("Git");
+    VacanteSkill relacionSql = new VacanteSkill();
+    relacionSql.setSkill(sql);
+    VacanteSkill relacionGit = new VacanteSkill();
+    relacionGit.setSkill(git);
+    oferta.setVacanteSkills(
+      Set.of(oferta.getVacanteSkills().iterator().next(), relacionSql, relacionGit)
+    );
+    when(repositorioUsuario.buscarPostulantes()).thenReturn(List.of(candidato));
+    when(repositorioInvitacion.buscarPorOferta(5L)).thenReturn(List.of());
+    when(servicioPerfil.obtenerHabilidades(20L)).thenReturn(List.of("Java"));
+
+    assertEquals(0, servicio.obtenerCandidatosSugeridos(5L, 10L).size());
+  }
+
+  @Test
+  void invitacionMasivaAplicaLosFiltrosYOmitelosNoInvitables() {
+    Skill sql = new Skill();
+    sql.setNombre("SQL");
+    VacanteSkill relacionSql = new VacanteSkill();
+    relacionSql.setSkill(sql);
+    relacionSql.setVacante(oferta);
+    oferta.setVacanteSkills(Set.of(oferta.getVacanteSkills().iterator().next(), relacionSql));
+    Usuario postulado = candidato(21L);
+    Usuario yaInvitado = candidato(22L);
+    Usuario noVisible = candidato(23L);
+    Usuario bajoUmbral = candidato(24L);
+    prepararCandidato(postulado, List.of("Java", "SQL"), null, new Postulacion());
+    prepararCandidato(yaInvitado, List.of("Java", "SQL"), new Invitacion(), null);
+    PerfilPostulante perfilOculto = new PerfilPostulante();
+    perfilOculto.setVisibleParaEmpleadores(false);
+    prepararCandidato(noVisible, List.of("Java", "SQL"), null, null);
+    when(servicioPerfil.obtenerPerfil(23L)).thenReturn(perfilOculto);
+    prepararCandidato(bajoUmbral, List.of("Java"), null, null);
+    when(repositorioUsuario.buscarPostulantes())
+      .thenReturn(List.of(candidato, postulado, yaInvitado, noVisible, bajoUmbral));
+    when(repositorioVacante.obtenerPorIdParaActualizar(5L)).thenReturn(oferta);
+    when(servicioPerfil.obtenerHabilidades(20L)).thenReturn(List.of("Java", "SQL"));
+
+    ResumenInvitacionMasiva resumen = servicio.invitarMasivamente(10L, 5L, 75, List.of(" java "));
+
+    assertEquals(1, resumen.getInvitados());
+    assertEquals(3, resumen.getOmitidos());
+    assertEquals(1, resumen.getOmitidosPorPostulacion());
+    assertEquals(1, resumen.getOmitidosPorInvitacionExistente());
+    assertEquals(1, resumen.getOmitidosPorVisibilidad());
+    verify(repositorioInvitacion).guardar(any());
+    verify(servicioNotificacionOferta).notificar(any(), any(), any());
+  }
+
+  @Test
+  void invitacionMasivaInvitaTodosLosResultadosSinLimitarseALaPaginaVisible() {
+    List<Usuario> candidatos = new java.util.ArrayList<>();
+    candidatos.add(candidato);
+    for (long id = 21; id <= 31; id++) {
+      Usuario nuevo = candidato(id);
+      candidatos.add(nuevo);
+      prepararCandidato(nuevo, List.of("Java"), null, null);
+    }
+    when(repositorioUsuario.buscarPostulantes()).thenReturn(candidatos);
+    when(repositorioVacante.obtenerPorIdParaActualizar(5L)).thenReturn(oferta);
+
+    ResumenInvitacionMasiva resumen = servicio.invitarMasivamente(10L, 5L, 50, List.of());
+
+    assertEquals(12, resumen.getInvitados());
+    verify(repositorioInvitacion, org.mockito.Mockito.times(12)).guardar(any());
+    verify(servicioNotificacionOferta, org.mockito.Mockito.times(12))
+      .notificar(any(), any(), any());
+  }
+
+  @Test
+  void invitacionMasivaRechazaOfertasCerradasLlenasYDeOtroEmpleador() {
+    when(repositorioVacante.obtenerPorIdParaActualizar(5L)).thenReturn(oferta);
+
+    oferta.setEstado(EstadoVacante.CERRADA);
+    assertThrows(
+      OfertaCerradaException.class,
+      () -> servicio.invitarMasivamente(10L, 5L, 50, List.of())
+    );
+
+    oferta.setEstado(EstadoVacante.ABIERTA);
+    oferta.setLimitePostulaciones(0);
+    assertThrows(
+      CupoPostulacionesCompletoException.class,
+      () -> servicio.invitarMasivamente(10L, 5L, 50, List.of())
+    );
+
+    oferta.setLimitePostulaciones(3);
+    oferta.setEmpleadorId(99L);
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.invitarMasivamente(10L, 5L, 50, List.of())
+    );
+    verify(repositorioInvitacion, never()).guardar(any());
+  }
+
+  @Test
   void noPermiteInvitarAUnCandidatoQueOcultoSuPerfil() {
     PerfilPostulante perfilNoVisible = new PerfilPostulante();
     perfilNoVisible.setVisibleParaEmpleadores(false);
@@ -203,6 +319,27 @@ class ServicioInvitacionImplTest {
     assertThrows(IllegalArgumentException.class, () -> servicio.invitar(10L, 20L, 5L));
 
     verify(repositorioInvitacion, never()).guardar(any());
+  }
+
+  private Usuario candidato(Long id) {
+    Usuario usuario = new Usuario();
+    usuario.setId(id);
+    usuario.setRol("CANDIDATO");
+    return usuario;
+  }
+
+  private void prepararCandidato(
+    Usuario usuario,
+    List<String> habilidades,
+    Invitacion invitacion,
+    Postulacion postulacion
+  ) {
+    when(servicioPerfil.obtenerPerfil(usuario.getId())).thenReturn(new PerfilPostulante());
+    when(servicioPerfil.obtenerHabilidades(usuario.getId())).thenReturn(habilidades);
+    when(repositorioPostulacion.buscarPorUsuarioYOferta(usuario.getId(), "LOCAL:5"))
+      .thenReturn(postulacion);
+    when(repositorioInvitacion.buscarPorCandidatoYOferta(usuario.getId(), 5L))
+      .thenReturn(invitacion);
   }
 
   private void assertSameValues(

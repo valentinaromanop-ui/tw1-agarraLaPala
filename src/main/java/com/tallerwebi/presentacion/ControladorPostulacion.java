@@ -1,6 +1,7 @@
 package com.tallerwebi.presentacion;
 
 import com.tallerwebi.dominio.ArchivoCvPostulanteDTO;
+import com.tallerwebi.dominio.CandidatoSugeridoDTO;
 import com.tallerwebi.dominio.CupoPostulacionesCompletoException;
 import com.tallerwebi.dominio.EstadoPostulacion;
 import com.tallerwebi.dominio.FotoPerfilPostulanteDTO;
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -46,9 +48,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @SuppressWarnings("PMD.CyclomaticComplexity")
 public class ControladorPostulacion {
 
+  private static final int CANDIDATOS_POR_PAGINA = 10;
   private static final String RUTA_POSTULACIONES = "/postulaciones";
   private static final String FILTRO_TODOS = "TODOS";
   private static final String FILTRO_PENDIENTE = "PENDIENTE";
+  private static final String FUENTE_LOCAL = "LOCAL";
+  private static final String PARAMETRO_FECHA_DESDE = "fechaDesde";
+  private static final String PARAMETRO_FECHA_HASTA = "fechaHasta";
+  private static final String PARAMETRO_SOLO_PREMIUM = "soloPremium";
   private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
   private static final String PATH_VARIABLE_OFERTA_ID = "ofertaId";
   private static final String PATH_VARIABLE_POSTULACION_ID = "postulacionId";
@@ -156,14 +163,13 @@ public class ControladorPostulacion {
     return ResponseEntity.ok(servicioPostulacion.obtenerOfertasPostuladas(usuarioId));
   }
 
-  @RequestMapping(path = "/ofertas/{id}/postulantes", method = RequestMethod.GET)
   public ModelAndView mostrarPostulantes(
     @PathVariable("id") Long vacanteId,
     @RequestParam(value = "estado", defaultValue = FILTRO_TODOS) String estadoFiltro,
     @RequestParam(value = "skill", required = false) String skillFiltro,
-    @RequestParam(value = "fechaDesde", required = false) String fechaDesde,
-    @RequestParam(value = "fechaHasta", required = false) String fechaHasta,
-    @RequestParam(value = "soloPremium", defaultValue = "false") boolean soloPremium,
+    @RequestParam(value = PARAMETRO_FECHA_DESDE, required = false) String fechaDesde,
+    @RequestParam(value = PARAMETRO_FECHA_HASTA, required = false) String fechaHasta,
+    @RequestParam(value = PARAMETRO_SOLO_PREMIUM, defaultValue = "false") boolean soloPremium,
     HttpSession session
   ) {
     Long empleadorId = obtenerEmpleadorId(session);
@@ -189,7 +195,7 @@ public class ControladorPostulacion {
       )
     );
     modelo.put("premium", premium);
-    var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
+    var vacante = servicioPostulacion.obtenerVacante(FUENTE_LOCAL, vacanteId);
     modelo.put("vacante", vacante);
     if (servicioInvitacion != null && empleadorId != null && vacante != null) {
       modelo.put(
@@ -200,6 +206,127 @@ public class ControladorPostulacion {
     }
     agregarMetricas(modelo, vacanteId, vacante, premium);
     return new ModelAndView("postulantes-oferta", modelo);
+  }
+
+  @RequestMapping(path = "/ofertas/{id}/postulantes", method = RequestMethod.GET)
+  public ModelAndView mostrarPostulantesConFiltros(
+    @PathVariable("id") Long vacanteId,
+    @RequestParam(value = "estado", defaultValue = FILTRO_TODOS) String estadoFiltro,
+    @RequestParam(value = "skill", required = false) String skillFiltro,
+    @RequestParam(value = PARAMETRO_FECHA_DESDE, required = false) String fechaDesde,
+    @RequestParam(value = PARAMETRO_FECHA_HASTA, required = false) String fechaHasta,
+    @RequestParam(value = PARAMETRO_SOLO_PREMIUM, defaultValue = "false") boolean soloPremium,
+    @RequestParam(value = "porcentajeMinimo", required = false) Integer porcentajeMinimo,
+    @RequestParam(value = "skills", required = false) List<String> skillsFiltro,
+    @RequestParam(value = "pagina", defaultValue = "1") int pagina,
+    HttpSession session
+  ) {
+    ModelAndView vista = mostrarPostulantes(
+      vacanteId,
+      estadoFiltro,
+      skillFiltro,
+      fechaDesde,
+      fechaHasta,
+      soloPremium,
+      session
+    );
+    Object sugeridosModelo = vista.getModel().get("candidatosSugeridos");
+    List<CandidatoSugeridoDTO> sugeridos = new ArrayList<>();
+    if (sugeridosModelo instanceof List<?> candidatos) {
+      for (Object candidato : candidatos) {
+        if (candidato instanceof CandidatoSugeridoDTO sugerido) {
+          sugeridos.add(sugerido);
+        }
+      }
+    }
+
+    int porcentajeSolicitado = porcentajeMinimo == null
+      ? ServicioInvitacion.PORCENTAJE_MINIMO_COINCIDENCIA
+      : porcentajeMinimo;
+    int umbral = Math.max(
+      ServicioInvitacion.PORCENTAJE_MINIMO_COINCIDENCIA,
+      Math.min(100, porcentajeSolicitado)
+    );
+    List<String> skillsOferta = servicioPostulacion.obtenerHabilidadesOferta(
+      FUENTE_LOCAL,
+      vacanteId
+    );
+    List<String> skillsSeleccionadas = normalizarSkillsFiltro(skillsFiltro, skillsOferta);
+    List<CandidatoSugeridoDTO> filtrados = sugeridos
+      .stream()
+      .filter(candidato -> candidato.getPorcentajeCoincidencia() >= umbral)
+      .filter(candidato -> contieneTodasLasSkills(candidato, skillsSeleccionadas))
+      .toList();
+
+    int totalPaginas = Math.max(
+      1,
+      (filtrados.size() + CANDIDATOS_POR_PAGINA - 1) / CANDIDATOS_POR_PAGINA
+    );
+    int paginaActual = Math.max(1, Math.min(pagina, totalPaginas));
+    int desde = (paginaActual - 1) * CANDIDATOS_POR_PAGINA;
+    int hasta = Math.min(desde + CANDIDATOS_POR_PAGINA, filtrados.size());
+    boolean puedeInvitar = Boolean.TRUE.equals(vista.getModel().get("puedeInvitar"));
+    Map<String, Object> modelo = vista.getModel();
+    modelo.put("candidatosSugeridos", filtrados.subList(desde, hasta));
+    modelo.put("cantidadCandidatosConFiltros", filtrados.size());
+    modelo.put(
+      "cantidadInvitables",
+      puedeInvitar
+        ? filtrados.stream().filter(candidato -> candidato.getEstadoInvitacion() == null).count()
+        : 0
+    );
+    modelo.put("puedeInvitar", puedeInvitar);
+    modelo.put("porcentajeMinimo", umbral);
+    modelo.put("porcentajeMinimoBase", ServicioInvitacion.PORCENTAJE_MINIMO_COINCIDENCIA);
+    modelo.put("skillsOferta", skillsOferta);
+    modelo.put("skillsFiltro", skillsSeleccionadas);
+    modelo.put("paginaActual", paginaActual);
+    modelo.put("totalPaginas", totalPaginas);
+    modelo.put("estadoFiltro", estadoFiltro);
+    modelo.put("filtroPostulantesSkill", skillFiltro);
+    modelo.put("fechaDesde", fechaDesde);
+    modelo.put("fechaHasta", fechaHasta);
+    modelo.put("soloPremium", soloPremium);
+    return vista;
+  }
+
+  private List<String> normalizarSkillsFiltro(List<String> skills, List<String> skillsOferta) {
+    if (skills == null || skills.isEmpty()) {
+      return List.of();
+    }
+    List<String> seleccionadas = new ArrayList<>();
+    for (String skillOferta : skillsOferta) {
+      if (
+        skills
+          .stream()
+          .anyMatch(skill ->
+            com.tallerwebi.dominio.CalculadorCoincidenciaSkills
+              .normalizar(skill)
+              .equals(com.tallerwebi.dominio.CalculadorCoincidenciaSkills.normalizar(skillOferta))
+          )
+      ) {
+        seleccionadas.add(skillOferta);
+      }
+    }
+    return seleccionadas;
+  }
+
+  private boolean contieneTodasLasSkills(
+    CandidatoSugeridoDTO candidato,
+    List<String> skillsSeleccionadas
+  ) {
+    return skillsSeleccionadas
+      .stream()
+      .allMatch(skill ->
+        candidato
+          .getHabilidades()
+          .stream()
+          .anyMatch(habilidad ->
+            com.tallerwebi.dominio.CalculadorCoincidenciaSkills
+              .normalizar(habilidad)
+              .equals(com.tallerwebi.dominio.CalculadorCoincidenciaSkills.normalizar(skill))
+          )
+      );
   }
 
   private void agregarResumenPostulantes(
@@ -510,7 +637,7 @@ public class ControladorPostulacion {
     }
     try {
       Long vacanteId = Long.valueOf(ofertaId.substring("LOCAL:".length()));
-      var vacante = servicioPostulacion.obtenerVacante("LOCAL", vacanteId);
+      var vacante = servicioPostulacion.obtenerVacante(FUENTE_LOCAL, vacanteId);
       if (vacante != null && vacante.getEmpleadorId() != null) {
         servicioOfertaEmpleador.registrarClickPostular(vacanteId);
       }
@@ -585,7 +712,7 @@ public class ControladorPostulacion {
 
   private String parsearFuenteOferta(String ofertaId) {
     String fuente = ofertaId.substring(0, ofertaId.indexOf(':')).toUpperCase(Locale.ROOT);
-    if (!"LOCAL".equals(fuente) && !"JOBICY".equals(fuente)) {
+    if (!FUENTE_LOCAL.equals(fuente) && !"JOBICY".equals(fuente)) {
       throw new IllegalArgumentException(OFERTA_NO_VALIDA);
     }
     return fuente;
