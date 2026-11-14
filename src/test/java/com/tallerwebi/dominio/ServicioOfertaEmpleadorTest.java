@@ -238,6 +238,39 @@ class ServicioOfertaEmpleadorTest {
     verify(repositorioVacante).guardar(vacante);
   }
 
+  @Test
+  void cerrarLaVacanteNotificaSoloALosPostulantesNoAceptados() {
+    vacante.setEmpleadorId(42L);
+    Usuario primera = crearUsuario(1L, "uno@gmail.com");
+    Usuario segundo = crearUsuario(2L, "dos@gmail.com");
+    Postulacion postulacion = new Postulacion();
+    postulacion.setUsuario(primera);
+    Postulacion otraPostulacion = new Postulacion();
+    otraPostulacion.setUsuario(segundo);
+    otraPostulacion.setEstado(EstadoPostulacion.RECHAZADA);
+    Postulacion postulacionAnterior = new Postulacion();
+    postulacionAnterior.setUsuario(primera);
+    Usuario aceptado = crearUsuario(3L, "aceptado@test.com");
+    Postulacion pendienteDelAceptado = new Postulacion();
+    pendienteDelAceptado.setUsuario(aceptado);
+    Postulacion aceptada = new Postulacion();
+    aceptada.setUsuario(aceptado);
+    aceptada.setEstado(EstadoPostulacion.ACEPTADA);
+    when(repositorioVacante.obtenerPorIdParaActualizar(10L)).thenReturn(vacante);
+    when(repositorioPostulacion.buscarPorVacante(10L))
+      .thenReturn(
+        List.of(postulacion, otraPostulacion, postulacionAnterior, pendienteDelAceptado, aceptada)
+      );
+
+    servicio.cerrar(10L, 42L);
+
+    String mensaje =
+      "El empleador/reclutador cerró la vacante «Desarrollador Java» a la que te postulaste.";
+    verify(servicioNotificacionOferta).notificar(primera, mensaje, "/postulaciones");
+    verify(servicioNotificacionOferta).notificar(segundo, mensaje, "/postulaciones");
+    verify(servicioNotificacionOferta, never()).notificar(aceptado, mensaje, "/postulaciones");
+  }
+
   private ServicioOfertaEmpleadorImpl crearServicio(ApplicationEventPublisher publicador) {
     return new ServicioOfertaEmpleadorImpl(
       repositorioUsuario,
