@@ -2,7 +2,9 @@ package com.tallerwebi.dominio;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,8 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
   private static final String FUENTE_LOCAL = "LOCAL";
   private static final String FUENTE_JOBICY = "JOBICY";
   private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
+  private static final int MINIMO_POSTULANTES_PARA_PORCENTAJES = 5;
+  private static final int MAXIMO_HABILIDADES_EN_METRICAS = 3;
 
   private final RepositorioUsuario repositorioUsuario;
   private final RepositorioPostulacion repositorioPostulacion;
@@ -351,6 +355,51 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
       }
     }
     return nombres;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public MetricasPostulacion obtenerMetricasPorOferta(Long vacanteId) {
+    Map<Long, Usuario> postulantes = new HashMap<>();
+    for (Postulacion postulacion : repositorioPostulacion.buscarPorVacante(vacanteId)) {
+      Usuario usuario = postulacion.getUsuario();
+      postulantes.putIfAbsent(usuario.getId(), usuario);
+    }
+
+    int total = postulantes.size();
+    if (total < MINIMO_POSTULANTES_PARA_PORCENTAJES) {
+      return new MetricasPostulacion(total, List.of());
+    }
+
+    List<String> habilidadesOferta = obtenerHabilidadesOferta(FUENTE_LOCAL, vacanteId)
+      .stream()
+      .sorted(String.CASE_INSENSITIVE_ORDER)
+      .toList();
+    List<String> habilidadesVisibles = CalculoMatch
+      .calcular(List.of(), habilidadesOferta)
+      .faltantes()
+      .stream()
+      .limit(MAXIMO_HABILIDADES_EN_METRICAS)
+      .toList();
+    Map<String, Integer> cantidadPorHabilidad = new HashMap<>();
+    for (Usuario postulante : postulantes.values()) {
+      for (String habilidad : CalculoMatch
+        .calcular(postulante.getHabilidades(), habilidadesVisibles)
+        .coincidentes()) {
+        cantidadPorHabilidad.merge(habilidad, 1, Integer::sum);
+      }
+    }
+
+    List<PorcentajeHabilidad> porcentajes = habilidadesVisibles
+      .stream()
+      .map(habilidad ->
+        new PorcentajeHabilidad(
+          habilidad,
+          Math.round((100f * cantidadPorHabilidad.getOrDefault(habilidad, 0)) / total)
+        )
+      )
+      .toList();
+    return new MetricasPostulacion(total, porcentajes);
   }
 
   private Vacante obtenerOfertaParaPostularse(VacanteDTO oferta) {

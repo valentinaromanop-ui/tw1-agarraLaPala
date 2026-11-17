@@ -31,4 +31,5 @@ public interface ServicioPostulacion {
     Long empleadorId
   );
   List<String> obtenerHabilidadesOferta(String fuente, Long id);
+  MetricasPostulacion obtenerMetricasPorOferta(Long vacanteId);
 }

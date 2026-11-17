@@ -68,6 +68,16 @@
         <p th:if="${fuente != 'LOCAL'}">La postulación se registra en nuestra plataforma. No se envía automáticamente a Jobicy ni a la empresa.</p>
         <p th:if="${ofertaEmpleador and ofertaCerrada}" class="postulada-label">Oferta cerrada</p>
         <p th:if="${yaPostulado}" class="postulada-label">Ya te postulaste a esta oferta.</p>
+        <section th:if="${metricasPostulacion != null}" aria-labelledby="titulo-metricas-postulacion">
+          <h2 id="titulo-metricas-postulacion">Postulaciones a esta vacante</h2>
+          <p th:text="${metricasPostulacion.total == 1
+            ? '1 persona ya se postuló.'
+            : metricasPostulacion.total + ' personas se postularon.'}"></p>
+          <ul th:if="${!#lists.isEmpty(metricasPostulacion.habilidades)}">
+            <li th:each="habilidad : ${metricasPostulacion.habilidades}"
+              th:text="|${habilidad.porcentaje} % declaró saber ${habilidad.nombre}.|"></li>
+          </ul>
+        </section>
         <form th:if="${puedePostularse and !yaPostulado}" method="post"
           th:action="@{/vacantes/postular}" th:object="${datosPostulacion}">
           <input type="hidden" th:field="*{fuente}">

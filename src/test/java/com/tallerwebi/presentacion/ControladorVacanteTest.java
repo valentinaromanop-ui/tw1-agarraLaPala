@@ -293,7 +293,7 @@ public class ControladorVacanteTest {
 
     assertThat(((List<VacanteDTO>) vista.getModel().get("vacantes")).size(), equalTo(1));
     assertThat(vista.getModel().get("cvTipo"), equalTo("ATS"));
-    assertThat(vista.getModel().get("cvSkills"), equalTo(List.of("java")));
+    assertThat(vista.getModel().get("cvSkills"), equalTo(java.util.Set.of("java")));
   }
 
   @Test

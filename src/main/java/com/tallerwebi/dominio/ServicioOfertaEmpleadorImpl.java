@@ -255,7 +255,10 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   }
 
   private void notificarCierre(Vacante vacante) {
-    String mensaje = "El empleador/reclutador cerró la vacante «" + vacante.getTitulo() + "» a la que te postulaste.";
+    String mensaje =
+      "El empleador/reclutador cerró la vacante «" +
+      vacante.getTitulo() +
+      "» a la que te postulaste.";
     List<Postulacion> postulaciones = repositorioPostulacion.buscarPorVacante(vacante.getId());
     Set<Long> omitidos = new HashSet<>();
     for (Postulacion postulacion : postulaciones) {
