@@ -137,4 +137,68 @@ public class ControladorBusquedaVacantesTest {
       .andExpect(jsonPath("$[0].porcentajeCoincidenciaCv", is(100)))
       .andExpect(jsonPath("$[0].palabrasCoincidentesCv", contains("java", "spring", "sql")));
   }
+
+  private MockMvc crearMvcConCv(CurriculumGenerado curriculum, MockHttpSession session) {
+    ServicioPago servicioPago = Mockito.mock(ServicioPago.class);
+    ServicioCurriculumGenerado servicioCurriculum = Mockito.mock(ServicioCurriculumGenerado.class);
+    Mockito.when(servicioPago.esPremiumActivo(10L)).thenReturn(true);
+    Mockito.when(servicioCurriculum.obtener(10L)).thenReturn(curriculum);
+    session.setAttribute("USUARIO_ID", 10L);
+    session.setAttribute("ROL", "CANDIDATO");
+    return MockMvcBuilders
+      .standaloneSetup(
+        new ControladorBusquedaVacantes(
+          new CatalogoVacantesPrueba(),
+          null,
+          new com.tallerwebi.infraestructura.VacanteMapper(),
+          servicioPago,
+          servicioCurriculum
+        )
+      )
+      .build();
+  }
+
+  @Test
+  public void filtroCvConTipoOriginalUsaElTextoOriginal() throws Exception {
+    CurriculumGenerado curriculum = new CurriculumGenerado();
+    curriculum.setTextoOriginal("Java Python");
+    curriculum.setContenidoAts("Java Spring SQL");
+    MockHttpSession session = new MockHttpSession();
+
+    crearMvcConCv(curriculum, session)
+      .perform(
+        get("/vacantes").param("usarCv", "true").param("tipoCv", "ORIGINAL").session(session)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[*].palabrasCoincidentesCv[?(@ == 'python')]").isNotEmpty())
+      .andExpect(jsonPath("$[*].palabrasCoincidentesCv[?(@ == 'sql')]").isEmpty())
+      .andExpect(jsonPath("$[*].palabrasCoincidentesCv[?(@ == 'spring')]").isEmpty());
+  }
+
+  @Test
+  public void filtroCvConTipoAtsUsaElContenidoAts() throws Exception {
+    CurriculumGenerado curriculum = new CurriculumGenerado();
+    curriculum.setTextoOriginal("Java Python");
+    curriculum.setContenidoAts("Java Spring SQL");
+    MockHttpSession session = new MockHttpSession();
+
+    crearMvcConCv(curriculum, session)
+      .perform(get("/vacantes").param("usarCv", "true").param("tipoCv", "ATS").session(session))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[*].palabrasCoincidentesCv[?(@ == 'spring')]").isNotEmpty())
+      .andExpect(jsonPath("$[*].palabrasCoincidentesCv[?(@ == 'python')]").isEmpty());
+  }
+
+  @Test
+  public void filtroCvRechazaTipoOriginalSiNoHayCvOriginal() throws Exception {
+    CurriculumGenerado curriculum = new CurriculumGenerado();
+    curriculum.setContenidoAts("Java Spring SQL");
+    MockHttpSession session = new MockHttpSession();
+
+    crearMvcConCv(curriculum, session)
+      .perform(
+        get("/vacantes").param("usarCv", "true").param("tipoCv", "ORIGINAL").session(session)
+      )
+      .andExpect(status().isBadRequest());
+  }
 }
