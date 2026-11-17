@@ -52,96 +52,6 @@
       <div th:if="${mensaje}" class="alert alert-success" role="status" th:text="${mensaje}"></div>
       <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
-      <section class="suggested-candidates" aria-labelledby="suggested-candidates-title">
-        <h2 id="suggested-candidates-title">Candidatos sugeridos</h2>
-        <p>Personas visibles para empleadores que todavía no se postularon y coinciden con las habilidades de esta oferta.</p>
-        <p th:if="${!puedeInvitar}" class="alert alert-info" role="status">
-          Esta oferta está cerrada o alcanzó su límite de postulaciones; no se pueden enviar invitaciones.
-        </p>
-        <form class="premium-payment-form mb-3" method="get"
-          th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
-          <input type="hidden" name="estado" th:value="${estadoFiltro}">
-          <input type="hidden" name="skill" th:value="${filtroPostulantesSkill}">
-          <input type="hidden" name="fechaDesde" th:value="${fechaDesde}">
-          <input type="hidden" name="fechaHasta" th:value="${fechaHasta}">
-          <input type="hidden" name="soloPremium" th:value="${soloPremium}">
-          <input type="hidden" name="pagina" value="1">
-          <label class="form-label">Coincidencia mínima (%)
-            <input class="form-control" type="number" name="porcentajeMinimo" max="100"
-              th:attr="min=${porcentajeMinimoBase}" th:value="${porcentajeMinimo}">
-          </label>
-          <fieldset class="mb-3">
-            <legend class="form-label">Skills (debe tener todas las elegidas)</legend>
-            <label class="form-check form-check-inline" th:each="habilidad : ${skillsOferta}">
-              <input class="form-check-input" type="checkbox" name="skills"
-                th:value="${habilidad}" th:checked="${#lists.contains(skillsFiltro, habilidad)}">
-              <span class="form-check-label" th:text="${habilidad}">Skill</span>
-            </label>
-          </fieldset>
-          <button class="btn btn-primary" type="submit">Aplicar filtros</button>
-        </form>
-        <form id="invitar-todos-form" class="mb-3" method="post"
-          th:action="@{/ofertas/{ofertaId}/invitaciones/masivas(ofertaId=${vacante.id})}"
-          th:attr="data-confirmacion=|Vas a invitar a ${cantidadInvitables} candidatos a la oferta ${vacante.titulo}|"
-          onsubmit="if (!confirm(this.dataset.confirmacion)) return false; this.querySelector('button[type=submit]').disabled = true;">
-          <input type="hidden" name="porcentajeMinimo" th:value="${porcentajeMinimo}">
-          <input type="hidden" name="estado" th:value="${estadoFiltro}">
-          <input type="hidden" name="skill" th:value="${filtroPostulantesSkill}">
-          <input type="hidden" name="fechaDesde" th:value="${fechaDesde}">
-          <input type="hidden" name="fechaHasta" th:value="${fechaHasta}">
-          <input type="hidden" name="soloPremium" th:value="${soloPremium}">
-          <input type="hidden" name="pagina" value="1">
-          <input th:each="habilidad : ${skillsFiltro}" type="hidden" name="skills" th:value="${habilidad}">
-          <button class="btn btn-primary" type="submit"
-            th:disabled="${!puedeInvitar or cantidadInvitables == 0}">
-            Invitar a todos los que cumplen los filtros
-            (<span th:text="${cantidadInvitables}">0</span>)
-          </button>
-        </form>
-        <div th:if="${#lists.isEmpty(candidatosSugeridos)}" class="empty-searches" role="status">
-          <p>Sin candidatos con esos criterios.</p>
-        </div>
-        <div class="suggested-candidates-list" th:unless="${#lists.isEmpty(candidatosSugeridos)}">
-          <article class="suggested-candidate-card" th:each="sugerido : ${candidatosSugeridos}">
-            <div>
-              <h3 th:text="${sugerido.nombreCompleto}">Nombre Apellido</h3>
-              <p class="postulante-email" th:text="${sugerido.email}">candidato@correo.com</p>
-              <p class="suggested-candidate-skills">
-                <span th:each="habilidad, estado : ${sugerido.habilidades}">
-                  <span th:text="${habilidad}">Habilidad</span><span th:if="${!estado.last}">, </span>
-                </span>
-              </p>
-              <strong th:text="${#numbers.formatDecimal(sugerido.porcentajeCoincidencia, 1, 0) + '% de coincidencia'}">
-                75% de coincidencia
-              </strong>
-            </div>
-            <div class="suggested-candidate-action">
-              <span th:if="${sugerido.estadoInvitacion != null}" class="invitation-status"
-                    th:text="${sugerido.estadoInvitacion}">PENDIENTE</span>
-              <form th:if="${sugerido.estadoInvitacion == null and puedeInvitar}"
-                    th:action="@{/ofertas/{ofertaId}/invitaciones(ofertaId=${vacante.id})}" method="post">
-                <input type="hidden" name="candidatoId" th:value="${sugerido.candidatoId}">
-                <button class="btn btn-primary" type="submit">Invitar a postularse</button>
-              </form>
-            </div>
-          </article>
-        </div>
-        <nav th:if="${totalPaginas > 1}" class="d-flex align-items-center gap-3 mt-3"
-          aria-label="Paginación de candidatos sugeridos">
-          <a class="btn btn-outline-primary"
-            th:if="${paginaActual > 1}"
-            th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual - 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium})}">
-            Anterior
-          </a>
-          <span th:text="|Página ${paginaActual} de ${totalPaginas}|">Página 1 de 1</span>
-          <a class="btn btn-outline-primary"
-            th:if="${paginaActual < totalPaginas}"
-            th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual + 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium})}">
-            Siguiente
-          </a>
-        </nav>
-      </section>
-
       <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
         <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
           th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
@@ -322,6 +232,95 @@
           </tbody>
         </table>
       </div>
+      <section class="suggested-candidates" aria-labelledby="suggested-candidates-title">
+        <h2 id="suggested-candidates-title">Candidatos sugeridos</h2>
+        <p>Personas visibles para empleadores que todavía no se postularon y coinciden con las habilidades de esta oferta.</p>
+        <p th:if="${!puedeInvitar}" class="alert alert-info" role="status">
+          Esta oferta está cerrada o alcanzó su límite de postulaciones; no se pueden enviar invitaciones.
+        </p>
+        <form class="premium-payment-form mb-3" method="get"
+          th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
+          <input type="hidden" name="estado" th:value="${estadoFiltro}">
+          <input type="hidden" name="skill" th:value="${filtroPostulantesSkill}">
+          <input type="hidden" name="fechaDesde" th:value="${fechaDesde}">
+          <input type="hidden" name="fechaHasta" th:value="${fechaHasta}">
+          <input type="hidden" name="soloPremium" th:value="${soloPremium}">
+          <input type="hidden" name="pagina" value="1">
+          <label class="form-label">Coincidencia mínima (%)
+            <input class="form-control" type="number" name="porcentajeMinimo" max="100"
+              th:attr="min=${porcentajeMinimoBase}" th:value="${porcentajeMinimo}">
+          </label>
+          <fieldset class="mb-3">
+            <legend class="form-label">Skills (debe tener todas las elegidas)</legend>
+            <label class="form-check form-check-inline" th:each="habilidad : ${skillsOferta}">
+              <input class="form-check-input" type="checkbox" name="skills"
+                th:value="${habilidad}" th:checked="${#lists.contains(skillsFiltro, habilidad)}">
+              <span class="form-check-label" th:text="${habilidad}">Skill</span>
+            </label>
+          </fieldset>
+          <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+        </form>
+        <form id="invitar-todos-form" class="mb-3" method="post"
+          th:action="@{/ofertas/{ofertaId}/invitaciones/masivas(ofertaId=${vacante.id})}"
+          th:attr="data-confirmacion=|Vas a invitar a ${cantidadInvitables} candidatos a la oferta ${vacante.titulo}|"
+          onsubmit="if (!confirm(this.dataset.confirmacion)) return false; this.querySelector('button[type=submit]').disabled = true;">
+          <input type="hidden" name="porcentajeMinimo" th:value="${porcentajeMinimo}">
+          <input type="hidden" name="estado" th:value="${estadoFiltro}">
+          <input type="hidden" name="skill" th:value="${filtroPostulantesSkill}">
+          <input type="hidden" name="fechaDesde" th:value="${fechaDesde}">
+          <input type="hidden" name="fechaHasta" th:value="${fechaHasta}">
+          <input type="hidden" name="soloPremium" th:value="${soloPremium}">
+          <input type="hidden" name="pagina" value="1">
+          <input th:each="habilidad : ${skillsFiltro}" type="hidden" name="skills" th:value="${habilidad}">
+          <button class="btn btn-primary" type="submit"
+            th:disabled="${!puedeInvitar or cantidadInvitables == 0}">
+            Invitar a todos los que cumplen los filtros
+            (<span th:text="${cantidadInvitables}">0</span>)
+          </button>
+        </form>
+        <div th:if="${#lists.isEmpty(candidatosSugeridos)}" class="empty-searches" role="status">
+          <p>Sin candidatos con esos criterios.</p>
+        </div>
+        <div class="suggested-candidates-list" th:unless="${#lists.isEmpty(candidatosSugeridos)}">
+          <article class="suggested-candidate-card" th:each="sugerido : ${candidatosSugeridos}">
+            <div>
+              <h3 th:text="${sugerido.nombreCompleto}">Nombre Apellido</h3>
+              <p class="postulante-email" th:text="${sugerido.email}">candidato@correo.com</p>
+              <p class="suggested-candidate-skills">
+                <span th:each="habilidad, estado : ${sugerido.habilidades}">
+                  <span th:text="${habilidad}">Habilidad</span><span th:if="${!estado.last}">, </span>
+                </span>
+              </p>
+              <strong th:text="${#numbers.formatDecimal(sugerido.porcentajeCoincidencia, 1, 0) + '% de coincidencia'}">
+                75% de coincidencia
+              </strong>
+            </div>
+            <div class="suggested-candidate-action">
+              <span th:if="${sugerido.estadoInvitacion != null}" class="invitation-status"
+                    th:text="${sugerido.estadoInvitacion}">PENDIENTE</span>
+              <form th:if="${sugerido.estadoInvitacion == null and puedeInvitar}"
+                    th:action="@{/ofertas/{ofertaId}/invitaciones(ofertaId=${vacante.id})}" method="post">
+                <input type="hidden" name="candidatoId" th:value="${sugerido.candidatoId}">
+                <button class="btn btn-primary" type="submit">Invitar a postularse</button>
+              </form>
+            </div>
+          </article>
+        </div>
+        <nav th:if="${totalPaginas > 1}" class="d-flex align-items-center gap-3 mt-3"
+          aria-label="Paginación de candidatos sugeridos">
+          <a class="btn btn-outline-primary"
+            th:if="${paginaActual > 1}"
+            th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual - 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium})}">
+            Anterior
+          </a>
+          <span th:text="|Página ${paginaActual} de ${totalPaginas}|">Página 1 de 1</span>
+          <a class="btn btn-outline-primary"
+            th:if="${paginaActual < totalPaginas}"
+            th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual + 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium})}">
+            Siguiente
+          </a>
+        </nav>
+      </section>
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"

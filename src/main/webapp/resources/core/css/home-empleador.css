@@ -40,6 +40,229 @@
   bottom: 1.5rem;
 }
 
+.employer-dashboard-section {
+  padding: 2rem 0 3rem;
+  border-bottom: 1px solid var(--border);
+  background: #141925;
+}
+
+.employer-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.employer-metric-card,
+.employer-metric-chart-card {
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: var(--surface);
+}
+
+.employer-metric-card {
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.employer-metric-card h2 {
+  margin-bottom: 0.85rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.employer-metric-card strong {
+  color: var(--highlight);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.employer-metric-card p {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.employer-metric-chart-card {
+  margin-top: 1rem;
+  padding: 1.5rem;
+}
+
+.employer-metric-chart-card h2,
+.employer-premium-metrics-card h2 {
+  margin: 0 0 1.5rem;
+  color: var(--highlight);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.employer-metric-chart-bars {
+  display: flex;
+  height: 13rem;
+  gap: 0.75rem;
+}
+
+.employer-metric-bar-column {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+.employer-metric-bar-value,
+.employer-metric-bar-day {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.employer-metric-bar-track {
+  display: flex;
+  width: min(2.5rem, 70%);
+  height: 100%;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 0.35rem;
+  background: rgb(40 45 199 / 12%);
+}
+
+.employer-metric-bar-fill {
+  width: 100%;
+  border-radius: 0.35rem 0.35rem 0 0;
+  background: linear-gradient(180deg, #8587ff, #282dc7);
+}
+
+.employer-premium-metrics-card {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgb(245 200 75 / 48%);
+  border-radius: 0.55rem;
+  background:
+    radial-gradient(ellipse at 90% 50%, rgb(245 200 75 / 12%), transparent 48%),
+    var(--surface);
+}
+
+.employer-premium-metrics-card h2 {
+  color: #e8c15a;
+}
+
+.employer-premium-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.employer-premium-metrics-grid p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.employer-premium-metrics-grid strong {
+  color: var(--highlight);
+  font-size: 1.15rem;
+}
+
+.applicant-profile-progress {
+  height: 0.45rem;
+  margin-top: 0.7rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(40 45 199 / 18%);
+}
+
+.applicant-profile-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8587ff, #282dc7);
+}
+
+.applicant-recommendations-section {
+  padding: 3rem 0;
+  border-bottom: 1px solid var(--border);
+  background: #141925;
+}
+
+.applicant-recommendations-section h2 {
+  margin: 0 0 1.5rem;
+  color: var(--highlight);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.applicant-recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.applicant-recommendation-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: var(--surface);
+}
+
+.applicant-recommendation-card h3 {
+  margin: 1rem 0 0.35rem;
+  color: var(--highlight);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.applicant-recommendation-company {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+}
+
+.applicant-recommendation-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.applicant-recommendation-skills span {
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.applicant-compatibility-badge {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgb(115 214 165 / 28%);
+  border-radius: 999px;
+  color: #8be0b2;
+  background: rgb(51 150 102 / 12%);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.applicant-recommendation-card .primary-action {
+  margin-top: auto;
+  text-decoration: none;
+}
+
+.applicant-secondary-metrics-section {
+  padding: 2rem 0 3rem;
+  background: #141925;
+}
+
+.applicant-secondary-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .employer-premium-banner {
   width: min(calc(100% - 2rem), 68.75rem);
   margin-top: 2rem;
@@ -261,6 +484,14 @@
 }
 
 @media (max-width: 991.98px) {
+  .employer-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .applicant-recommendations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .employer-home-navbar .navbar-toggler {
     display: block !important;
   }
@@ -324,6 +555,16 @@
   }
 
   .employer-benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .employer-metrics-grid,
+  .employer-premium-metrics-grid,
+  .applicant-secondary-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .applicant-recommendations-grid {
     grid-template-columns: 1fr;
   }
 
