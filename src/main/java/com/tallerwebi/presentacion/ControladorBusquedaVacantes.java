@@ -92,6 +92,15 @@ public class ControladorBusquedaVacantes {
     boolean candidato = esCandidato(session);
     modelo.put("esPremium", candidato && usuarioId != null && esPremium(usuarioId));
     modelo.put("tieneCv", candidato && usuarioId != null && tieneCv(usuarioId));
+    CurriculumGenerado cv = candidato && usuarioId != null ? obtenerCurriculum(usuarioId) : null;
+    modelo.put(
+      "tieneCvAts",
+      cv != null && cv.getContenidoAts() != null && !cv.getContenidoAts().isBlank()
+    );
+    modelo.put(
+      "tieneCvOriginal",
+      cv != null && cv.getTextoOriginal() != null && !cv.getTextoOriginal().isBlank()
+    );
     if (candidato && usuarioId != null && modelo.get("tieneCv").equals(true)) {
       agregarInformacionCv(modelo, usuarioId, List.of());
     }
@@ -121,10 +130,11 @@ public class ControladorBusquedaVacantes {
     @RequestParam(name = "skills", required = false, defaultValue = "") String skills,
     @RequestParam(name = "fecha", required = false, defaultValue = "") String fecha,
     @RequestParam(name = "usarCv", defaultValue = "false") boolean usarCv,
+    @RequestParam(name = "tipoCv", defaultValue = "ATS") String tipoCv,
     HttpSession session
   ) {
-    CurriculumGenerado curriculum = validarFiltroCv(usarCv, session);
-    String textoCv = curriculum == null ? "" : textoCv(curriculum);
+    CurriculumGenerado curriculum = validarFiltroCv(usarCv, tipoCv, session);
+    String textoCv = curriculum == null ? "" : textoCvElegido(curriculum, tipoCv);
     List<VacanteResultadoBusqueda> resultados = new ArrayList<>();
     List<VacanteDTO> ofertasPublicadas = new ArrayList<>();
     if (servicioOfertaEmpleador != null) {
@@ -189,15 +199,16 @@ public class ControladorBusquedaVacantes {
     vacantes.addAll(filtradas);
   }
 
-  private CurriculumGenerado validarFiltroCv(boolean usarCv, HttpSession session) {
+  private CurriculumGenerado validarFiltroCv(boolean usarCv, String tipoCv, HttpSession session) {
     if (!usarCv) {
       return null;
     }
     Long usuarioId = validarUsuarioPremium(session);
     CurriculumGenerado curriculum = obtenerCurriculum(usuarioId);
-    if (curriculum == null || textoCv(curriculum).isBlank()) {
+    if (curriculum == null) {
       throw errorCvNoDisponible();
     }
+    textoCvElegido(curriculum, tipoCv); // lanza error si el CV elegido está vacío
     return curriculum;
   }
 
@@ -221,6 +232,16 @@ public class ControladorBusquedaVacantes {
     if (texto == null || texto.isBlank()) {
       texto = curriculum.getTextoOriginal();
     }
+    if (texto == null || texto.isBlank()) {
+      throw errorCvNoDisponible();
+    }
+    return texto;
+  }
+
+  private String textoCvElegido(CurriculumGenerado curriculum, String tipoCv) {
+    String texto = "ORIGINAL".equalsIgnoreCase(tipoCv)
+      ? curriculum.getTextoOriginal()
+      : curriculum.getContenidoAts();
     if (texto == null || texto.isBlank()) {
       throw errorCvNoDisponible();
     }

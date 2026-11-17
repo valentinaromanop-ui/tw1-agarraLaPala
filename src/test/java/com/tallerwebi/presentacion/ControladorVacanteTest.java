@@ -288,16 +288,17 @@ public class ControladorVacanteTest {
       new BusquedaVacanteDTO(),
       new BeanPropertyBindingResult(new BusquedaVacanteDTO(), "busqueda"),
       true,
+      "ATS",
       session
     );
 
     assertThat(((List<VacanteDTO>) vista.getModel().get("vacantes")).size(), equalTo(1));
     assertThat(vista.getModel().get("cvTipo"), equalTo("ATS"));
-    assertThat(vista.getModel().get("cvSkills"), equalTo(List.of("java")));
+    assertThat(vista.getModel().get("cvSkills"), equalTo(java.util.Set.of("java")));
   }
 
   @Test
-  public void filtroCvUsaSeleccionadoSiNoHayAts() {
+  public void filtroCvUsaOriginalCuandoSeElige() {
     ServicioCurriculumGenerado curriculumService = mock(ServicioCurriculumGenerado.class);
     ServicioPago pago = mock(ServicioPago.class);
     CurriculumGenerado curriculum = curriculum(null, "Python", "cv-original.pdf");
@@ -310,10 +311,11 @@ public class ControladorVacanteTest {
       new BusquedaVacanteDTO(),
       new BeanPropertyBindingResult(new BusquedaVacanteDTO(), "busqueda"),
       true,
+      "ORIGINAL",
       session
     );
 
-    assertThat(vista.getModel().get("cvTipo"), equalTo("seleccionado"));
+    assertThat(vista.getModel().get("cvTipo"), equalTo("Original"));
     assertThat(((List<VacanteDTO>) vista.getModel().get("vacantes")).size(), equalTo(1));
   }
 
@@ -329,12 +331,13 @@ public class ControladorVacanteTest {
       new BusquedaVacanteDTO(),
       new BeanPropertyBindingResult(new BusquedaVacanteDTO(), "busqueda"),
       true,
+      "ATS",
       session
     );
 
     assertThat(
       vista.getModel().get("error"),
-      equalTo("Subí o seleccioná un CV antes de usar este filtro.")
+      equalTo("El CV elegido no está disponible. Probá con el otro CV.")
     );
     verify(servicioVacanteMock, times(0)).obtenerVacantesPorSkills(any());
   }

@@ -49,6 +49,7 @@ public class ControladorVacante {
   private static final String RUTA_LOGIN = "redirect:/login";
   private static final String BUSQUEDA = "busqueda";
   private static final String VISTA_VACANTES = "vacantes";
+  private static final String CV_ATS = "ATS";
   private static final String ERROR_SESION_POSTULANTE = "Iniciá sesión como postulante.";
 
   @Autowired
@@ -114,7 +115,7 @@ public class ControladorVacante {
   public ModelAndView mostrarVacantesRecomendadas(HttpSession session) {
     BusquedaVacanteDTO busqueda = new BusquedaVacanteDTO();
 
-    return mostrarResultados(busqueda, null, false, session);
+    return mostrarResultados(busqueda, null, false, CV_ATS, session);
   }
 
   @RequestMapping(path = "/vacantes/filtrar", method = RequestMethod.GET)
@@ -122,6 +123,7 @@ public class ControladorVacante {
     @ModelAttribute(BUSQUEDA) BusquedaVacanteDTO busqueda,
     BindingResult errores,
     @RequestParam(name = "usarCv", defaultValue = "false") boolean usarCv,
+    @RequestParam(name = "tipoCv", defaultValue = "ATS") String tipoCv,
     HttpSession session
   ) {
     if (
@@ -132,6 +134,7 @@ public class ControladorVacante {
         busqueda,
         "Ingresá un sueldo mínimo válido, mayor o igual a cero.",
         usarCv,
+        CV_ATS,
         session
       );
     }
@@ -143,10 +146,11 @@ public class ControladorVacante {
         busqueda,
         "Seleccioná una moneda para filtrar por sueldo mensual.",
         usarCv,
+        tipoCv,
         session
       );
     }
-    return mostrarResultados(busqueda, null, usarCv, session);
+    return mostrarResultados(busqueda, null, usarCv, tipoCv, session);
   }
 
   public ModelAndView filtrarVacantes(
@@ -154,7 +158,7 @@ public class ControladorVacante {
     BindingResult errores,
     HttpSession session
   ) {
-    return filtrarVacantes(busqueda, errores, false, session);
+    return filtrarVacantes(busqueda, errores, false, CV_ATS, session);
   }
 
   @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals" })
@@ -162,6 +166,7 @@ public class ControladorVacante {
     BusquedaVacanteDTO busqueda,
     String error,
     boolean usarCv,
+    String tipoCv,
     HttpSession session
   ) {
     Object usuarioId = session.getAttribute("USUARIO_ID");
@@ -183,6 +188,16 @@ public class ControladorVacante {
     modelo.put("esPremium", servicioPago != null && servicioPago.esPremiumActivo(idPostulante));
     modelo.put("tieneCv", tieneCv(idPostulante));
     modelo.put("usarCv", usarCv);
+    CurriculumGenerado cv = obtenerCurriculum(idPostulante);
+    modelo.put("tipoCv", tipoCv);
+    modelo.put(
+      "tieneCvAts",
+      cv != null && cv.getContenidoAts() != null && !cv.getContenidoAts().isBlank()
+    );
+    modelo.put(
+      "tieneCvOriginal",
+      cv != null && cv.getTextoOriginal() != null && !cv.getTextoOriginal().isBlank()
+    );
     modelo.put(
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(idPostulante)
@@ -203,15 +218,13 @@ public class ControladorVacante {
         return new ModelAndView(VISTA_VACANTES, modelo);
       }
       CurriculumGenerado curriculum = obtenerCurriculum(idPostulante);
-      if (curriculum == null || textoCv(curriculum).isBlank()) {
-        modelo.put("error", "Subí o seleccioná un CV antes de usar este filtro.");
+      if (curriculum == null || textoCvElegido(curriculum, tipoCv).isBlank()) {
+        modelo.put("error", "El CV elegido no está disponible. Probá con el otro CV.");
         return new ModelAndView(VISTA_VACANTES, modelo);
       }
-      modelo.put("cvTipo", curriculum.getContenidoAts() != null ? "ATS" : "seleccionado");
-      modelo.put(
-        "cvNombre",
-        curriculum.getContenidoAts() != null ? "CV ATS" : curriculum.getNombreArchivoOriginal()
-      );
+      boolean esOriginal = "ORIGINAL".equalsIgnoreCase(tipoCv);
+      modelo.put("cvTipo", esOriginal ? "Original" : "ATS");
+      modelo.put("cvNombre", esOriginal ? curriculum.getNombreArchivoOriginal() : "CV ATS");
     }
     if (error != null) {
       modelo.put("error", error);
@@ -220,7 +233,12 @@ public class ControladorVacante {
     try {
       List<VacanteDTO> vacantes = servicioVacante.obtenerVacantesPorSkills(busqueda);
       if (usarCv) {
-        vacantes = aplicarFiltroCv(vacantes, textoCv(obtenerCurriculum(idPostulante)), modelo);
+        vacantes =
+          aplicarFiltroCv(
+            vacantes,
+            textoCvElegido(obtenerCurriculum(idPostulante), tipoCv),
+            modelo
+          );
       }
       EnriquecedorResenasVacantes.agregarResumenes(vacantes, servicioResena);
       modelo.put(VISTA_VACANTES, vacantes);
@@ -282,6 +300,13 @@ public class ControladorVacante {
   private String textoCv(CurriculumGenerado curriculum) {
     String texto = curriculum.getContenidoAts();
     return texto == null || texto.isBlank() ? curriculum.getTextoOriginal() : texto;
+  }
+
+  private String textoCvElegido(CurriculumGenerado curriculum, String tipoCv) {
+    String texto = "ORIGINAL".equalsIgnoreCase(tipoCv)
+      ? curriculum.getTextoOriginal()
+      : curriculum.getContenidoAts();
+    return texto == null ? "" : texto;
   }
 
   private boolean esPostulante(Object rol) {

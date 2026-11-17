@@ -117,4 +117,15 @@ public final class CalculadorCoincidenciaCv {
     sinonimos.put(canonico, canonico);
     sinonimos.put(alias, canonico);
   }
+
+  public static CoincidenciaCv calcularPorSkills(String textoCv, List<String> skillsVacante) {
+    if (skillsVacante == null || skillsVacante.isEmpty()) return new CoincidenciaCv(0, List.of());
+    Set<String> palabrasCv = extraerPalabrasClaveNormalizadas(textoCv);
+    List<String> coinc = skillsVacante
+      .stream()
+      .filter(s -> palabrasCv.contains(normalizarSkill(s))) // match exacto, sin contains()
+      .toList();
+    int pct = (int) Math.round((coinc.size() * 100.0) / skillsVacante.size());
+    return new CoincidenciaCv(pct, coinc);
+  }
 }

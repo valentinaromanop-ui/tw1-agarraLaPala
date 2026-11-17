@@ -46,6 +46,12 @@
 									th:disabled="${!tieneCv}">
 								Usar mi CV para filtrar ofertas
 							</label>
+							<label for="filtro-tipo-cv" th:if="${tieneCv}">CV a usar
+								<select id="filtro-tipo-cv" name="tipoCv">
+									<option value="ATS" th:disabled="${!tieneCvAts}" th:selected="${tieneCvAts}">CV ATS</option>
+									<option value="ORIGINAL" th:disabled="${!tieneCvOriginal}" th:selected="${!tieneCvAts}">CV original</option>
+								</select>
+								</label>
 							<div th:if="${tieneCv}" class="cv-details">
 								<p>CV en uso: <strong th:text="${cvTipo}">ATS</strong>
 									<span th:if="${cvNombre != null}" th:text="' - ' + ${cvNombre}"></span>
