@@ -48,6 +48,7 @@ public class Usuario {
   private Map<String, String> idiomas = new LinkedHashMap<>();
 
   private Boolean activo = false;
+  private Boolean bloqueado = false;
 
   public Long getId() {
     return id;
@@ -155,6 +156,18 @@ public class Usuario {
 
   public void activar() {
     activo = true;
+  }
+
+  public void bloquear() {
+    bloqueado = true;
+  }
+
+  public Boolean getBloqueado() {
+    return bloqueado;
+  }
+
+  public void setBloqueado(Boolean bloqueado) {
+    this.bloqueado = bloqueado;
   }
 
   public byte[] getFotoPerfil() {

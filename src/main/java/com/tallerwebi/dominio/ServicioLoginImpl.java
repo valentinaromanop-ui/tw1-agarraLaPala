@@ -28,6 +28,9 @@ public class ServicioLoginImpl implements ServicioLogin {
     if (usuario == null || !passwordEncoder.matches(password, usuario.getPassword())) {
       return null;
     }
+    if (Boolean.TRUE.equals(usuario.getBloqueado())) {
+      return null;
+    }
     return usuario;
   }
 
