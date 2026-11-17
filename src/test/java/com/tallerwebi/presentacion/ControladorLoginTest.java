@@ -3,6 +3,9 @@ package com.tallerwebi.presentacion;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import com.tallerwebi.dominio.ServicioLogin;
@@ -65,7 +68,7 @@ public class ControladorLoginTest {
   public void loginConCandidatoDeberiaLlevarAlHomeYGuardarRolEnSesion() {
     // preparacion
     Usuario usuarioEncontradoMock = mock(Usuario.class);
-    when(usuarioEncontradoMock.getRol()).thenReturn("ADMIN");
+    when(usuarioEncontradoMock.getRol()).thenReturn("CANDIDATO");
 
     when(requestMock.getSession()).thenReturn(sessionMock);
     when(servicioLoginMock.consultarUsuario(anyString(), anyString()))
@@ -76,6 +79,24 @@ public class ControladorLoginTest {
 
     // validacion
     assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/home"));
+    verify(sessionMock, times(1)).setAttribute("ROL", usuarioEncontradoMock.getRol());
+  }
+
+  @Test
+  public void loginConAdminDeberiaLlevarAlPanelAdmin() {
+    // preparacion
+    Usuario usuarioEncontradoMock = mock(Usuario.class);
+    when(usuarioEncontradoMock.getRol()).thenReturn("ADMIN");
+
+    when(requestMock.getSession()).thenReturn(sessionMock);
+    when(servicioLoginMock.consultarUsuario(anyString(), anyString()))
+      .thenReturn(usuarioEncontradoMock);
+
+    // ejecucion
+    ModelAndView modelAndView = controladorLogin.validarLogin(datosLoginMock, requestMock);
+
+    // validacion
+    assertThat(modelAndView.getViewName(), equalToIgnoringCase("redirect:/admin"));
     verify(sessionMock, times(1)).setAttribute("ROL", usuarioEncontradoMock.getRol());
   }
 

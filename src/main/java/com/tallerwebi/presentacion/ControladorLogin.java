@@ -23,6 +23,7 @@ public class ControladorLogin {
 
   private static final String ATRIBUTO_ERROR = "error";
   private static final String RUTA_HOME = "redirect:/home";
+  private static final String ROL_ADMIN = "ADMIN";
   private static final String ROL_EMPLEADOR = "EMPLEADOR";
   private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
   private static final List<String> HABILIDADES_DISPONIBLES = List.of(
@@ -109,6 +110,7 @@ public class ControladorLogin {
       );
     }
     identificarUsuarioEnSesion(usuario);
+
     return redirigirSegunRol(usuario.getRol());
   }
 
@@ -249,6 +251,9 @@ public class ControladorLogin {
   }
 
   private ModelAndView redirigirSegunRol(String rol) {
+    if (ROL_ADMIN.equalsIgnoreCase(rol)) {
+      return new ModelAndView("redirect:/admin");
+    }
     if (ROL_EMPLEADOR.equalsIgnoreCase(rol)) {
       return new ModelAndView("redirect:/home-empleador");
     }
