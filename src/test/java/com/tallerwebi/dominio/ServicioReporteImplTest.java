@@ -2,6 +2,7 @@ package com.tallerwebi.dominio;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -185,5 +186,51 @@ public class ServicioReporteImplTest {
     when(repositorioReporte.obtener(99L)).thenReturn(null);
 
     assertThrows(IllegalArgumentException.class, () -> servicio.descartar(99L));
+  }
+
+  @Test
+  public void bloquearUsuarioDirectoDeberiaBloquearYDesactivarOfertas() {
+    Usuario u = new Usuario();
+    u.setRol("EMPLEADOR");
+    Vacante v = new Vacante();
+    v.setActiva(true);
+    when(repositorioUsuario.buscarPorId(20L)).thenReturn(u);
+    when(repositorioVacante.buscarPorEmpleador(20L)).thenReturn(List.of(v));
+    servicio.bloquearUsuarioDirecto(20L);
+    assertTrue(u.getBloqueado());
+    assertFalse(v.getActiva());
+  }
+
+  @Test
+  public void bloquearUsuarioDirectoNoDeberiaBloquearAdmin() {
+    Usuario a = new Usuario();
+    a.setRol("ADMIN");
+    when(repositorioUsuario.buscarPorId(1L)).thenReturn(a);
+    servicio.bloquearUsuarioDirecto(1L);
+    assertFalse(a.getBloqueado());
+  }
+
+  @Test
+  public void desbloquearUsuarioDeberiaQuitarElBloqueo() {
+    Usuario u = new Usuario();
+    u.setBloqueado(true);
+    when(repositorioUsuario.buscarPorId(5L)).thenReturn(u);
+    servicio.desbloquearUsuario(5L);
+    assertFalse(u.getBloqueado());
+  }
+
+  @Test
+  public void desbloquearUsuarioInexistenteDeberiaFallar() {
+    when(repositorioUsuario.buscarPorId(9L)).thenReturn(null);
+    assertThrows(IllegalArgumentException.class, () -> servicio.desbloquearUsuario(9L));
+  }
+
+  @Test
+  public void cambiarEstadoOfertaDeberiaActualizarActiva() {
+    Vacante v = new Vacante();
+    v.setActiva(true);
+    when(repositorioVacante.obtenerPorId(7L)).thenReturn(v);
+    servicio.cambiarEstadoOferta(7L, false);
+    assertFalse(v.getActiva());
   }
 }

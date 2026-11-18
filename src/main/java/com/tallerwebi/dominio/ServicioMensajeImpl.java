@@ -43,6 +43,9 @@ public class ServicioMensajeImpl implements ServicioMensaje {
     if (textoLimpio.length() > MAX_LARGO_MENSAJE) { //verifica que longitud no sea mayor a 1000 caracteres
       throw new MensajeInvalido("El mensaje es demasiado largo");
     }
+    if (FiltroPalabras.contiene(textoLimpio)) {
+      throw new MensajeInvalido("El mensaje contiene lenguaje inapropiado");
+    }
     Postulacion postulacion = obtenerYValidar(postulacionId, usuarioId);
     Usuario emisor = repositorioUsuario.buscarPorId(usuarioId);
     Mensaje mensaje = new Mensaje();

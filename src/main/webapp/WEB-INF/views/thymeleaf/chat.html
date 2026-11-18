@@ -17,7 +17,14 @@
         <div th:each="m : ${mensajes}"
              class="message-row"
              th:classappend="${m.emisor.id == usuarioId} ? 'mine' : 'other'">
-            <div class="bubble" th:text="${m.texto}"></div>
+             <div class="bubble" th:text="${m.texto}"></div>
+             <form th:if="${m.emisor.id != usuarioId}" method="post" th:action="@{/reportes}">
+            <input type="hidden" name="tipo" value="MENSAJE">
+            <input type="hidden" name="objetoId" th:value="${m.id}">
+            <input type="hidden" name="usuarioReportadoId" th:value="${m.emisor.id}">
+            <input type="hidden" name="motivo" value="Mensaje ofensivo">
+            <button type="submit" class="btn btn-link btn-sm text-danger">Reportar</button>
+            </form>
         </div>
     </div>
 

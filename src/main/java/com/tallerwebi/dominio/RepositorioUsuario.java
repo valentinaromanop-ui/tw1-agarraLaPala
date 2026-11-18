@@ -10,4 +10,5 @@ public interface RepositorioUsuario {
   Usuario buscarPorIdParaActualizar(Long id);
   void modificar(Usuario usuario);
   List<Usuario> buscarPostulantes();
+  List<Usuario> listarNoAdmin(); // "from Usuario u where u.rol <> 'ADMIN'"
 }

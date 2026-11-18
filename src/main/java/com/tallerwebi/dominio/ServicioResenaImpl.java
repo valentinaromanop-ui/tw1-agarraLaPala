@@ -116,6 +116,9 @@ public class ServicioResenaImpl implements ServicioResena {
     Usuario empleador = validarEmpleador(empleadorId);
     validarPuntaje(puntaje);
     validarTexto(comentario, Resena.MAX_LARGO_COMENTARIO, "comentario");
+    if (FiltroPalabras.contiene(comentario)) {
+      throw new IllegalArgumentException("El comentario contiene lenguaje inapropiado.");
+    }
     if (!sePostuloAOfertaDelEmpleador(candidatoId, empleadorId)) {
       throw new IllegalArgumentException(
         "Solo pueden reseñar candidatos que se postularon a una oferta de la empresa."
