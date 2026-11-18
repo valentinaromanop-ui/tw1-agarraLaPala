@@ -13,6 +13,25 @@ public class PostulanteOfertaDTO {
   private final boolean tieneCv;
   private final boolean premium;
   private final EstadoPostulacion estado;
+  private Integer puntajeIa;
+
+  public void setPuntajeIa(Integer puntajeIa) {
+    this.puntajeIa = puntajeIa;
+  }
+
+  public void setDevolucionIa(String devolucionIa) {
+    this.devolucionIa = devolucionIa;
+  }
+
+  public Integer getPuntajeIa() {
+    return puntajeIa;
+  }
+
+  public String getDevolucionIa() {
+    return devolucionIa;
+  }
+
+  private String devolucionIa;
 
   public List<String> getHabilidadesFaltantes() {
     return habilidadesFaltantes;

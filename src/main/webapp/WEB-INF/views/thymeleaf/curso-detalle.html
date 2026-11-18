@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agarra la Pala | Curso</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/home.css}" />
+    <link rel="stylesheet" th:href="@{/css/ia.css}" />
+</head>
+<body class="ia-pagina">
+<nav th:replace="~{fragments/navbar :: appNavbar('jobs', true, false)}"></nav>
+
+<main class="ia-contenedor ia-ancho">
+    <a class="ia-volver" th:href="@{/cursos}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Todos los cursos</a>
+
+    <header class="ia-curso-encabezado">
+        <span class="ia-curso-skill ia-curso-skill-inline" th:text="${curso.skill()}">Java</span>
+        <h1 th:text="${curso.titulo()}">Título del curso</h1>
+        <p th:text="${curso.descripcion()}">Descripción</p>
+        <div class="ia-curso-meta">
+            <span><i class="bi bi-person-badge" aria-hidden="true"></i> <span th:text="${curso.instructor()}">Instructor</span></span>
+            <span><i class="bi bi-bar-chart" aria-hidden="true"></i> <span th:text="${curso.nivel()}">Nivel</span></span>
+            <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${curso.duracion()}">4 h</span></span>
+        </div>
+    </header>
+
+    <div class="ia-detalle">
+        <div>
+            <div class="ia-reproductor">
+                <div class="ratio ratio-16x9" th:if="${premium}">
+                    <iframe th:src="${'https://www.youtube.com/embed/' + curso.lecciones().get(leccionActual).youtubeId()}"
+                            th:title="${curso.lecciones().get(leccionActual).titulo()}" allowfullscreen></iframe>
+                </div>
+                <div class="ia-bloqueado" th:unless="${premium}">
+                    <i class="bi bi-lock-fill" aria-hidden="true"></i>
+                    <h2>Contenido exclusivo Premium</h2>
+                    <p>Pasate a Premium para ver las lecciones y recibir tu certificado de asistencia.</p>
+                    <a class="primary-action" th:href="@{/premium/pagar}">Pasarme a Premium</a>
+                </div>
+            </div>
+
+            <section class="ia-tarjeta mt-3">
+                <h2 class="ia-seccion-titulo"><i class="bi bi-check2-square" aria-hidden="true"></i> Qué vas a aprender</h2>
+                <ul class="ia-aprenderas">
+                    <li th:each="punto : ${curso.aprenderas()}"><i class="bi bi-check2" aria-hidden="true"></i> <span th:text="${punto}">Punto</span></li>
+                </ul>
+            </section>
+
+            <section class="ia-tarjeta">
+                <h2 class="ia-seccion-titulo"><i class="bi bi-list-ol" aria-hidden="true"></i> Temario</h2>
+                <ol class="ia-temario">
+                    <li th:each="leccion, e : ${curso.lecciones()}">
+                        <a class="ia-leccion" th:href="${premium} ? @{/cursos/{id}(id=${curso.id()}, leccion=${e.index})} : '#'"
+                           th:classappend="${(e.index == leccionActual and premium ? 'activa ' : '') + (premium ? '' : 'bloqueada')}">
+                            <i class="bi" th:classappend="${premium ? 'bi-play-circle' : 'bi-lock-fill'}" aria-hidden="true"></i>
+                            <span class="ia-leccion-titulo" th:text="${e.count + '. ' + leccion.titulo()}">Lección</span>
+                            <span class="ia-leccion-duracion" th:text="${leccion.duracion()}">12 min</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
+        </div>
+
+        <aside class="ia-lateral">
+            <div class="ia-tarjeta">
+                <i class="bi bi-award ia-lateral-icono" aria-hidden="true"></i>
+                <h2 class="ia-seccion-titulo">Certificado de asistencia</h2>
+                <p class="ia-vacio" style="padding:0 0 1rem;text-align:left">Al completar el curso recibís un certificado para sumar a tu perfil y a tu CV.</p>
+                <a class="primary-action" th:unless="${premium}" th:href="@{/premium/pagar}">Pasarme a Premium</a>
+            </div>
+        </aside>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

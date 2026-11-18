@@ -21,6 +21,11 @@
     <h1>Mis postulaciones</h1>
     <p>Consultá las ofertas a las que te postulaste y su estado.</p>
 
+    <div th:if="${resultadoIa}" class="alert alert-success" role="status">
+      <strong>Resultado del cuestionario IA: <span th:text="${resultadoIa.puntaje() + '/100'}">80/100</span></strong>
+      <p class="mb-0" th:text="${resultadoIa.devolucion()}">Devolución de la IA</p>
+    </div>
+
     <div th:if="${#lists.isEmpty(postulaciones)}" class="profile-section">
       <p>No tenés postulaciones registradas.</p>
     </div>
@@ -33,6 +38,16 @@
         <p th:text="${postulacion.empresa ?: 'Empresa no informada'}">Empresa</p>
         <p th:text="${postulacion.ubicacion ?: 'Ubicación no informada'}">Ubicación</p>
         <p th:text="${postulacion.modalidad ?: 'Modalidad no informada'}">Modalidad</p>
+        <div th:if="${postulacion.puntajeIa != null}" class="alert alert-light border mt-2">
+          <strong>Nota IA:</strong>
+          <span th:text="${postulacion.puntajeIa + '/100'}">80/100</span>
+          <p class="mb-0" th:if="${postulacion.devolucionIa}" th:text="${postulacion.devolucionIa}">Devolución</p>
+        </div>
+        <div th:if="${postulacion.puntajeIa == null and postulacion.vacante != null and postulacion.vacante.cuestionarioIa}" class="mt-2">
+          <a class="btn btn-warning btn-sm" th:href="@{/cuestionario-ia/{id}(id=${postulacion.id})}">
+            Completar cuestionario IA pendiente
+          </a>
+        </div>
         <p>Estado:
           <strong class="badge estado-postulacion"
             th:classappend="${' ' + postulacion.estado.claseCss}"

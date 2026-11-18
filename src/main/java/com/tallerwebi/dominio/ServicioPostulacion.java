@@ -31,4 +31,9 @@ public interface ServicioPostulacion {
     Long empleadorId
   );
   List<String> obtenerHabilidadesOferta(String fuente, Long id);
+  List<PostulanteOfertaDTO> filtrarPorNota(
+    List<PostulanteOfertaDTO> lista,
+    Integer notaMinima,
+    boolean ordenar
+  );
 }

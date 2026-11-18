@@ -56,6 +56,7 @@ public class ControladorPostulacion {
   private static final String PARAMETRO_FECHA_DESDE = "fechaDesde";
   private static final String PARAMETRO_FECHA_HASTA = "fechaHasta";
   private static final String PARAMETRO_SOLO_PREMIUM = "soloPremium";
+  private static final String DEFAULT_FALSE = "false";
   private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
   private static final String PATH_VARIABLE_OFERTA_ID = "ofertaId";
   private static final String PATH_VARIABLE_POSTULACION_ID = "postulacionId";
@@ -169,7 +170,7 @@ public class ControladorPostulacion {
     @RequestParam(value = "skill", required = false) String skillFiltro,
     @RequestParam(value = PARAMETRO_FECHA_DESDE, required = false) String fechaDesde,
     @RequestParam(value = PARAMETRO_FECHA_HASTA, required = false) String fechaHasta,
-    @RequestParam(value = PARAMETRO_SOLO_PREMIUM, defaultValue = "false") boolean soloPremium,
+    @RequestParam(value = PARAMETRO_SOLO_PREMIUM, defaultValue = DEFAULT_FALSE) boolean soloPremium,
     HttpSession session
   ) {
     Long empleadorId = obtenerEmpleadorId(session);
@@ -215,11 +216,13 @@ public class ControladorPostulacion {
     @RequestParam(value = "skill", required = false) String skillFiltro,
     @RequestParam(value = PARAMETRO_FECHA_DESDE, required = false) String fechaDesde,
     @RequestParam(value = PARAMETRO_FECHA_HASTA, required = false) String fechaHasta,
-    @RequestParam(value = PARAMETRO_SOLO_PREMIUM, defaultValue = "false") boolean soloPremium,
+    @RequestParam(value = PARAMETRO_SOLO_PREMIUM, defaultValue = DEFAULT_FALSE) boolean soloPremium,
     @RequestParam(value = "porcentajeMinimo", required = false) Integer porcentajeMinimo,
     @RequestParam(value = "skills", required = false) List<String> skillsFiltro,
     @RequestParam(value = "pagina", defaultValue = "1") int pagina,
-    HttpSession session
+    HttpSession session,
+    @RequestParam(value = "notaMinima", required = false) Integer notaMinima,
+    @RequestParam(value = "ordenarNota", defaultValue = DEFAULT_FALSE) boolean ordenarNota
   ) {
     ModelAndView vista = mostrarPostulantes(
       vacanteId,
@@ -267,6 +270,7 @@ public class ControladorPostulacion {
     int hasta = Math.min(desde + CANDIDATOS_POR_PAGINA, filtrados.size());
     boolean puedeInvitar = Boolean.TRUE.equals(vista.getModel().get("puedeInvitar"));
     Map<String, Object> modelo = vista.getModel();
+    aplicarFiltroNota(modelo, notaMinima, ordenarNota);
     modelo.put("candidatosSugeridos", filtrados.subList(desde, hasta));
     modelo.put("cantidadCandidatosConFiltros", filtrados.size());
     modelo.put(
@@ -535,7 +539,7 @@ public class ControladorPostulacion {
   public ResponseEntity<byte[]> verCvPostulante(
     @PathVariable(PATH_VARIABLE_OFERTA_ID) Long ofertaId,
     @PathVariable(PATH_VARIABLE_POSTULACION_ID) Long postulacionId,
-    @RequestParam(value = "descargar", defaultValue = "false") boolean descargar,
+    @RequestParam(value = "descargar", defaultValue = DEFAULT_FALSE) boolean descargar,
     HttpSession session
   ) {
     Long empleadorId = obtenerEmpleadorId(session);
@@ -743,6 +747,30 @@ public class ControladorPostulacion {
     return (
       "CANDIDATO".equalsIgnoreCase(String.valueOf(rol)) ||
       "POSTULANTE".equalsIgnoreCase(String.valueOf(rol))
+    );
+  }
+
+  private void aplicarFiltroNota(
+    Map<String, Object> modelo,
+    Integer notaMinima,
+    boolean ordenarNota
+  ) {
+    modelo.put("notaMinima", notaMinima);
+    modelo.put("ordenarNota", ordenarNota);
+    if (notaMinima == null && !ordenarNota) {
+      return;
+    }
+    List<PostulanteOfertaDTO> actuales = new ArrayList<>();
+    if (modelo.get("postulantes") instanceof List<?> lista) {
+      for (Object elemento : lista) {
+        if (elemento instanceof PostulanteOfertaDTO postulante) {
+          actuales.add(postulante);
+        }
+      }
+    }
+    modelo.put(
+      "postulantes",
+      servicioPostulacion.filtrarPorNota(actuales, notaMinima, ordenarNota)
     );
   }
 }

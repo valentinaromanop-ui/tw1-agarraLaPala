@@ -210,3 +210,9 @@ EXECUTE migracion_visibilidad_perfil;
 DEALLOCATE PREPARE migracion_visibilidad_perfil;
 
 ALTER TABLE Entrevista MODIFY COLUMN estado ENUM('INVITADA', 'AGENDADA', 'CANCELADA') NOT NULL;
+UPDATE Vacante
+SET cuestionario_ia = FALSE
+WHERE cuestionario_ia IS NULL;
+
+ALTER TABLE Vacante
+    MODIFY COLUMN cuestionario_ia BOOLEAN NOT NULL DEFAULT FALSE

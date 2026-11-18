@@ -59,41 +59,45 @@
           Esta oferta está cerrada o alcanzó su límite de postulaciones; no se pueden enviar invitaciones.
         </p>
         <form class="premium-payment-form mb-3" method="get"
-          th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
+              th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
           <input type="hidden" name="estado" th:value="${estadoFiltro}">
           <input type="hidden" name="skill" th:value="${filtroPostulantesSkill}">
           <input type="hidden" name="fechaDesde" th:value="${fechaDesde}">
           <input type="hidden" name="fechaHasta" th:value="${fechaHasta}">
           <input type="hidden" name="soloPremium" th:value="${soloPremium}">
+          <input type="hidden" name="notaMinima" th:value="${notaMinima}">
+          <input type="hidden" name="ordenarNota" th:value="${ordenarNota}">
           <input type="hidden" name="pagina" value="1">
           <label class="form-label">Coincidencia mínima (%)
             <input class="form-control" type="number" name="porcentajeMinimo" max="100"
-              th:attr="min=${porcentajeMinimoBase}" th:value="${porcentajeMinimo}">
+                   th:attr="min=${porcentajeMinimoBase}" th:value="${porcentajeMinimo}">
           </label>
           <fieldset class="mb-3">
             <legend class="form-label">Skills (debe tener todas las elegidas)</legend>
             <label class="form-check form-check-inline" th:each="habilidad : ${skillsOferta}">
               <input class="form-check-input" type="checkbox" name="skills"
-                th:value="${habilidad}" th:checked="${#lists.contains(skillsFiltro, habilidad)}">
+                     th:value="${habilidad}" th:checked="${#lists.contains(skillsFiltro, habilidad)}">
               <span class="form-check-label" th:text="${habilidad}">Skill</span>
             </label>
           </fieldset>
           <button class="btn btn-primary" type="submit">Aplicar filtros</button>
         </form>
         <form id="invitar-todos-form" class="mb-3" method="post"
-          th:action="@{/ofertas/{ofertaId}/invitaciones/masivas(ofertaId=${vacante.id})}"
-          th:attr="data-confirmacion=|Vas a invitar a ${cantidadInvitables} candidatos a la oferta ${vacante.titulo}|"
-          onsubmit="if (!confirm(this.dataset.confirmacion)) return false; this.querySelector('button[type=submit]').disabled = true;">
+              th:action="@{/ofertas/{ofertaId}/invitaciones/masivas(ofertaId=${vacante.id})}"
+              th:attr="data-confirmacion=|Vas a invitar a ${cantidadInvitables} candidatos a la oferta ${vacante.titulo}|"
+              onsubmit="if (!confirm(this.dataset.confirmacion)) return false; this.querySelector('button[type=submit]').disabled = true;">
           <input type="hidden" name="porcentajeMinimo" th:value="${porcentajeMinimo}">
           <input type="hidden" name="estado" th:value="${estadoFiltro}">
           <input type="hidden" name="skill" th:value="${filtroPostulantesSkill}">
           <input type="hidden" name="fechaDesde" th:value="${fechaDesde}">
           <input type="hidden" name="fechaHasta" th:value="${fechaHasta}">
           <input type="hidden" name="soloPremium" th:value="${soloPremium}">
+          <input type="hidden" name="notaMinima" th:value="${notaMinima}">
+          <input type="hidden" name="ordenarNota" th:value="${ordenarNota}">
           <input type="hidden" name="pagina" value="1">
           <input th:each="habilidad : ${skillsFiltro}" type="hidden" name="skills" th:value="${habilidad}">
           <button class="btn btn-primary" type="submit"
-            th:disabled="${!puedeInvitar or cantidadInvitables == 0}">
+                  th:disabled="${!puedeInvitar or cantidadInvitables == 0}">
             Invitar a todos los que cumplen los filtros
             (<span th:text="${cantidadInvitables}">0</span>)
           </button>
@@ -127,41 +131,41 @@
           </article>
         </div>
         <nav th:if="${totalPaginas > 1}" class="d-flex align-items-center gap-3 mt-3"
-          aria-label="Paginación de candidatos sugeridos">
+             aria-label="Paginación de candidatos sugeridos">
           <a class="btn btn-outline-primary"
-            th:if="${paginaActual > 1}"
-            th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual - 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium})}">
+             th:if="${paginaActual > 1}"
+             th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual - 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium}, notaMinima=${notaMinima}, ordenarNota=${ordenarNota})}">
             Anterior
           </a>
           <span th:text="|Página ${paginaActual} de ${totalPaginas}|">Página 1 de 1</span>
           <a class="btn btn-outline-primary"
-            th:if="${paginaActual < totalPaginas}"
-            th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual + 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium})}">
+             th:if="${paginaActual < totalPaginas}"
+             th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, porcentajeMinimo=${porcentajeMinimo}, skills=${skillsFiltro}, pagina=${paginaActual + 1}, estado=${estadoFiltro}, skill=${filtroPostulantesSkill}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, soloPremium=${soloPremium}, notaMinima=${notaMinima}, ordenarNota=${ordenarNota})}">
             Siguiente
           </a>
         </nav>
       </section>
 
       <nav th:if="${premium}" class="postulantes-filtros" aria-label="Filtrar postulantes por estado">
-        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS')}"
-          th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
+        <a th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='TODOS', notaMinima=${notaMinima}, ordenarNota=${ordenarNota})}"
+           th:classappend="${estadoFiltro == 'TODOS' ? ' active' : ''}">
           Todos <span th:text="${cantidadPostulantes}">0</span>
         </a>
-        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='PENDIENTE')}"
-          th:classappend="${estadoFiltro == 'PENDIENTE' ? ' active' : ''}">
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='PENDIENTE', notaMinima=${notaMinima}, ordenarNota=${ordenarNota})}"
+           th:classappend="${estadoFiltro == 'PENDIENTE' ? ' active' : ''}">
           Pendientes <span th:text="${cantidadPendientes}">0</span>
         </a>
-        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='ACEPTADA')}"
-          th:classappend="${estadoFiltro == 'ACEPTADA' ? ' active' : ''}">
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='ACEPTADA', notaMinima=${notaMinima}, ordenarNota=${ordenarNota})}"
+           th:classappend="${estadoFiltro == 'ACEPTADA' ? ' active' : ''}">
           Aceptados <span th:text="${cantidadAceptadas}">0</span>
         </a>
-        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='RECHAZADA')}"
-          th:classappend="${estadoFiltro == 'RECHAZADA' ? ' active' : ''}">
+        <a class="nav-link" th:href="@{/ofertas/{id}/postulantes(id=${vacante.id}, estado='RECHAZADA', notaMinima=${notaMinima}, ordenarNota=${ordenarNota})}"
+           th:classappend="${estadoFiltro == 'RECHAZADA' ? ' active' : ''}">
           Rechazados <span th:text="${cantidadRechazadas}">0</span>
         </a>
       </nav>
       <form th:if="${premium}" class="premium-payment-form mb-3" method="get"
-        th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
+            th:action="@{/ofertas/{id}/postulantes(id=${vacante.id})}">
         <label class="form-label">Skill
           <input class="form-control" type="search" name="skill" th:value="${skillFiltro}">
         </label>
@@ -173,7 +177,7 @@
         </label>
         <label class="form-check">
           <input class="form-check-input" type="checkbox" name="soloPremium" value="true"
-            th:checked="${soloPremium}">
+                 th:checked="${soloPremium}">
           <span class="form-check-label">Solo candidatos Premium</span>
         </label>
         <label class="form-label">Estado
@@ -183,6 +187,15 @@
             <option value="ACEPTADA" th:selected="${estadoFiltro == 'ACEPTADA'}">Aceptados</option>
             <option value="RECHAZADA" th:selected="${estadoFiltro == 'RECHAZADA'}">Rechazados</option>
           </select>
+        </label>
+        <label class="form-label">Nota mínima IA
+          <input class="form-control" type="number" name="notaMinima" min="0" max="100"
+                 th:value="${notaMinima}">
+        </label>
+        <label class="form-check">
+          <input class="form-check-input" type="checkbox" name="ordenarNota" value="true"
+                 th:checked="${ordenarNota}">
+          <span class="form-check-label">Ordenar por nota IA</span>
         </label>
         <button class="btn btn-primary" type="submit">Aplicar filtros</button>
       </form>
@@ -205,12 +218,13 @@
       <div th:if="${!#lists.isEmpty(postulantes)}" class="table-responsive postulantes-responsive">
         <table class="table employer-table postulantes-table align-middle">
           <colgroup>
-            <col style="width: 19%">
+            <col style="width: 16%">
             <col style="width: 19%">
             <col style="width: 16%">
             <col style="width: 10%">
+            <col style="width: 11%">
             <col style="width: 12%">
-            <col style="width: 24%">
+            <col style="width: 23%">
           </colgroup>
           <thead>
             <tr>
@@ -218,6 +232,7 @@
               <th scope="col">Habilidades</th>
               <th scope="col">Fecha de postulación</th>
               <th scope="col">Estado</th>
+              <th scope="col">Nota IA</th>
               <th scope="col">CV</th>
               <th scope="col">Acciones</th>
 
@@ -256,6 +271,13 @@
                 <span class="badge estado-postulacion"
                   th:classappend="${' ' + postulante.estado.claseCss}"
                   th:text="${postulante.estado.etiqueta}">Pendiente</span>
+              </td>
+              <td data-label="Nota IA">
+                <strong th:if="${postulante.puntajeIa != null}"
+                  th:text="${postulante.puntajeIa + '/100'}">80/100</strong>
+                <span th:if="${postulante.puntajeIa == null}" class="postulante-secondary">Sin responder</span>
+                <small th:if="${postulante.devolucionIa != null}"
+                  class="d-block mt-1" th:text="${postulante.devolucionIa}">Devolución</small>
               </td>
               <td data-label="CV">
                 <div class="postulante-row-actions">

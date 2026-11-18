@@ -89,7 +89,7 @@
                 <th scope="row" data-label="Cargo" th:text="${vacante.titulo}"></th>
                 <td data-label="Ubicación" th:text="${vacante.ubicacion}"></td>
                 <td data-label="Modalidad" th:text="${vacante.modalidad}"></td>
-                <td data-label="Salario"><span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span> <span th:text="${vacante.salario}"></span></td>
+                <td data-label="Salario"><span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span> <span th:text="${vacante.salario != null ? #numbers.formatInteger(vacante.salario, 1, 'POINT') : 'No informado'}"></span></td>
                 <td data-label="Fecha de publicación" th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
                 <td data-label="Postulaciones">
                   <span th:if="${vacante.limitePostulaciones != null}"
@@ -133,7 +133,7 @@
                 <th scope="row" data-label="Cargo" th:text="${vacante.titulo}"></th>
                 <td data-label="Ubicación" th:text="${vacante.ubicacion}"></td>
                 <td data-label="Modalidad" th:text="${vacante.modalidad}"></td>
-                <td data-label="Salario"><span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span> <span th:text="${vacante.salario}"></span></td>
+                <td data-label="Salario"><span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span> <span th:text="${vacante.salario != null ? #numbers.formatInteger(vacante.salario, 1, 'POINT') : 'No informado'}"></span></td>
                 <td data-label="Fecha de publicación" th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
                 <td data-label="Postulaciones">
                   <span th:if="${vacante.limitePostulaciones != null}"

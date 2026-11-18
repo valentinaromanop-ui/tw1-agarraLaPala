@@ -120,6 +120,10 @@
             placeholder="Ej.: Java, SQL, comunicación" required>
           <div class="form-text">Separá las habilidades con comas.</div>
         </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="cuestionarioIa" th:field="*{cuestionarioIa}">
+          <label for="cuestionarioIa" class="form-check-label">Evaluar postulantes con cuestionario de IA</label>
+        </div>
 
         <div class="mb-3">
           <label class="form-label" for="limitePostulaciones">Límite de postulaciones (opcional)</label>

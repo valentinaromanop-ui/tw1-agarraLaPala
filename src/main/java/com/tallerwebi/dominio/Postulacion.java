@@ -53,6 +53,27 @@ public class Postulacion {
   @Column(name = "fecha_decision")
   private LocalDateTime fechaDecision;
 
+  private Integer puntajeIa;
+
+  @Column(length = 2000)
+  private String devolucionIa;
+
+  public String getDevolucionIa() {
+    return devolucionIa;
+  }
+
+  public void setDevolucionIa(String devolucionIa) {
+    this.devolucionIa = devolucionIa;
+  }
+
+  public Integer getPuntajeIa() {
+    return puntajeIa;
+  }
+
+  public void setPuntajeIa(Integer puntajeIa) {
+    this.puntajeIa = puntajeIa;
+  }
+
   @Transient
   private Vacante vacante;
 

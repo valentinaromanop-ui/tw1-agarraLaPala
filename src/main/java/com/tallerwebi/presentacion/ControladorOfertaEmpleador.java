@@ -286,6 +286,7 @@ public class ControladorOfertaEmpleador {
     vacante.setDescripcion(datos.getDescripcion().trim());
     vacante.setUbicacion(datos.getUbicacion().trim());
     vacante.setModalidad(datos.getModalidad().trim().toLowerCase(Locale.ROOT));
+    vacante.setCuestionarioIa(datos.isCuestionarioIa());
     vacante.setHorario(datos.getHorario().trim());
     if (!vacio(datos.getSeniority())) {
       vacante.setSeniority(datos.getSeniority().trim().toLowerCase(Locale.ROOT));

@@ -62,6 +62,7 @@ public class ControladorOfertaEmpleadorTest {
     datos.setSalario("1200000");
     datos.setMoneda("ARS");
     datos.setSkills("Java, SQL");
+    datos.setCuestionarioIa(true);
 
     ModelAndView resultado = controlador.crearOferta(datos, request);
 
@@ -79,6 +80,7 @@ public class ControladorOfertaEmpleadorTest {
     assertThat(guardada.getHorario(), equalTo("Lunes a viernes"));
     assertThat(guardada.getSeniority(), equalTo("junior"));
     assertThat(guardada.getJornada(), equalTo("full-time"));
+    assertThat(guardada.isCuestionarioIa(), is(true));
     assertThat(guardada.getFechaPublicacion() != null, is(true));
     assertThat(guardada.getVacanteSkills().size(), equalTo(2));
   }

@@ -140,7 +140,7 @@
           <p th:text="${vacante.jornada == 'full-time' ? 'Tiempo completo' : (vacante.jornada == 'part-time' ? 'Medio tiempo' : 'Jornada no informada')}"></p>
           <p th:if="${vacante.salario != null}">
             Sueldo mensual desde <span th:text="${vacante.moneda ?: 'Moneda no especificada'}"></span>
-            <span th:text="${vacante.salario}"></span>
+            <span th:text="${#numbers.formatInteger(vacante.salario, 1, 'POINT')}"></span>
           </p>
           <p th:if="${vacante.salario == null}">Sueldo mensual no informado</p>
           <p class="result-skills">

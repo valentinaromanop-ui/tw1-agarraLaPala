@@ -55,7 +55,7 @@
         <div><dt>Horario</dt><dd th:text="${vacante.horario ?: 'No informado'}"></dd></div>
         <div><dt>Sueldo mensual</dt><dd>
           <span th:if="${vacante.salario != null}"
-            th:text="${(vacante.moneda ?: 'Moneda no especificada') + ' ' + vacante.salario}">ARS 850000</span>
+            th:text="${(vacante.moneda ?: 'Moneda no especificada') + ' ' + #numbers.formatInteger(vacante.salario, 1, 'POINT')}">ARS 850.000</span>
           <span th:if="${vacante.salario == null}">No informado</span>
         </dd></div>
         <div><dt>Publicación (UTC)</dt><dd th:text="${vacante.fechaPublicacion != null ? #temporals.format(vacante.fechaPublicacion, 'dd/MM/yyyy HH:mm') : 'Sin fecha informada'}"></dd></div>

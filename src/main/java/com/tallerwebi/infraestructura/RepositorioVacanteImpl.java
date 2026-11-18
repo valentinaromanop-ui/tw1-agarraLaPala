@@ -1,10 +1,6 @@
 package com.tallerwebi.infraestructura;
 
-import com.tallerwebi.dominio.EstadoVacante;
-import com.tallerwebi.dominio.RepositorioVacante;
-import com.tallerwebi.dominio.Skill;
-import com.tallerwebi.dominio.Vacante;
-import com.tallerwebi.dominio.VacanteSkill;
+import com.tallerwebi.dominio.*;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Locale;
@@ -143,5 +139,21 @@ public class RepositorioVacanteImpl implements RepositorioVacante {
       )
       .setParameter("id", vacanteId)
       .executeUpdate();
+  }
+
+  @Override
+  public List<HabilidadTop> topHabilidades(int limite) {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery(
+        "select vs.skill.nombre, count(vs) from VacanteSkill vs " +
+        "group by vs.skill.nombre order by count(vs) desc",
+        Object[].class
+      )
+      .setMaxResults(limite)
+      .getResultList()
+      .stream()
+      .map(fila -> new HabilidadTop((String) fila[0], (Long) fila[1]))
+      .toList();
   }
 }

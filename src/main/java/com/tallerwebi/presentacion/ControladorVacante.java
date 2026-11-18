@@ -183,6 +183,7 @@ public class ControladorVacante {
     modelo.put("esPremium", servicioPago != null && servicioPago.esPremiumActivo(idPostulante));
     modelo.put("tieneCv", tieneCv(idPostulante));
     modelo.put("usarCv", usarCv);
+    session.setAttribute("usarCv", usarCv);
     modelo.put(
       "premiumHasta",
       servicioPago == null ? null : servicioPago.fechaFinPremium(idPostulante)

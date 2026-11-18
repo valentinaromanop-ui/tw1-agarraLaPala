@@ -70,6 +70,12 @@
                 <li><a class="dropdown-item" th:href="@{/postulaciones}">
                   <i class="bi bi-send" aria-hidden="true"></i> Postulaciones enviadas
                 </a></li>
+                <li><a class="dropdown-item" th:href="@{/habilidades/top}">
+                  <i class="bi bi-bar-chart-line" aria-hidden="true"></i> Habilidades más pedidas
+                </a></li>
+                <li><a class="dropdown-item" th:href="@{/cursos}">
+                  <i class="bi bi-mortarboard" aria-hidden="true"></i> Cursos premium
+                </a></li>
               </ul>
             </li>
             <li class="nav-item dropdown" th:if="${authenticated and session.ROL == 'EMPLEADOR'}">

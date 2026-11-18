@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SuppressWarnings("PMD.CyclomaticComplexity")
 public class ServicioPostulacionImpl implements ServicioPostulacion {
 
-  private static final String FUENTE_LOCAL = "LOCAL";
+  static final String FUENTE_LOCAL = "LOCAL";
   private static final String FUENTE_JOBICY = "JOBICY";
   private static final String OFERTA_NO_VALIDA = "La oferta no es válida.";
 
@@ -117,7 +117,23 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
 
   @Override
   public List<Postulacion> listarPostulaciones(Long usuarioId) {
-    return repositorioPostulacion.buscarPorUsuarioId(usuarioId);
+    List<Postulacion> postulaciones = repositorioPostulacion.buscarPorUsuarioId(usuarioId);
+    for (Postulacion postulacion : postulaciones) {
+      if (
+        postulacion.getIdOferta() != null &&
+        postulacion.getIdOferta().startsWith(FUENTE_LOCAL + ":")
+      ) {
+        try {
+          Long vacanteId = Long.valueOf(
+            postulacion.getIdOferta().substring(FUENTE_LOCAL.length() + 1)
+          );
+          postulacion.setVacante(repositorioVacante.obtenerPorId(vacanteId));
+        } catch (NumberFormatException ignorada) {
+          postulacion.setVacante(null);
+        }
+      }
+    }
+    return postulaciones;
   }
 
   @Override
@@ -402,5 +418,14 @@ public class ServicioPostulacionImpl implements ServicioPostulacion {
     copia.setHorario(oferta.getHorario());
     copia.setFechaPublicacion(oferta.getFechaPublicacion());
     return copia;
+  }
+
+  @Override
+  public List<PostulanteOfertaDTO> filtrarPorNota(
+    List<PostulanteOfertaDTO> lista,
+    Integer notaMinima,
+    boolean ordenar
+  ) {
+    return servicioPostulantesOferta.filtrarPorNota(lista, notaMinima, ordenar);
   }
 }

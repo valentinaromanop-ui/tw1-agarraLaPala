@@ -24,4 +24,5 @@ public interface RepositorioVacante {
   void incrementarVistas(Long vacanteId);
 
   void incrementarClicksPostular(Long vacanteId);
+  List<HabilidadTop> topHabilidades(int limite);
 }
