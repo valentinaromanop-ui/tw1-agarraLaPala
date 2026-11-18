@@ -52,6 +52,14 @@ public class RepositorioUsuarioImpl implements RepositorioUsuario {
   }
 
   @Override
+  public List<Usuario> listarNoAdmin() {
+    return sessionFactory
+      .getCurrentSession()
+      .createQuery("from Usuario where rol <> 'ADMIN'", Usuario.class)
+      .getResultList();
+  }
+
+  @Override
   public Usuario buscarPorIdParaActualizar(Long id) {
     return sessionFactory
       .getCurrentSession()

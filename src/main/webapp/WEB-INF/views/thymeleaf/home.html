@@ -337,7 +337,8 @@
               </p>
               <div class="offer-meta"><span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span><span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span></div>
             </div>
-            <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+            <a th:href="@{/vacantes/detalle(fuente='LOCAL', id=${oferta.id})}" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
+              <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
             <button type="button" class="apply-button home-offer-redirect" th:attr="data-oferta-id=${oferta.id}">Postularme</button>
           </article>
           <article class="offer-card"><div class="company-logo logo-blue">N</div><div class="offer-info"><h3>Product Designer</h3><p>Estudio Norte</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Product Designer"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
@@ -373,7 +374,7 @@
                 <span th:if="${oferta.salario != null}"><i class="bi bi-cash" aria-hidden="true"></i> <span th:text="${oferta.moneda ?: 'Moneda no especificada'}">ARS</span> <span th:text="${oferta.salario}">Salario</span></span>
               </div>
             </div>
-            <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
+            <a th:href="@{/vacantes/detalle(fuente='LOCAL', id=${oferta.id})}" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
               <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
             </a>
             <button type="button" class="apply-button home-offer-redirect" th:attr="data-oferta-id=${oferta.id}">Postularme</button>

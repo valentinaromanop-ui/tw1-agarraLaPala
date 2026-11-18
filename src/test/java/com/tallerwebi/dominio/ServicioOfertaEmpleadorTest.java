@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -279,6 +280,7 @@ class ServicioOfertaEmpleadorTest {
       servicioPerfil,
       servicioPago,
       servicioNotificacionOferta,
+      mock(ServicioReporte.class),
       publicador,
       "http://localhost:8080"
     );

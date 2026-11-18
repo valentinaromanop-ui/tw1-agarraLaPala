@@ -27,4 +27,7 @@ public interface ServicioReporte {
   void bloquearUsuario(Long reporteId);
 
   void descartar(Long reporteId);
+  void bloquearUsuarioDirecto(Long usuarioId);
+  void desbloquearUsuario(Long usuarioId);
+  void cambiarEstadoOferta(Long vacanteId, boolean activa);
 }

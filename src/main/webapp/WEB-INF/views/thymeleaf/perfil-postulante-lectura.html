@@ -35,6 +35,11 @@
           <h1 id="perfil-postulante-titulo" th:text="${perfilPostulante.nombreCompleto}">Nombre Apellido</h1>
           <a class="applicant-email-link" th:href="|mailto:${perfilPostulante.email}|"
             th:text="${perfilPostulante.email}">candidato@correo.com</a>
+                    <form method="post"
+                th:action="@{/reportes(tipo='CANDIDATO', objetoId=${perfilPostulante.usuarioId}, usuarioReportadoId=${perfilPostulante.usuarioId}, motivo='Perfil inapropiado')}">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Reportar candidato</button>
+          </form> 
+          
           <p class="applicant-offer-meta">
             Postulación a <strong th:text="${perfilPostulante.tituloOferta}">Título de oferta</strong>
             <span aria-hidden="true">·</span>

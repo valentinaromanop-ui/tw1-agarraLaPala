@@ -31,10 +31,23 @@
     <a th:unless="${session.ROL == 'EMPLEADOR'}" class="btn btn-outline-light page-back"
       th:href="@{/home}">Volver al inicio</a>
     <p th:if="${error != null}" th:text="${error}" class="alert alert-warning" role="alert"></p>
+    <p th:if="${exito != null}" th:text="${exito}" class="alert alert-success"></p>
     <article th:if="${vacante != null}" class="detalle-oferta">
       <header>
         <p class="local-source" th:text="${fuente == 'LOCAL' ? 'Oferta de nuestra plataforma' : 'Fuente: ' + fuente}"></p>
         <h1 th:text="${vacante.titulo}">Título de la oferta</h1>
+        <form th:if="${empleadorId != null and session.USUARIO_ID != null and session.USUARIO_ID != empleadorId}"
+              method="post" th:action="@{/reportes}">
+          <input type="hidden" name="tipo" value="OFERTA">
+          <input type="hidden" name="objetoId" th:value="${vacante.id}">
+          <input type="hidden" name="usuarioReportadoId" th:value="${empleadorId}">
+          <select name="motivo">
+            <option>Spam</option>
+            <option>Contenido ofensivo</option>
+            <option>Estafa</option>
+          </select>
+          <button type="submit" class="btn btn-outline-danger btn-sm">Reportar oferta</button>
+        </form>
         <p class="detalle-empresa">
           <a th:if="${empleadorId != null}" th:href="@{/empresas/{empleadorId}(empleadorId=${empleadorId})}"
             th:text="${vacante.empresa ?: 'Empresa no informada'}">Empresa</a>

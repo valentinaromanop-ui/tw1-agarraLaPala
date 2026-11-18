@@ -150,7 +150,7 @@ public class ServicioPostulantesOferta {
     Usuario usuario = postulacion.getUsuario();
     PerfilPostulante perfil = repositorioPerfil.buscarPorUsuarioIdParaLectura(usuario.getId());
     Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
-    return new PerfilPostulanteDTO(
+    PerfilPostulanteDTO dto = new PerfilPostulanteDTO(
       nombreCompleto(usuario),
       usuario.getEmail(),
       iniciales(usuario),
@@ -173,6 +173,9 @@ public class ServicioPostulantesOferta {
       postulacion.getFechaPostulacion(),
       postulacion.getEstado()
     );
+
+    dto.setUsuarioId(usuario.getId());
+    return dto;
   }
 
   public FotoPerfilPostulanteDTO obtenerFotoPerfilPostulante(

@@ -97,6 +97,18 @@ public class ServicioReporteImpl implements ServicioReporte {
     }
   }
 
+  @Override
+  public void bloquearUsuarioDirecto(Long id) {
+    bloquearUsuarioPorId(id);
+  }
+
+  @Override
+  public void desbloquearUsuario(Long id) {
+    Usuario usuario = repositorioUsuario.buscarPorId(id);
+    if (usuario == null) throw new IllegalArgumentException("El usuario no existe.");
+    usuario.setBloqueado(false);
+  }
+
   private void guardar(
     TipoReporte tipo,
     Long objetoId,
@@ -123,7 +135,8 @@ public class ServicioReporteImpl implements ServicioReporte {
     return reporte;
   }
 
-  private void cambiarEstadoOferta(Long vacanteId, boolean activa) {
+  @Override
+  public void cambiarEstadoOferta(Long vacanteId, boolean activa) {
     Vacante vacante = repositorioVacante.obtenerPorId(vacanteId);
     if (vacante != null) {
       vacante.setActiva(activa);
