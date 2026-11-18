@@ -102,6 +102,7 @@ public class ControladorDetalleVacante {
     }
     modelo.put("ofertaCerrada", estaCerrada(oferta));
     modelo.put("puedePostularse", esPostulante(session));
+    agregarMetricasPostulacion(modelo, fuente, id, session);
     agregarMatch(modelo, fuente, id, session);
     modelo.put(
       "yaPostulado",
@@ -272,5 +273,16 @@ public class ControladorDetalleVacante {
       session.getAttribute(USUARIO_ID) != null &&
       ("CANDIDATO".equals(rol) || "POSTULANTE".equals(rol))
     );
+  }
+
+  private void agregarMetricasPostulacion(
+    Map<String, Object> modelo,
+    String fuente,
+    Long ofertaId,
+    HttpSession session
+  ) {
+    if (FUENTE_LOCAL.equals(fuente) && esPostulante(session)) {
+      modelo.put("metricasPostulacion", servicioPostulacion.obtenerMetricasPorOferta(ofertaId));
+    }
   }
 }
