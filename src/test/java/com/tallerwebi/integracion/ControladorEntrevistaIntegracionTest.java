@@ -18,10 +18,12 @@ import com.tallerwebi.dominio.ClienteGoogleCalendar;
 import com.tallerwebi.dominio.Entrevista;
 import com.tallerwebi.dominio.EventoGoogleCalendar;
 import com.tallerwebi.dominio.IntervaloHorario;
+import com.tallerwebi.dominio.NotificacionOferta;
 import com.tallerwebi.dominio.Postulacion;
 import com.tallerwebi.dominio.ServicioConexionGoogle;
 import com.tallerwebi.dominio.ServicioEntrevista;
 import com.tallerwebi.dominio.ServicioIA;
+import com.tallerwebi.dominio.ServicioNotificacionOferta;
 import com.tallerwebi.dominio.Usuario;
 import com.tallerwebi.dominio.Vacante;
 import com.tallerwebi.integracion.config.HibernateTestConfig;
@@ -62,6 +64,9 @@ public class ControladorEntrevistaIntegracionTest {
 
   @Autowired
   private ServicioEntrevista servicioEntrevista;
+
+  @Autowired
+  private ServicioNotificacionOferta servicioNotificacionOferta;
 
   @MockitoBean
   private ClienteGoogleCalendar google;
@@ -104,7 +109,7 @@ public class ControladorEntrevistaIntegracionTest {
   }
 
   @Test
-  public void confirmarUnTurnoDeberiaCrearYMostrarElMeet() throws Exception {
+  public void confirmarUnTurnoDeberiaPermitirAbrirElDetalleConMeetDesdeElAviso() throws Exception {
     // preparacion
     MockHttpSession sesion = crearSesion(candidato);
     String ruta = rutaInvitacion();
@@ -139,10 +144,17 @@ public class ControladorEntrevistaIntegracionTest {
       .crearEventoConMeet(eq("acceso"), anyString(), anyString(), eq(candidato.getEmail()), any());
     sessionFactory.getCurrentSession().flush();
     sessionFactory.getCurrentSession().clear();
+    NotificacionOferta aviso = servicioNotificacionOferta
+      .listarNoLeidas(candidato.getId())
+      .getFirst();
+    mockMvc
+      .perform(get("/notificaciones/{id}/abrir", aviso.getId()).session(sesion))
+      .andExpect(redirectedUrl(ruta));
     mockMvc
       .perform(get(ruta).session(sesion))
       .andExpect(status().isOk())
       .andExpect(content().string(containsString("Entrevista agendada")))
+      .andExpect(content().string(containsString("Fecha y hora")))
       .andExpect(content().string(containsString(ENLACE_MEET)));
   }
 

@@ -27,6 +27,7 @@ public class ServicioEntrevistaImplTest {
   private RepositorioEntrevista repositorioEntrevistaMock;
   private RepositorioUsuario repositorioUsuarioMock;
   private ServicioPostulantesOferta servicioPostulantesOfertaMock;
+  private ServicioNotificacionOferta servicioNotificacionOfertaMock;
   private ApplicationEventPublisher eventosMock;
 
   @BeforeEach
@@ -36,6 +37,7 @@ public class ServicioEntrevistaImplTest {
     repositorioEntrevistaMock = mock(RepositorioEntrevista.class);
     repositorioUsuarioMock = mock(RepositorioUsuario.class);
     servicioPostulantesOfertaMock = mock(ServicioPostulantesOferta.class);
+    servicioNotificacionOfertaMock = mock(ServicioNotificacionOferta.class);
     eventosMock = mock(ApplicationEventPublisher.class);
     when(servicioConexionGoogleMock.obtenerTokenAcceso(7L)).thenReturn("acceso");
     when(clienteGoogleCalendarMock.consultarPeriodosOcupados(anyString(), any(), any()))
@@ -150,6 +152,7 @@ public class ServicioEntrevistaImplTest {
         repositorioEntrevistaMock,
         servicioPostulantesOfertaMock,
         repositorioUsuarioMock,
+        servicioNotificacionOfertaMock,
         eventosMock,
         "http://localhost:8080",
         relojUtc
@@ -210,7 +213,7 @@ public class ServicioEntrevistaImplTest {
   }
 
   @Test
-  public void invitarDeberiaGuardarLaEntrevistaYPublicarElCorreo() {
+  public void invitarDeberiaGuardarLaEntrevistaNotificarYPublicarElCorreo() {
     // preparacion
     Postulacion postulacion = dadoQueExisteUnaPostulacionParaInvitar();
     when(servicioConexionGoogleMock.conectado(7L)).thenReturn(true);
@@ -220,6 +223,12 @@ public class ServicioEntrevistaImplTest {
 
     // validacion
     verify(repositorioEntrevistaMock).guardar(entrevista);
+    verify(servicioNotificacionOfertaMock)
+      .notificar(
+        postulacion.getUsuario(),
+        "Te citaron a una entrevista para Desarrollador Java.",
+        "/entrevistas/30"
+      );
     assertThat(entrevista.getPostulacion(), equalTo(postulacion));
     assertThat(entrevista.getEstado(), equalTo(EstadoEntrevista.INVITADA));
     assertThat(entrevista.getFechaInvitacion(), equalTo(LocalDateTime.parse("2026-11-02T08:00")));
@@ -375,7 +384,7 @@ public class ServicioEntrevistaImplTest {
   }
 
   @Test
-  public void unaConfirmacionRepetidaNoDeberiaCrearOtroEvento() {
+  public void unaConfirmacionRepetidaNoDeberiaCrearOtroEventoNiOtroAviso() {
     // preparacion
     Entrevista entrevista = dadoQueExisteUnaInvitacion();
     when(
@@ -399,6 +408,12 @@ public class ServicioEntrevistaImplTest {
     assertThat(entrevista.getInicio(), equalTo(hora("2026-11-02T09:00")));
     verify(clienteGoogleCalendarMock, times(1))
       .crearEventoConMeet(anyString(), anyString(), anyString(), anyString(), any());
+    verify(servicioNotificacionOfertaMock)
+      .notificar(
+        entrevista.getPostulacion().getUsuario(),
+        "Tu entrevista para Desarrollador Java quedó agendada. Ver horario y acceso a Google Meet.",
+        "/entrevistas/30"
+      );
   }
 
   @Test
@@ -598,9 +613,10 @@ public class ServicioEntrevistaImplTest {
   }
 
   @Test
-  public void modificarDeberiaConservarElEventoYElMeet() {
+  public void modificarDeberiaConservarElEventoYElMeetYNotificarElCambio() {
     Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
 
+    servicioEntrevista.modificar(20L, 30L, 7L, hora("2026-11-03T10:00"));
     servicioEntrevista.modificar(20L, 30L, 7L, hora("2026-11-03T10:00"));
 
     assertThat(entrevista.getInicio(), equalTo(hora("2026-11-03T10:00")));
@@ -608,6 +624,12 @@ public class ServicioEntrevistaImplTest {
     assertThat(entrevista.getGoogleEventId(), equalTo("evento-google"));
     assertThat(entrevista.getUrlMeet(), equalTo("https://meet.google.com/abc-defg-hij"));
     verify(clienteGoogleCalendarMock).modificarHorario(eq("acceso"), eq("evento-google"), any());
+    verify(servicioNotificacionOfertaMock)
+      .notificar(
+        entrevista.getPostulacion().getUsuario(),
+        "Tu entrevista para Desarrollador Java fue reprogramada. Consultá la nueva fecha y hora.",
+        "/entrevistas/30"
+      );
   }
 
   @Test
@@ -627,7 +649,7 @@ public class ServicioEntrevistaImplTest {
   }
 
   @Test
-  public void cancelarDosVecesDeberiaEliminarElEventoUnaSolaVez() {
+  public void cancelarDosVecesDeberiaEliminarElEventoYNotificarUnaSolaVez() {
     Entrevista entrevista = dadoQueExisteUnaEntrevistaAgendada();
 
     servicioEntrevista.cancelar(20L, 30L, 7L);
@@ -635,6 +657,12 @@ public class ServicioEntrevistaImplTest {
 
     assertThat(entrevista.getEstado(), equalTo(EstadoEntrevista.CANCELADA));
     verify(clienteGoogleCalendarMock, times(1)).eliminarEvento("acceso", "evento-google");
+    verify(servicioNotificacionOfertaMock)
+      .notificar(
+        entrevista.getPostulacion().getUsuario(),
+        "El empleador canceló tu entrevista para Desarrollador Java.",
+        "/entrevistas/30"
+      );
   }
 
   @Test
@@ -737,6 +765,7 @@ public class ServicioEntrevistaImplTest {
         repositorioEntrevistaMock,
         servicioPostulantesOfertaMock,
         repositorioUsuarioMock,
+        servicioNotificacionOfertaMock,
         eventosMock,
         "http://localhost:8080",
         reloj
