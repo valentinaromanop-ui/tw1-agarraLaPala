@@ -207,6 +207,7 @@ public class ControladorDetalleVacante {
     ResultadoMatch match = CalculoMatch.calcular(habilidadesUsuario, skillsOferta);
     modelo.put("match", match);
     modelo.put("cursos", CatalogoCursos.paraHabilidades(match.faltantes()));
+    modelo.put("cursoIdPorSkill", CatalogoCursosPremium.idsPorHabilidad(match.faltantes()));
   }
 
   private void refrescarEstadoOfertasLocales(HttpSession session) {

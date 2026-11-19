@@ -651,7 +651,9 @@ body.vacantes-page {
 .recommended-courses-heading h4 { display: flex; align-items: center; gap: 0.55rem; margin: 0 0 0.35rem; color: var(--text); font-size: 1.25rem; font-weight: 800; }
 .recommended-courses-heading h4 i { color: #9fa3ff; }
 .recommended-courses-heading p { margin: 0; color: var(--muted); font-size: 0.9rem; }
-.recommended-course { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.55rem; padding: 0.75rem 0.85rem; border: 1px solid var(--border); border-radius: 0.65rem; background: rgb(16 20 31 / 40%); }
+ .recommended-course-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.recommended-course { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0; padding: 0.75rem 0.85rem; border: 1px solid var(--border); border-radius: 0.65rem; background: rgb(16 20 31 / 40%); }
+.recommended-course .primary-action { flex: 0 0 auto; padding: 0.55rem 0.75rem; white-space: nowrap; }
 .recommended-course-info { display: grid; gap: 0.1rem; }
 .recommended-course-label { color: var(--muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .recommended-course-skill { color: var(--text); font-size: 0.95rem; }
@@ -660,6 +662,14 @@ body.vacantes-page {
 .recommended-course-links a:hover,
 .recommended-course-links a:focus-visible { transform: translateY(-1px); border-color: #9bcfff; color: #fff; background: rgb(40 45 199 / 42%); }
 .recommended-course-links a:focus-visible { outline: 2px solid #9bcfff; outline-offset: 2px; }
+.premium-courses-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.premium-course-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 0.55rem; padding: 1rem; border: 1px solid rgb(245 200 75 / 28%); border-radius: 0.65rem; background: linear-gradient(145deg, rgb(245 200 75 / 8%), rgb(16 20 31 / 55%)); }
+.premium-course-card h5 { margin: 0.15rem 0 0; color: var(--text); font-size: 1rem; }
+.premium-course-card p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+.premium-course-card .premium-course-meta { color: #f5c84b; }
+.premium-course-card .primary-action { margin-top: auto; }
+@media (max-width: 860px) { .premium-courses-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .recommended-course-list { grid-template-columns: 1fr; } }
 @media (max-width: 576px) {
   .recommended-course { align-items: flex-start; flex-direction: column; }
 }

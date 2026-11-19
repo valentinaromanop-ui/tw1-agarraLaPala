@@ -1,6 +1,9 @@
 package com.tallerwebi.dominio;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 public class CatalogoCursosPremium {
@@ -63,5 +66,21 @@ public class CatalogoCursosPremium {
 
   public static Optional<CursoPremium> buscar(String id) {
     return CURSOS.stream().filter(curso -> curso.id().equals(id)).findFirst();
+  }
+
+  public static Map<String, String> idsPorHabilidad(List<String> habilidades) {
+    Map<String, String> ids = new LinkedHashMap<>();
+    for (String habilidad : habilidades) {
+      String normalizada = habilidad.toLowerCase(Locale.ROOT).trim();
+      Optional<CursoPremium> curso = CURSOS
+        .stream()
+        .filter(item ->
+          normalizada.contains(item.skill().toLowerCase(Locale.ROOT)) ||
+          item.skill().toLowerCase(Locale.ROOT).contains(normalizada)
+        )
+        .findFirst();
+      ids.put(habilidad, curso.map(CursoPremium::id).orElse(""));
+    }
+    return ids;
   }
 }
