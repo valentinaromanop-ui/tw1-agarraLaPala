@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head><meta charset="UTF-8"><title>Panel admin</title></head>
+<body>
+<h1>Panel de administración</h1>
+
+<h2>Reportes pendientes</h2>
+<table border="1">
+  <tr th:each="r : ${reportes}">
+    <td th:text="${r.tipo}"></td><td th:text="${r.motivo}"></td><td th:text="${r.detalle}"></td>
+    <td>
+      <form method="post" th:action="@{/admin/reportes/{id}/bloquear-contenido(id=${r.id})}"><button>Bloquear contenido</button></form>
+      <form method="post" th:action="@{/admin/reportes/{id}/bloquear-usuario(id=${r.id})}"><button>Bloquear usuario</button></form>
+      <form method="post" th:action="@{/admin/reportes/{id}/descartar(id=${r.id})}"><button>Descartar</button></form>
+    </td>
+  </tr>
+</table>
+
+<h2>Usuarios</h2>
+<table border="1">
+  <tr th:each="u : ${usuarios}">
+    <td th:text="${u.email}"></td><td th:text="${u.rol}"></td>
+    <td th:text="${u.bloqueado} ? 'Bloqueado' : 'Activo'"></td>
+    <td>
+      <form th:unless="${u.bloqueado}" method="post" th:action="@{/admin/usuarios/{id}/bloquear(id=${u.id})}"><button>Bloquear</button></form>
+      <form th:if="${u.bloqueado}" method="post" th:action="@{/admin/usuarios/{id}/desbloquear(id=${u.id})}"><button>Desbloquear</button></form>
+    </td>
+  </tr>
+</table>
+
+<h2>Ofertas</h2>
+<table border="1">
+  <tr th:each="o : ${ofertas}">
+    <td th:text="${o.titulo}"></td>
+    <td th:text="${o.activa} ? 'Visible' : 'Oculta'"></td>
+    <td>
+      <form th:if="${o.activa}" method="post" th:action="@{/admin/ofertas/{id}/ocultar(id=${o.id})}"><button>Ocultar</button></form>
+      <form th:unless="${o.activa}" method="post" th:action="@{/admin/ofertas/{id}/mostrar(id=${o.id})}"><button>Mostrar</button></form>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

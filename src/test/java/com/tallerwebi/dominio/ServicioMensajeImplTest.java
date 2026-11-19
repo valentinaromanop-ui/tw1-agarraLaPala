@@ -160,4 +160,9 @@ class ServicioMensajeImplTest {
     mensaje.setTexto("Mensaje de prueba");
     return mensaje;
   }
+
+  @Test
+  public void enviarConPalabraProhibidaDeberiaLanzarMensajeInvalido() {
+    assertThrows(MensajeInvalido.class, () -> servicio.enviar(1L, 1L, "sos un idiota"));
+  }
 }

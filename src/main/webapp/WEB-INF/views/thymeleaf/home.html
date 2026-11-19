@@ -19,7 +19,12 @@
   <link rel="stylesheet" th:href="@{/css/home.css}" />
   <link rel="stylesheet" th:href="@{/css/vacantes.css}" />
   <link rel="stylesheet" th:href="@{/css/resenas.css}" />
+<<<<<<< HEAD
   <link rel="stylesheet" th:href="@{/css/ia.css}" />
+=======
+  <link rel="stylesheet" th:href="@{/css/home-empleador.css}" />
+
+>>>>>>> 37d68d7c20f3e39f2503a048063f21946f6efdbc
 </head>
 <div th:replace="~{fragments/popup-cursos :: popupCursos}"></div>
 <body>
@@ -189,6 +194,88 @@
       </div>
     </section>
 
+    <section class="employer-dashboard-section" aria-label="Métricas de tu búsqueda">
+      <!-- TODO: reemplazar por datos reales -->
+      <div class="employer-home-container">
+        <div class="employer-metrics-grid">
+          <article class="employer-metric-card">
+            <h2>Postulaciones enviadas</h2>
+            <strong><span data-count="34" data-count-suffix="+">34+</span></strong>
+            <p>Seguí sumando oportunidades</p>
+          </article>
+          <article class="employer-metric-card">
+            <h2>En revisión</h2>
+            <strong><span data-count="12" data-count-suffix="+">12+</span></strong>
+            <p>Empresas mirando tu perfil</p>
+          </article>
+          <article class="employer-metric-card">
+            <h2>Entrevistas agendadas</h2>
+            <strong><span data-count="5" data-count-suffix="+">5+</span></strong>
+            <p>La próxima: jueves 16:00</p>
+          </article>
+          <article class="employer-metric-card">
+            <h2>Perfil completo</h2>
+            <strong><span data-count="85">85</span>%</strong>
+            <div class="applicant-profile-progress" role="progressbar"
+              aria-label="Perfil completo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85">
+              <span style="width: 85%"></span>
+            </div>
+            <p>Te faltan 2 pasos para el 100%</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="applicant-recommendations-section" aria-labelledby="recommended-offers-title">
+      <div class="employer-home-container">
+        <h2 id="recommended-offers-title">Ofertas recomendadas para vos</h2>
+        <div class="applicant-recommendations-grid">
+          <article class="applicant-recommendation-card">
+            <span class="applicant-compatibility-badge">96% de compatibilidad</span>
+            <h3>Desarrollador/a Frontend Jr.</h3>
+            <p class="applicant-recommendation-company">NovaTech</p>
+            <div class="applicant-recommendation-skills" aria-label="Habilidades">
+              <span>React</span><span>HTML</span><span>Git</span>
+            </div>
+            <a class="btn primary-action" href="#">Ver oferta</a>
+          </article>
+          <article class="applicant-recommendation-card">
+            <span class="applicant-compatibility-badge">91% de compatibilidad</span>
+            <h3>Analista de Datos Jr.</h3>
+            <p class="applicant-recommendation-company">DataSur</p>
+            <div class="applicant-recommendation-skills" aria-label="Habilidades">
+              <span>Python</span><span>SQL</span><span>Excel</span>
+            </div>
+            <a class="btn primary-action" href="#">Ver oferta</a>
+          </article>
+          <article class="applicant-recommendation-card">
+            <span class="applicant-compatibility-badge">87% de compatibilidad</span>
+            <h3>Desarrollador/a Java Trainee</h3>
+            <p class="applicant-recommendation-company">Bitwave</p>
+            <div class="applicant-recommendation-skills" aria-label="Habilidades">
+              <span>Java</span><span>Spring Boot</span><span>Git</span>
+            </div>
+            <a class="btn primary-action" href="#">Ver oferta</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="applicant-secondary-metrics-section" aria-label="Más métricas">
+      <div class="employer-home-container">
+        <div class="employer-metrics-grid applicant-secondary-metrics">
+          <article class="employer-metric-card">
+            <h2>Empresas que vieron tu perfil esta semana</h2>
+            <strong><span data-count="23" data-count-suffix="+">23+</span></strong>
+          </article>
+          <article class="employer-metric-card">
+            <h2>Ofertas nuevas que coinciden con tus skills</h2>
+            <strong><span data-count="41" data-count-suffix="+">41+</span></strong>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section id="como-funciona" class="cv-section">
       <div class="container cv-grid">
         <div class="section-heading">
@@ -254,7 +341,8 @@
               </p>
               <div class="offer-meta"><span><i class="bi bi-geo-alt" aria-hidden="true"></i> <span th:text="${oferta.ubicacion}">Ubicación</span></span><span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${oferta.modalidad}">Modalidad</span></span></div>
             </div>
-            <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+            <a th:href="@{/vacantes/detalle(fuente='LOCAL', id=${oferta.id})}" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
+              <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
             <button type="button" class="apply-button home-offer-redirect" th:attr="data-oferta-id=${oferta.id}">Postularme</button>
           </article>
           <article class="offer-card"><div class="company-logo logo-blue">N</div><div class="offer-info"><h3>Product Designer</h3><p>Estudio Norte</p><div class="offer-meta"><span><i class="bi bi-geo-alt"></i> Remoto</span><span><i class="bi bi-clock"></i> Full time</span></div></div><a href="#" class="offer-link" aria-label="Ver oferta de Product Designer"><i class="bi bi-arrow-up-right"></i></a><button type="button" class="apply-button home-offer-redirect">Postularme</button></article>
@@ -290,7 +378,7 @@
                 <span th:if="${oferta.salario != null}"><i class="bi bi-cash" aria-hidden="true"></i> <span th:text="${oferta.moneda ?: 'Moneda no especificada'}">ARS</span> <span th:text="${#numbers.formatInteger(oferta.salario, 1, 'POINT')}">950.000</span></span>
               </div>
             </div>
-            <a href="#" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
+            <a th:href="@{/vacantes/detalle(fuente='LOCAL', id=${oferta.id})}" class="offer-link" th:attr="aria-label=${'Ver oferta de ' + oferta.titulo}">
               <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
             </a>
             <button type="button" class="apply-button home-offer-redirect" th:attr="data-oferta-id=${oferta.id}">Postularme</button>
@@ -310,7 +398,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
     crossorigin="anonymous"></script>
+<<<<<<< HEAD
   <div th:replace="~{fragments/popup-cursos :: popupCursos}"></div>
+=======
+  <script th:src="@{/js/metricas-home.js}"></script>
+>>>>>>> 37d68d7c20f3e39f2503a048063f21946f6efdbc
 </body>
 
 </html>

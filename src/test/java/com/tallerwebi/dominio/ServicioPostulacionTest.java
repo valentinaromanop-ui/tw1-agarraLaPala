@@ -3,6 +3,7 @@ package com.tallerwebi.dominio;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -397,6 +398,64 @@ public class ServicioPostulacionTest {
 
     assertEquals("image/png", resultado.getContentType());
     assertArrayEquals(new byte[] { 4, 5 }, resultado.getContenido());
+  }
+
+  @Test
+  public void deberiaMostrarSoloElTotalConMenosDeCincoPostulantesDistintos() {
+    Postulacion primera = buildPostulacion(1L, "Docker");
+    Postulacion anterior = buildPostulacion(1L, "Docker");
+    when(postulaciones.buscarPorVacante(10L))
+      .thenReturn(List.of(primera, anterior, buildPostulacion(2L)));
+
+    MetricasPostulacion metricas = servicio.obtenerMetricasPorOferta(10L);
+    assertEquals(2, metricas.getTotal());
+    assertTrue(metricas.getHabilidades().isEmpty());
+    verifyNoInteractions(vacantes);
+  }
+
+  @Test
+  public void deberiaCalcularPorcentajesDeHastaTresHabilidadesRequeridas() {
+    Vacante local = new Vacante();
+    for (String nombre : List.of("Python", "Java", "Docker", "Git")) {
+      Skill skill = new Skill();
+      skill.setNombre(nombre);
+      VacanteSkill requerida = new VacanteSkill();
+      requerida.setSkill(skill);
+      local.getVacanteSkills().add(requerida);
+    }
+    when(vacantes.obtenerPorId(10L)).thenReturn(local);
+    when(postulaciones.buscarPorVacante(10L))
+      .thenReturn(
+        List.of(
+          buildPostulacion(1L, "docker", " Docker ", "Java"),
+          buildPostulacion(2L, "DOCKER"),
+          buildPostulacion(3L, "Docker"),
+          buildPostulacion(4L, "Python"),
+          buildPostulacion(5L)
+        )
+      );
+
+    MetricasPostulacion metricas = servicio.obtenerMetricasPorOferta(10L);
+    List<PorcentajeHabilidad> habilidades = metricas.getHabilidades();
+
+    assertEquals(5, metricas.getTotal());
+    assertEquals(
+      List.of("Docker", "Git", "Java"),
+      habilidades.stream().map(PorcentajeHabilidad::getNombre).toList()
+    );
+    assertEquals(
+      List.of(60, 0, 20),
+      habilidades.stream().map(PorcentajeHabilidad::getPorcentaje).toList()
+    );
+  }
+
+  private Postulacion buildPostulacion(Long usuarioId, String... habilidades) {
+    Usuario usuario = new Usuario();
+    usuario.setId(usuarioId);
+    usuario.setHabilidades(List.of(habilidades));
+    Postulacion postulacion = new Postulacion();
+    postulacion.setUsuario(usuario);
+    return postulacion;
   }
 
   private Vacante ofertaDeEmpleador(Long id, Long empleadorId) {

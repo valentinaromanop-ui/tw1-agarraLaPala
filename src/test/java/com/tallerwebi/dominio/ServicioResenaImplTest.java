@@ -104,6 +104,14 @@ class ServicioResenaImplTest {
   }
 
   @Test
+  public void crearConPalabraProhibidaDeberiaFallar() {
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> servicio.crear(1L, 2L, 5, "empresa de mierda")
+    );
+  }
+
+  @Test
   void soloElAutorPuedeEditarOBorrarSuResena() {
     Resena propia = resena(1L, 3);
     propia.setId(10L);

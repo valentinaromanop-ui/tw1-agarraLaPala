@@ -52,6 +52,85 @@
       </div>
     </section>
 
+    <section class="employer-dashboard-section" aria-label="Métricas de actividad">
+      <!-- TODO: reemplazar por datos reales -->
+      <div class="employer-home-container">
+        <div class="employer-metrics-grid">
+          <article class="employer-metric-card">
+            <h2>Ofertas activas</h2>
+            <strong><span data-count="18" data-count-suffix="+">18+</span></strong>
+            <p>5 vencen esta semana</p>
+          </article>
+          <article class="employer-metric-card">
+            <h2>Postulaciones sin revisar</h2>
+            <strong><span data-count="87" data-count-suffix="+">87+</span></strong>
+            <p>+23 desde ayer</p>
+          </article>
+          <article class="employer-metric-card">
+            <h2>Entrevistas próximas</h2>
+            <strong><span data-count="12" data-count-suffix="+">12+</span></strong>
+            <p>La próxima: hoy 16:30</p>
+          </article>
+          <article class="employer-metric-card">
+            <h2>Compatibilidad promedio</h2>
+            <strong><span data-count="84">84</span>%</strong>
+            <p>Candidatos de alto nivel</p>
+          </article>
+        </div>
+
+        <section class="employer-metric-chart-card" aria-labelledby="applications-chart-title">
+          <h2 id="applications-chart-title">Postulaciones por día (últimos 7 días)</h2>
+          <div class="employer-metric-chart-bars" role="img"
+            aria-label="Postulaciones por día: lunes 24, martes 41, miércoles 33, jueves 58, viernes 47, sábado 72, domingo 95">
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">24</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 25.3%"></div></div>
+              <span class="employer-metric-bar-day">Lun</span>
+            </div>
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">41</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 43.2%"></div></div>
+              <span class="employer-metric-bar-day">Mar</span>
+            </div>
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">33</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 34.7%"></div></div>
+              <span class="employer-metric-bar-day">Mié</span>
+            </div>
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">58</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 61.1%"></div></div>
+              <span class="employer-metric-bar-day">Jue</span>
+            </div>
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">47</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 49.5%"></div></div>
+              <span class="employer-metric-bar-day">Vie</span>
+            </div>
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">72</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 75.8%"></div></div>
+              <span class="employer-metric-bar-day">Sáb</span>
+            </div>
+            <div class="employer-metric-bar-column">
+              <span class="employer-metric-bar-value">95</span>
+              <div class="employer-metric-bar-track"><div class="employer-metric-bar-fill" style="height: 100%"></div></div>
+              <span class="employer-metric-bar-day">Dom</span>
+            </div>
+          </div>
+        </section>
+
+        <article th:if="${premiumHasta != null}" class="employer-premium-metrics-card">
+          <h2>Métricas Premium</h2>
+          <div class="employer-premium-metrics-grid">
+            <p>Candidatos sugeridos disponibles: <strong><span data-count="126" data-count-suffix="+">126+</span></strong></p>
+            <p>Invitaciones enviadas: <strong><span data-count="64" data-count-suffix="+">64+</span></strong>
+              (<span data-count="41">41</span> respondidas)</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section id="como-funciona" class="cv-section employer-how-section" aria-labelledby="how-title">
       <div class="container cv-grid employer-home-container">
         <div class="section-heading">
@@ -222,5 +301,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
     crossorigin="anonymous"></script>
+  <script th:src="@{/js/metricas-home.js}"></script>
 </body>
 </html>

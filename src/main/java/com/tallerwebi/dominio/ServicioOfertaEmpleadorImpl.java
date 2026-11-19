@@ -28,6 +28,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   private final RepositorioPostulacion repositorioPostulacion;
   private final ServicioPerfil servicioPerfil;
   private final ServicioPago servicioPago;
+  private final ServicioReporte servicioReporte;
   private final ServicioNotificacionOferta servicioNotificacionOferta;
   private final ApplicationEventPublisher eventos;
   private final String urlBase;
@@ -40,6 +41,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     ServicioPerfil servicioPerfil,
     ServicioPago servicioPago,
     ServicioNotificacionOferta servicioNotificacionOferta,
+    ServicioReporte servicioReporte,
     ApplicationEventPublisher eventos,
     @Value("${app.url:http://localhost:8080}") String urlBase
   ) {
@@ -49,6 +51,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
     this.servicioPerfil = servicioPerfil;
     this.servicioPago = servicioPago;
     this.servicioNotificacionOferta = servicioNotificacionOferta;
+    this.servicioReporte = servicioReporte;
     this.eventos = eventos;
     this.urlBase = urlBase;
   }
@@ -66,6 +69,17 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   public void publicar(Vacante vacante) {
     validarLimiteOfertas(vacante);
     repositorioVacante.guardar(vacante);
+    if (FiltroPalabras.contiene(vacante.getTitulo(), vacante.getDescripcion())) {
+      vacante.setActiva(false);
+      servicioReporte.registrarAutomatico(
+        TipoReporte.OFERTA,
+        vacante.getId(),
+        vacante.getEmpleadorId(),
+        "Lenguaje inapropiado",
+        "Detectado automáticamente"
+      );
+      return;
+    }
     if (FUENTE_LOCAL.equals(vacante.getFuente())) {
       notificarCandidatosPremium(vacante);
       avisarPostulantes(vacante);
@@ -208,6 +222,7 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
       throw new OfertaCerradaException();
     }
     vacante.setEstado(EstadoVacante.CERRADA);
+    notificarCierre(vacante);
   }
 
   @Override
@@ -251,5 +266,25 @@ public class ServicioOfertaEmpleadorImpl implements ServicioOfertaEmpleador {
   @Override
   public long obtenerPostulaciones(Long vacanteId) {
     return repositorioPostulacion.contarPorVacante(vacanteId);
+  }
+
+  private void notificarCierre(Vacante vacante) {
+    String mensaje =
+      "El empleador/reclutador cerró la vacante «" +
+      vacante.getTitulo() +
+      "» a la que te postulaste.";
+    List<Postulacion> postulaciones = repositorioPostulacion.buscarPorVacante(vacante.getId());
+    Set<Long> omitidos = new HashSet<>();
+    for (Postulacion postulacion : postulaciones) {
+      if (postulacion.getEstado() == EstadoPostulacion.ACEPTADA) {
+        omitidos.add(postulacion.getUsuario().getId());
+      }
+    }
+    for (Postulacion postulacion : postulaciones) {
+      Usuario postulante = postulacion.getUsuario();
+      if (omitidos.add(postulante.getId())) {
+        servicioNotificacionOferta.notificar(postulante, mensaje, "/postulaciones");
+      }
+    }
   }
 }

@@ -30,6 +30,7 @@ public class PerfilPostulanteDTO {
   private final String tituloOferta;
   private final LocalDateTime fechaPostulacion;
   private final EstadoPostulacion estado;
+  private Long usuarioId;
 
   public PerfilPostulanteDTO(
     String nombreCompleto,
@@ -96,6 +97,14 @@ public class PerfilPostulanteDTO {
     this.tituloOferta = tituloOferta;
     this.fechaPostulacion = fechaPostulacion;
     this.estado = estado;
+  }
+
+  public Long getUsuarioId() {
+    return usuarioId;
+  }
+
+  public void setUsuarioId(Long usuarioId) {
+    this.usuarioId = usuarioId;
   }
 
   public String getNombreCompleto() {

@@ -36,10 +36,16 @@
             form="filtros-vacantes" th:checked="${usarCv}" th:disabled="${!tieneCv}">
           Usar mi CV para filtrar ofertas
         </label>
+        <label for="filtro-tipo-cv-recomendadas" th:if="${tieneCv}">CV a usar
+          <select id="filtro-tipo-cv-recomendadas" name="tipoCv" form="filtros-vacantes">
+            <option value="ATS" th:disabled="${!tieneCvAts}" th:selected="${tipoCv == 'ATS'}">CV ATS</option>
+            <option value="ORIGINAL" th:disabled="${!tieneCvOriginal}" th:selected="${tipoCv == 'ORIGINAL'}">CV original</option>
+          </select>
+        </label>
         <p th:if="${!tieneCv}" class="pending-filter-note">
           Subí o seleccioná un CV desde tu perfil para activar este filtro.
         </p>
-        <div th:if="${tieneCv and usarCv}" class="cv-details">
+        <div th:if="${tieneCv == true and usarCv == true}" class="cv-details">
           <p>CV en uso: <strong th:text="${cvTipo}">ATS</strong>
             <span th:if="${cvNombre != null}" th:text="' - ' + ${cvNombre}"></span>
           </p>
@@ -152,7 +158,7 @@
                th:text="|${vacante.porcentajeMatch}% match|">
               80% match
             </p>
-                      <span class="badge bg-success" th:if="${usarCv and vacante.porcentajeCoincidenciaCv != null}"
+                      <span class="badge bg-success" th:if="${usarCv == true and vacante.porcentajeCoincidenciaCv != null}"
             th:text="${vacante.porcentajeCoincidenciaCv} + '% de coincidencia con tu CV'"></span>
           <p class="publication-date">
             Publicación (UTC):
