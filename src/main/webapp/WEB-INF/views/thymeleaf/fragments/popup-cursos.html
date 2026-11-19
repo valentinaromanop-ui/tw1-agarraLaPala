@@ -12,7 +12,7 @@
     </aside>
     <script th:inline="javascript">
         (function () {
-          var clave = 'popupCursosVisto';
+          var clave = 'popupCursosVisto:v2';
           var unDia = 24 * 60 * 60 * 1000;
           var popup = document.getElementById('popup-cursos');
           try {
@@ -22,23 +22,28 @@
           document.getElementById('popup-cursos-cerrar').addEventListener('click', function () {
             popup.hidden = true;
           });
+          var lista = document.getElementById('popup-cursos-top');
+          var mostrar = function () {
+            setTimeout(function () {
+              popup.hidden = false;
+              try { localStorage.setItem(clave, String(Date.now())); } catch (e) { /* sin storage */ }
+            }, 1500);
+          };
+
           fetch(/*[[@{/habilidades/top/datos}]]*/ '/habilidades/top/datos', { headers: { Accept: 'application/json' } })
             .then(function (respuesta) { return respuesta.ok ? respuesta.json() : []; })
             .then(function (top) {
-              if (!top.length) { return; }
-              var lista = document.getElementById('popup-cursos-top');
-              top.forEach(function (habilidad) {
-                var item = document.createElement('li');
-                item.textContent = habilidad.nombre + ' · ' + habilidad.cantidad
-                  + (habilidad.cantidad === 1 ? ' oferta' : ' ofertas');
-                lista.appendChild(item);
-              });
-              setTimeout(function () {
-                popup.hidden = false;
-                try { localStorage.setItem(clave, String(Date.now())); } catch (e) { /* sin storage */ }
-              }, 1500);
+              if (top.length) {
+                top.forEach(function (habilidad) {
+                  var item = document.createElement('li');
+                  item.textContent = habilidad.nombre + ' · ' + habilidad.cantidad
+                    + (habilidad.cantidad === 1 ? ' oferta' : ' ofertas');
+                  lista.appendChild(item);
+                });
+              }
+              mostrar();
             })
-            .catch(function () { /* si falla, no se muestra */ });
+            .catch(function () { mostrar(); });
         })();
     </script>
 </div>
