@@ -12,6 +12,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import org.springframework.stereotype.Service;
 
+/** Implementación del servicio de IA usando la API de Gemini. */
 @Service
 public class ServicioGeminiImpl implements ServicioIA {
 
@@ -23,6 +24,7 @@ public class ServicioGeminiImpl implements ServicioIA {
   private final ObjectMapper mapper = new ObjectMapper();
 
   private static final int HTTP_OK = 200;
+  private static final int HTTP_SERVICE_UNAVAILABLE = 503;
 
   @Override
   public String generarCvAts(String textoCv, String habilidadesUsuario) {
@@ -50,7 +52,7 @@ public class ServicioGeminiImpl implements ServicioIA {
   }
 
   private String enviar(String cuerpo) {
-    String modelo = System.getenv().getOrDefault("GEMINI_MODEL", "gemini-3.5-flash");
+    String modelo = System.getenv().getOrDefault("GEMINI_MODEL", "gemini-3.5-flash-lite");
     HttpRequest request = HttpRequest
       .newBuilder()
       .uri(URI.create(URL_BASE + modelo + ":generateContent"))
@@ -61,8 +63,14 @@ public class ServicioGeminiImpl implements ServicioIA {
       .build();
     try {
       HttpResponse<String> respuesta = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (respuesta.statusCode() == HTTP_SERVICE_UNAVAILABLE) {
+        Thread.sleep(2000L);
+        respuesta = client.send(request, HttpResponse.BodyHandlers.ofString());
+      }
       if (respuesta.statusCode() != HTTP_OK) {
-        throw new IllegalStateException("La IA respondió con estado " + respuesta.statusCode());
+        throw new IllegalStateException(
+          "La IA respondió con estado " + respuesta.statusCode() + ": " + respuesta.body()
+        );
       }
       return respuesta.body();
     } catch (IOException e) {
