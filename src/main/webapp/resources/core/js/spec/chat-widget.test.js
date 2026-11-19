@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 
 const widgetMarkup = `
-  <div id="chat-widget" data-api-base="/api/chat">
+  <div id="chat-widget" data-api-base="/api/chat" data-user-id="7">
     <button id="chat-widget-toggle"></button><span id="chat-widget-badge" hidden></span>
     <section id="chat-widget-panel" hidden>
       <button id="chat-widget-close"></button><h2 id="chat-widget-title"></h2>
@@ -17,6 +17,9 @@ describe("Chat Widget", function() {
   let createChatWidget;
   let dom;
   let calls;
+  let messages;
+  let subscriptions;
+  let publications;
 
   beforeAll(async function() {
     dom = new JSDOM("<!doctype html><body></body>", { url: "http://localhost" });
@@ -28,6 +31,34 @@ describe("Chat Widget", function() {
   beforeEach(function() {
     document.body.innerHTML = widgetMarkup;
     calls = [];
+    messages = [{ emisorId: 8, texto: "Hola", fecha: "2026-01-01T10:00:00" }];
+    subscriptions = [];
+    publications = [];
+    window.StompJs = {
+      Client: class {
+        constructor() {
+          this.connected = false;
+        }
+        activate() {
+          this.connected = true;
+          this.onConnect();
+        }
+        subscribe(destination, callback) {
+          subscriptions.push(callback);
+          return { unsubscribe() {} };
+        }
+        publish(publication) {
+          publications.push(publication);
+          const message = JSON.parse(publication.body);
+          subscriptions.forEach(callback => callback({ body: JSON.stringify({
+            id: 2, emisorId: 7, texto: message.texto, fecha: "2026-01-01T10:01:00"
+          }) }));
+        }
+        deactivate() {
+          this.connected = false;
+        }
+      }
+    };
   });
 
   function fakeFetch(url, options = {}) {
@@ -39,9 +70,11 @@ describe("Chat Widget", function() {
       });
     }
     if (url.includes("/mensajes") && options.method === "POST") {
-      return Promise.resolve({ ok: true, json: async () => ({ emisorId: 7, texto: "Nuevo", fecha: "2026-01-01T10:01:00" }) });
+      const sent = { emisorId: 7, texto: JSON.parse(options.body).texto, fecha: "2026-01-01T10:01:00" };
+      messages.push(sent);
+      return Promise.resolve({ ok: true, json: async () => sent });
     }
-    return Promise.resolve({ ok: true, json: async () => [{ emisorId: 8, texto: "Hola", fecha: "2026-01-01T10:00:00" }] });
+    return Promise.resolve({ ok: true, json: async () => messages });
   }
 
   it("abre y cierra el panel y muestra el badge", async function() {
@@ -63,10 +96,14 @@ describe("Chat Widget", function() {
     root.querySelector(".chat-widget-conversation").click();
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(root.querySelector("#chat-widget-conversation-view").hidden).toBe(false);
+    expect(root.querySelector("#chat-widget-messages").textContent).toContain("Hola");
+    expect(root.querySelector(".chat-widget-message form button").textContent).toBe("Reportar");
     root.querySelector("#chat-widget-input").value = "Nuevo";
     root.querySelector("#chat-widget-form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(calls.some(call => call.options.method === "POST" && call.url.includes("/mensajes"))).toBe(true);
+    expect(publications[0].destination).toBe("/app/chat/1");
+    expect(root.querySelector("#chat-widget-input").value).toBe("");
+    expect(root.querySelector("#chat-widget-messages").textContent).toContain("Nuevo");
     widget.destroy();
   });
 
