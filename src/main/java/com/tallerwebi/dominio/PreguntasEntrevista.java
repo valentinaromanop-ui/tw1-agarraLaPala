@@ -14,6 +14,8 @@ public final class PreguntasEntrevista {
     }
     return habilidades
       .stream()
+      .filter(habilidad -> habilidad != null && !habilidad.isBlank())
+      .sorted(String.CASE_INSENSITIVE_ORDER)
       .limit(MAXIMO)
       .map(habilidad -> "Explicá qué es " + habilidad + " y contá una situación donde lo usaste.")
       .toList();
