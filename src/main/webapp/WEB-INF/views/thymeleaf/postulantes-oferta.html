@@ -219,13 +219,13 @@
       <div th:if="${!#lists.isEmpty(postulantes)}" class="table-responsive postulantes-responsive">
         <table class="table employer-table postulantes-table align-middle">
           <colgroup>
-            <col style="width: 16%">
-            <col style="width: 19%">
-            <col style="width: 16%">
-            <col style="width: 10%">
+            <col style="width: 15%">
+            <col style="width: 15%">
+            <col style="width: 14%">
+            <col style="width: 9%">
+            <col style="width: 18%">
             <col style="width: 11%">
-            <col style="width: 12%">
-            <col style="width: 23%">
+            <col style="width: 18%">
           </colgroup>
           <thead>
             <tr>
@@ -278,7 +278,7 @@
                   th:text="${postulante.puntajeIa + '/100'}">80/100</strong>
                 <span th:if="${postulante.puntajeIa == null}" class="postulante-secondary">Sin responder</span>
                 <small th:if="${postulante.devolucionIa != null}"
-                  class="d-block mt-1" th:text="${postulante.devolucionIa}">Devolución</small>
+                  class="postulante-ai-feedback" th:text="${postulante.devolucionIa}">Devolución</small>
               </td>
               <td data-label="CV">
                 <div class="postulante-row-actions">
