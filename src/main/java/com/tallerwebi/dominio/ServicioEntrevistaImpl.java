@@ -27,6 +27,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
   private static final LocalTime HORA_FIN = LocalTime.of(18, 0);
   private static final Duration DURACION_TURNO = Duration.ofMinutes(30);
   private static final int DIAS_DISPONIBLES = 14;
+  private static final String RUTA_ENTREVISTAS = "/entrevistas/";
 
   private final ServicioConexionGoogle servicioConexionGoogle;
   private final ClienteGoogleCalendar clienteGoogleCalendar;
@@ -34,6 +35,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
   private final RepositorioEntrevista repositorioEntrevista;
   private final RepositorioUsuario repositorioUsuario;
   private final ServicioPostulantesOferta servicioPostulantesOferta;
+  private final ServicioNotificacionOferta servicioNotificacionOferta;
   private final ApplicationEventPublisher eventos;
   private final String urlBase;
 
@@ -44,6 +46,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     RepositorioEntrevista repositorioEntrevista,
     ServicioPostulantesOferta servicioPostulantesOferta,
     RepositorioUsuario repositorioUsuario,
+    ServicioNotificacionOferta servicioNotificacionOferta,
     ApplicationEventPublisher eventos,
     @Value("${app.url:http://localhost:8080}") String urlBase
   ) {
@@ -53,6 +56,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
       repositorioEntrevista,
       servicioPostulantesOferta,
       repositorioUsuario,
+      servicioNotificacionOferta,
       eventos,
       urlBase,
       Clock.systemUTC()
@@ -65,6 +69,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     RepositorioEntrevista repositorioEntrevista,
     ServicioPostulantesOferta servicioPostulantesOferta,
     RepositorioUsuario repositorioUsuario,
+    ServicioNotificacionOferta servicioNotificacionOferta,
     ApplicationEventPublisher eventos,
     String urlBase,
     Clock reloj
@@ -74,6 +79,7 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     this.repositorioEntrevista = repositorioEntrevista;
     this.servicioPostulantesOferta = servicioPostulantesOferta;
     this.repositorioUsuario = repositorioUsuario;
+    this.servicioNotificacionOferta = servicioNotificacionOferta;
     this.eventos = eventos;
     this.urlBase = urlBase;
     this.reloj = reloj;
@@ -102,13 +108,21 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     );
     entrevista.setEmpleadorId(empleadorId);
     repositorioEntrevista.guardar(entrevista);
+    String enlace = RUTA_ENTREVISTAS + postulacionId;
+    String titulo = postulacion.getTitulo();
+    servicioNotificacionOferta.notificar(
+      postulacion.getUsuario(),
+      titulo == null || titulo.isBlank()
+        ? "Te citaron a una entrevista."
+        : "Te citaron a una entrevista para " + titulo + ".",
+      enlace
+    );
     String mensaje =
       "Te invitaron a una entrevista por tu postulación en Agarra la Pala." +
       "\nIngresá con tu cuenta de postulante para consultar la invitación:" +
       "\n" +
       urlBase +
-      "/entrevistas/" +
-      postulacionId;
+      enlace;
 
     eventos.publishEvent(
       new Correo(List.of(postulacion.getUsuario().getEmail()), "Invitación a entrevista", mensaje)
@@ -181,6 +195,13 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     );
     entrevista.setEmpleadorId(empleadorId);
     entrevista.agendar(horario, evento);
+    servicioNotificacionOferta.notificar(
+      postulacion.getUsuario(),
+      titulo == null || titulo.isBlank()
+        ? "Tu entrevista quedó agendada. Ver horario y acceso a Google Meet."
+        : "Tu entrevista para " + titulo + " quedó agendada. Ver horario y acceso a Google Meet.",
+      RUTA_ENTREVISTAS + postulacionId
+    );
     return entrevista;
   }
 
@@ -239,6 +260,15 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
     IntervaloHorario horario = buscarTurno(inicio, calcularTurnosDisponibles(organizadorId, token));
     clienteGoogleCalendar.modificarHorario(token, entrevista.getGoogleEventId(), horario);
     entrevista.cambiarHorario(horario);
+    Postulacion postulacion = entrevista.getPostulacion();
+    String titulo = postulacion.getTitulo();
+    servicioNotificacionOferta.notificar(
+      postulacion.getUsuario(),
+      titulo == null || titulo.isBlank()
+        ? "Tu entrevista fue reprogramada. Consultá la nueva fecha y hora."
+        : "Tu entrevista para " + titulo + " fue reprogramada. Consultá la nueva fecha y hora.",
+      RUTA_ENTREVISTAS + postulacionId
+    );
   }
 
   @Override
@@ -257,6 +287,15 @@ public class ServicioEntrevistaImpl implements ServicioEntrevista {
       entrevista.getGoogleEventId()
     );
     entrevista.cancelar();
+    Postulacion postulacion = entrevista.getPostulacion();
+    String titulo = postulacion.getTitulo();
+    servicioNotificacionOferta.notificar(
+      postulacion.getUsuario(),
+      titulo == null || titulo.isBlank()
+        ? "El empleador canceló tu entrevista."
+        : "El empleador canceló tu entrevista para " + titulo + ".",
+      RUTA_ENTREVISTAS + postulacionId
+    );
   }
 
   private void validarAgendada(Entrevista entrevista) {
