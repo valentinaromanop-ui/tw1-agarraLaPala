@@ -76,7 +76,9 @@ class ControladorPostulantesOfertaTest {
       50,
       List.of("Java"),
       1,
-      session
+      session,
+      null,
+      false
     );
     var porPorcentaje = controlador.mostrarPostulantesConFiltros(
       10L,
@@ -88,7 +90,9 @@ class ControladorPostulantesOfertaTest {
       75,
       null,
       1,
-      session
+      session,
+      null,
+      false
     );
     var combinados = controlador.mostrarPostulantesConFiltros(
       10L,
@@ -100,7 +104,9 @@ class ControladorPostulantesOfertaTest {
       75,
       List.of("Java"),
       1,
-      session
+      session,
+      null,
+      false
     );
 
     assertEquals(

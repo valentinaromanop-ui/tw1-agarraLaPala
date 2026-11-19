@@ -1,0 +1,190 @@
+/* Contenedor: el padding-top deja lugar a la navbar fija, igual que .search-results-page */
+.ia-contenedor { width: min(calc(100% - 2rem), 52rem); margin: 0 auto; padding: 8.5rem 0 4rem; }
+.ia-contenedor.ia-ancho { width: min(calc(100% - 2rem), 68.75rem); }
+
+.ia-encabezado { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+.ia-icono {
+  display: grid; width: 3.2rem; height: 3.2rem; flex: 0 0 3.2rem; place-items: center;
+  border-radius: 0.6rem; font-size: 1.4rem; color: var(--highlight);
+  background-color: var(--accent); box-shadow: 0 8px 24px rgb(40 45 199 / 28%);
+}
+.ia-encabezado h1 {
+  margin: 0 0 0.25rem; color: var(--highlight); font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 600; letter-spacing: -0.04em; line-height: 1.1;
+}
+.ia-encabezado p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+.ia-tarjeta {
+  padding: 1.25rem 1.4rem; border: 1px solid var(--border); border-radius: 0.45rem;
+  background-color: var(--surface); transition: border-color 180ms ease;
+}
+.ia-tarjeta:hover { border-color: #686ce3; }
+.ia-tarjeta + .ia-tarjeta { margin-top: 0.8rem; }
+
+/* Cuestionario */
+.ia-aviso {
+  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; padding: 0.75rem 1rem;
+  border: 1px solid var(--accent); border-radius: 0.35rem; color: var(--text);
+  background-color: rgb(40 45 199 / 14%); font-size: 0.82rem;
+}
+.ia-aviso i { color: #686ce3; }
+.ia-pregunta { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.8rem; }
+.ia-numero {
+  display: grid; width: 1.8rem; height: 1.8rem; flex: 0 0 1.8rem; place-items: center;
+  border-radius: 50%; color: var(--text); background-color: var(--accent);
+  font-size: 0.78rem; font-weight: 700;
+}
+.ia-pregunta label { margin: 0; color: var(--highlight); font-weight: 600; line-height: 1.4; }
+.ia-campo {
+  width: 100%; min-height: 6rem; padding: 0.65rem 0.75rem; border: 1px solid var(--border);
+  border-radius: 0.3rem; color: var(--text); background-color: #151925; resize: vertical; font-size: 0.9rem;
+}
+.ia-campo::placeholder { color: var(--muted); }
+.ia-campo:focus { border-color: var(--nav-accent); outline: 2px solid rgb(118 186 255 / 25%); }
+.ia-ayuda { display: block; margin-top: 0.35rem; color: var(--muted); font-size: 0.72rem; text-align: right; }
+.ia-acciones { display: flex; justify-content: flex-end; margin-top: 1.2rem; }
+.ia-acciones button:disabled { opacity: 0.7; cursor: wait; }
+
+/* Ranking */
+.ia-ranking { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.ia-fila { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) auto; align-items: center; gap: 1rem; }
+.ia-posicion {
+  display: grid; width: 2.6rem; height: 2.6rem; place-items: center; border: 1px solid var(--border);
+  border-radius: 50%; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+}
+.ia-posicion.oro { border-color: #e0a82e; color: #f5c451; background-color: rgb(224 168 46 / 12%); }
+.ia-posicion.plata { border-color: #9aa3b5; color: #c9d0de; background-color: rgb(154 163 181 / 12%); }
+.ia-posicion.bronce { border-color: #c07a45; color: #e29a66; background-color: rgb(192 122 69 / 12%); }
+.ia-nombre { color: var(--highlight); font-weight: 600; }
+.ia-barra { height: 0.45rem; margin-top: 0.45rem; overflow: hidden; border-radius: 999px; background-color: var(--surface-light); }
+.ia-barra > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #686ce3); }
+.ia-cantidad {
+  padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 999px;
+  color: var(--muted); font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+}
+
+/* Cursos premium */
+.ia-premium {
+  display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.5rem; padding: 0.2rem 0.65rem;
+  border-radius: 999px; color: #1a1200; background: linear-gradient(135deg, #f5c451, #e0a82e);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0; vertical-align: middle;
+}
+.ia-seccion-titulo { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem; color: var(--highlight); font-size: 1.1rem; font-weight: 600; }
+.ia-seccion-titulo i { color: #686ce3; }
+.ia-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
+.ia-video {
+  overflow: hidden; border: 1px solid var(--border); border-radius: 0.45rem; background-color: #151925;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+.ia-video:hover { border-color: #686ce3; transform: translateY(-3px); }
+.ia-video p { margin: 0; padding: 0.7rem 0.85rem; color: var(--text); font-size: 0.82rem; font-weight: 600; }
+.ia-vacio { margin: 0; padding: 1.2rem 0; color: var(--muted); text-align: center; font-size: 0.85rem; }
+
+@media (max-width: 576px) {
+  .ia-fila { grid-template-columns: 2.2rem minmax(0, 1fr); }
+  .ia-posicion { width: 2.2rem; height: 2.2rem; }
+  .ia-cantidad { grid-column: 2; justify-self: start; }
+}
+/* Publicidad premium */
+.ia-promo {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: 2rem;
+  margin-bottom: 2rem; padding: 2rem; border: 1px solid #686ce3; border-radius: 0.55rem;
+  background: radial-gradient(circle at 85% 20%, rgb(40 45 199 / 35%), transparent 45%), var(--surface);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 25%);
+}
+.ia-promo h1 { margin: 0.8rem 0; color: var(--highlight); font-size: clamp(1.7rem, 3.5vw, 2.5rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1.05; }
+.ia-promo p { color: var(--muted); line-height: 1.6; }
+.ia-promo p strong { color: var(--highlight); }
+.ia-promo-lista { display: grid; gap: 0.5rem; margin: 1.2rem 0 1.6rem; padding: 0; list-style: none; color: var(--text); font-size: 0.88rem; }
+.ia-promo-lista i { margin-right: 0.5rem; color: #686ce3; }
+.ia-promo-visual {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 2rem 1rem; text-align: center;
+  border: 1px dashed #e0a82e; border-radius: 0.45rem; background-color: rgb(224 168 46 / 8%); transform: rotate(2deg);
+}
+.ia-promo-visual i { color: #f5c451; font-size: 3rem; }
+.ia-promo-visual strong { color: var(--highlight); font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; }
+.ia-promo-visual span { color: var(--muted); font-size: 0.75rem; }
+
+.ia-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1.2rem; }
+.ia-chips-titulo { color: var(--muted); font-size: 0.8rem; }
+.ia-chip { padding: 0.25rem 0.7rem; border: 1px solid var(--border); border-radius: 999px; color: var(--text); font-size: 0.75rem; font-weight: 600; }
+
+/* Catálogo */
+.ia-cursos { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
+.ia-curso {
+  display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 0.45rem;
+  color: inherit; background-color: var(--surface); text-decoration: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.ia-curso:hover { border-color: #686ce3; box-shadow: 0 10px 26px rgb(0 0 0 / 24%); transform: translateY(-3px); color: inherit; }
+.ia-curso-miniatura {
+  position: relative; display: grid; height: 9.5rem; place-items: center; overflow: hidden;
+  background: linear-gradient(135deg, #242896, #454ad4);
+}
+.ia-curso-miniatura img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ia-curso-skill { position: relative; color: var(--highlight); font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; text-shadow: 0 2px 12px rgb(0 0 0 / 45%); }
+.ia-curso-skill-inline { display: inline-block; margin-bottom: 0.6rem; font-size: 0.8rem; padding: 0.2rem 0.7rem; border-radius: 999px; background-color: var(--accent); text-shadow: none; }
+.ia-curso-hot { position: absolute; top: 0.6rem; left: 0.6rem; padding: 0.2rem 0.55rem; border-radius: 999px; color: #1a1200; background-color: #f5c451; font-size: 0.65rem; font-weight: 700; }
+.ia-curso-estado { position: absolute; right: 0.6rem; bottom: 0.6rem; display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; color: var(--highlight); background-color: rgb(0 0 0 / 55%); }
+.ia-curso-cuerpo { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; }
+.ia-curso-cuerpo h2 { margin: 0; color: var(--highlight); font-size: 1rem; font-weight: 600; line-height: 1.3; }
+.ia-curso-instructor { margin: 0; color: var(--muted); font-size: 0.78rem; }
+.ia-curso-meta { display: flex; flex-wrap: wrap; gap: 0.8rem; color: var(--muted); font-size: 0.72rem; }
+.ia-curso-meta i { margin-right: 0.2rem; color: var(--accent); }
+
+/* Detalle del curso */
+.ia-volver { display: inline-block; margin-bottom: 1rem; color: var(--muted); font-size: 0.82rem; text-decoration: none; }
+.ia-volver:hover { color: var(--text); }
+.ia-curso-encabezado { margin-bottom: 1.5rem; }
+.ia-curso-encabezado h1 { margin: 0 0 0.6rem; color: var(--highlight); font-size: clamp(1.7rem, 3.5vw, 2.4rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1.1; }
+.ia-curso-encabezado p { max-width: 42rem; color: var(--muted); line-height: 1.6; }
+.ia-detalle { display: grid; grid-template-columns: minmax(0, 1fr) 19rem; align-items: start; gap: 1.5rem; }
+.ia-reproductor { overflow: hidden; border: 1px solid var(--border); border-radius: 0.45rem; background-color: #000; }
+.ia-bloqueado {
+  display: flex; min-height: 16rem; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; text-align: center;
+  background: radial-gradient(circle at 50% 0%, rgb(40 45 199 / 30%), transparent 60%), var(--surface);
+}
+.ia-bloqueado i { color: #f5c451; font-size: 2.4rem; }
+.ia-bloqueado h2 { margin: 0; color: var(--highlight); font-size: 1.3rem; }
+.ia-bloqueado p { max-width: 24rem; margin-bottom: 0.8rem; color: var(--muted); font-size: 0.85rem; }
+.ia-aprenderas { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; color: var(--text); font-size: 0.88rem; }
+.ia-aprenderas i { margin-right: 0.4rem; color: #70d18a; }
+.ia-temario { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.ia-leccion { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0.8rem; border: 1px solid var(--border); border-radius: 0.35rem; color: var(--text); font-size: 0.85rem; text-decoration: none; }
+.ia-leccion:hover { border-color: #686ce3; color: var(--text); }
+.ia-leccion.activa { border-color: var(--accent); background-color: rgb(40 45 199 / 16%); }
+.ia-leccion.bloqueada { color: var(--muted); cursor: default; pointer-events: none; }
+.ia-leccion-titulo { flex: 1; }
+.ia-leccion-duracion { color: var(--muted); font-size: 0.72rem; }
+.ia-lateral { position: sticky; top: 6rem; }
+.ia-lateral-icono { color: #f5c451; font-size: 2rem; }
+
+/* Pop-up */
+.ia-popup {
+  position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 1100; width: min(22rem, calc(100vw - 2.5rem));
+  padding: 1.25rem; border: 1px solid #686ce3; border-radius: 0.55rem; color: var(--text);
+  background: radial-gradient(circle at 90% 0%, rgb(40 45 199 / 30%), transparent 50%), var(--surface);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 40%); animation: ia-entrada 300ms ease;
+}
+.ia-popup[hidden] { display: none; }
+.ia-popup h2 { margin: 0.7rem 0; color: var(--highlight); font-size: 1.05rem; font-weight: 600; }
+.ia-popup p { color: var(--muted); font-size: 0.8rem; }
+.ia-popup-top { display: grid; gap: 0.35rem; margin: 0 0 0.8rem; padding-left: 1.2rem; color: var(--text); font-size: 0.85rem; }
+.ia-popup-cerrar { position: absolute; top: 0.6rem; right: 0.6rem; border: 0; color: var(--muted); background: transparent; }
+.ia-popup-cerrar:hover { color: var(--text); }
+@keyframes ia-entrada { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 860px) {
+  .ia-promo, .ia-detalle { grid-template-columns: 1fr; }
+  .ia-promo-visual { transform: none; }
+  .ia-lateral { position: static; }
+}
+.ia-cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  margin-top: 1rem; padding: 1.25rem 1.4rem; border: 1px solid #686ce3; border-radius: 0.45rem;
+  background: radial-gradient(circle at 90% 0%, rgb(40 45 199 / 30%), transparent 55%), var(--surface);
+}
+.ia-cta h2 { margin: 0 0 0.25rem; color: var(--highlight); font-size: 1.05rem; font-weight: 600; }
+.ia-cta h2 i { margin-right: 0.35rem; color: #686ce3; }
+.ia-cta p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+@media (max-width: 576px) { .ia-cta { flex-direction: column; align-items: flex-start; } }

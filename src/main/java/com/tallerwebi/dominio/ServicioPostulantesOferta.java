@@ -68,7 +68,7 @@ public class ServicioPostulantesOferta {
           postulacion.getId(),
           nombreCompleto(usuario),
           usuario.getEmail(),
-          dividirHabilidades(usuario.getHabilidades()),
+          habilidades,
           postulacion.getFechaPostulacion(),
           usuarioIdsConCv.contains(usuario.getId()),
           servicioPago != null && servicioPago.esPremiumActivo(usuario.getId()),
@@ -77,6 +77,8 @@ public class ServicioPostulantesOferta {
         ResultadoMatch match = CalculoMatch.calcular(habilidades, skillsOferta);
         dto.setPorcentajeMatch(match.porcentaje());
         dto.setHabilidadesFaltantes(match.faltantes());
+        dto.setPuntajeIa(postulacion.getPuntajeIa());
+        dto.setDevolucionIa(postulacion.getDevolucionIa());
         return dto;
       })
       .sorted(
@@ -305,5 +307,25 @@ public class ServicioPostulantesOferta {
     String apellido = usuario.getApellido() == null ? "" : usuario.getApellido().trim();
     String completo = (nombre + " " + apellido).trim();
     return completo.isEmpty() ? "Nombre no informado" : completo;
+  }
+
+  public List<PostulanteOfertaDTO> filtrarPorNota(
+    List<PostulanteOfertaDTO> lista,
+    Integer notaMinima,
+    boolean ordenar
+  ) {
+    List<PostulanteOfertaDTO> resultado = new ArrayList<>(lista);
+    if (notaMinima != null) {
+      resultado.removeIf(p -> p.getPuntajeIa() == null || p.getPuntajeIa() < notaMinima);
+    }
+    if (ordenar) {
+      resultado.sort(
+        Comparator.comparing(
+          PostulanteOfertaDTO::getPuntajeIa,
+          Comparator.nullsLast(Comparator.reverseOrder())
+        )
+      );
+    }
+    return resultado;
   }
 }

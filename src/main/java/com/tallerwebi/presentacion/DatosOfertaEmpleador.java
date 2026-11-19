@@ -14,6 +14,7 @@ public class DatosOfertaEmpleador {
   private String moneda;
   private String skills;
   private String limitePostulaciones;
+  private boolean cuestionarioIa;
 
   public String getTitulo() {
     return titulo;
@@ -101,5 +102,13 @@ public class DatosOfertaEmpleador {
 
   public void setLimitePostulaciones(String limitePostulaciones) {
     this.limitePostulaciones = limitePostulaciones;
+  }
+
+  public boolean isCuestionarioIa() {
+    return cuestionarioIa;
+  }
+
+  public void setCuestionarioIa(boolean cuestionarioIa) {
+    this.cuestionarioIa = cuestionarioIa;
   }
 }

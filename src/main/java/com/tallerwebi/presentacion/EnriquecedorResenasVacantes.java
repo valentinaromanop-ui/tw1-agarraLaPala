@@ -37,10 +37,12 @@ final class EnriquecedorResenasVacantes {
       .toList();
     Map<Long, ResumenResenas> resumenes = obtenerResumenes(empleadorIds, servicioResena);
     for (VacanteDTO vacante : vacantes) {
-      ResumenResenas resumen = resumenes.get(vacante.getEmpleadorId());
-      if (resumen != null) {
-        vacante.setPromedioResenas(resumen.getPromedio());
-        vacante.setCantidadResenas(resumen.getCantidad());
+      if (vacante.getEmpleadorId() != null) {
+        ResumenResenas resumen = resumenes.get(vacante.getEmpleadorId());
+        if (resumen != null) {
+          vacante.setPromedioResenas(resumen.getPromedio());
+          vacante.setCantidadResenas(resumen.getCantidad());
+        }
       }
     }
   }

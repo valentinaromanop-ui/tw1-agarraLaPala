@@ -86,6 +86,9 @@ public class Vacante {
   @Column(length = 1000)
   private String url;
 
+  @Column(name = "cuestionario_ia")
+  private boolean cuestionarioIa;
+
   @OneToMany(mappedBy = "vacante")
   private Set<VacanteSkill> vacanteSkills = new HashSet<>();
 
@@ -278,5 +281,13 @@ public class Vacante {
 
   public void setUrl(String url) {
     this.url = url;
+  }
+
+  public boolean isCuestionarioIa() {
+    return cuestionarioIa;
+  }
+
+  public void setCuestionarioIa(boolean cuestionarioIa) {
+    this.cuestionarioIa = cuestionarioIa;
   }
 }

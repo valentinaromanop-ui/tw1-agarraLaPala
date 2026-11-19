@@ -116,4 +116,12 @@ public class ServicioGeminiImpl implements ServicioIA {
     Devolvé solamente el CV ATS final, sin comentarios ni explicaciones.
     """.formatted(textoCv, habilidades);
   }
+
+  @Override
+  public String generarTexto(String prompt) {
+    ObjectNode cuerpo = mapper.createObjectNode();
+    cuerpo.putArray("contents").addObject().putArray("parts").addObject().put("text", prompt);
+    cuerpo.putObject("generationConfig").put("responseMimeType", "application/json");
+    return leerTextoDeRespuesta(enviar(cuerpo.toString()));
+  }
 }

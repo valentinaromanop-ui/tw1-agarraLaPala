@@ -3,6 +3,7 @@ package com.tallerwebi.presentacion;
 import com.tallerwebi.dominio.EstadoVacante;
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPago;
+import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.ServicioResena;
 import com.tallerwebi.dominio.Vacante;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,15 +23,18 @@ public class ControladorHome {
 
   private final ServicioOfertaEmpleador servicioOfertaEmpleador;
   private final ServicioPago servicioPago;
+  private final ServicioPostulacion servicioPostulacion;
   private ServicioResena servicioResena;
 
   @Autowired
   public ControladorHome(
     ServicioOfertaEmpleador servicioOfertaEmpleador,
-    ServicioPago servicioPago
+    ServicioPago servicioPago,
+    ServicioPostulacion servicioPostulacion
   ) {
     this.servicioOfertaEmpleador = servicioOfertaEmpleador;
     this.servicioPago = servicioPago;
+    this.servicioPostulacion = servicioPostulacion;
   }
 
   @Autowired(required = false)
@@ -63,7 +67,14 @@ public class ControladorHome {
       return new ModelAndView(esPostulante(request) ? "redirect:/home" : "redirect:/login");
     }
 
-    List<Vacante> ofertasEmpleadores = servicioOfertaEmpleador.listarOfertasPublicadas();
+    Object idEnSesion = request.getSession(false).getAttribute("USUARIO_ID");
+    if (!(idEnSesion instanceof Number)) {
+      return new ModelAndView("redirect:/login");
+    }
+    Long empleadorId = ((Number) idEnSesion).longValue();
+    List<Vacante> ofertasEmpleadores = servicioOfertaEmpleador.listarPorEmpleador(empleadorId);
+    boolean empresaPremium = servicioPago.esPremiumActivo(empleadorId);
+    ofertasEmpleadores.forEach(oferta -> oferta.setEmpresaPremium(empresaPremium));
     List<Vacante> ofertasActivas = ofertasEmpleadores
       .stream()
       .filter(oferta -> oferta.getEstado() == EstadoVacante.ABIERTA)
@@ -74,7 +85,10 @@ public class ControladorHome {
     agregarResumenesResenas(modelo, ofertasEmpleadores);
     Map<Long, Long> cantidadesPostulaciones = new LinkedHashMap<>();
     for (Vacante oferta : ofertasActivas) {
-      cantidadesPostulaciones.put(oferta.getId(), 0L);
+      cantidadesPostulaciones.put(
+        oferta.getId(),
+        servicioPostulacion.contarPorOferta(oferta.getId())
+      );
     }
     modelo.put("cantidadesPostulaciones", cantidadesPostulaciones);
     return new ModelAndView("home-empleador", modelo);

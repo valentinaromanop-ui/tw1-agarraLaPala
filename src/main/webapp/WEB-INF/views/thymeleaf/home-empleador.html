@@ -246,7 +246,7 @@
                   <span th:unless="${resumen != null and resumen.cantidad > 0}"> · Sin reseñas</span>
                 </span>
               </p>
-              <span class="premium-badge employer-company-badge" th:if="${oferta.empresaPremium}">
+              <span class="premium-badge employer-offer-premium-badge" th:if="${oferta.empresaPremium}">
                 <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium
               </span>
               <div class="offer-meta">
@@ -262,9 +262,6 @@
                 </span>
               </div>
             </div>
-            <span class="premium-badge employer-offer-premium-badge" th:if="${oferta.empresaPremium}">
-              <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Empresa Premium
-            </span>
             <span class="employer-offer-bookmark" aria-hidden="true"><i class="bi bi-bookmark"></i></span>
             <a class="offer-link" th:href="@{/ofertas/{id}/postulantes(id=${oferta.id})}"
               th:attr="aria-label=${'Ver candidatos para ' + oferta.titulo}">

@@ -143,11 +143,17 @@ public class ControladorDetalleVacante {
       servicioOfertaEmpleador.registrarClickPostular(id);
     }
     try {
-      servicioPostulacion.registrarEnVacante((Long) session.getAttribute(USUARIO_ID), oferta);
+      Postulacion postulacion = servicioPostulacion.registrarEnVacante(
+        (Long) session.getAttribute(USUARIO_ID),
+        oferta
+      );
       mensajes.addFlashAttribute(
         "mensaje",
         "Tu postulación quedó registrada para " + oferta.getTitulo() + "."
       );
+      if (requiereCuestionario(fuente, id)) {
+        return new ModelAndView("redirect:/cuestionario-ia/" + postulacion.getId());
+      }
     } catch (IllegalArgumentException excepcion) {
       mensajes.addFlashAttribute(ERROR, excepcion.getMessage());
     }
@@ -163,6 +169,7 @@ public class ControladorDetalleVacante {
     Map<String, Object> modelo = new ModelMap();
     modelo.put(VACANTES, session.getAttribute(VACANTES));
     modelo.put(BUSQUEDA, session.getAttribute(BUSQUEDA));
+    modelo.put("usarCv", Boolean.TRUE.equals(session.getAttribute("usarCv")));
     BusquedaVacanteDTO busquedaVacanteDTO = (BusquedaVacanteDTO) session.getAttribute(BUSQUEDA);
     modelo.put("skills", busquedaVacanteDTO.getSkills());
     modelo.put(
@@ -273,6 +280,14 @@ public class ControladorDetalleVacante {
       session.getAttribute(USUARIO_ID) != null &&
       ("CANDIDATO".equals(rol) || "POSTULANTE".equals(rol))
     );
+  }
+
+  private boolean requiereCuestionario(String fuente, Long id) {
+    if (!FUENTE_LOCAL.equals(fuente)) {
+      return false;
+    }
+    Vacante vacante = servicioPostulacion.obtenerVacante(fuente, id);
+    return vacante != null && vacante.isCuestionarioIa();
   }
 
   private void agregarMetricasPostulacion(

@@ -188,6 +188,7 @@ public class ControladorVacante {
     modelo.put("esPremium", servicioPago != null && servicioPago.esPremiumActivo(idPostulante));
     modelo.put("tieneCv", tieneCv(idPostulante));
     modelo.put("usarCv", usarCv);
+    session.setAttribute("usarCv", usarCv);
     CurriculumGenerado cv = obtenerCurriculum(idPostulante);
     modelo.put("tipoCv", tipoCv);
     modelo.put(

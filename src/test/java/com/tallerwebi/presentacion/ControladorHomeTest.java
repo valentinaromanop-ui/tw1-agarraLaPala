@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.tallerwebi.dominio.ServicioOfertaEmpleador;
 import com.tallerwebi.dominio.ServicioPago;
+import com.tallerwebi.dominio.ServicioPostulacion;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,13 +19,16 @@ class ControladorHomeTest {
   private ControladorHome controlador;
   private ServicioOfertaEmpleador servicioOfertaEmpleador;
   private ServicioPago servicioPago;
+  private ServicioPostulacion servicioPostulacion;
 
   @BeforeEach
   void iniciar() {
     servicioOfertaEmpleador = mock(ServicioOfertaEmpleador.class);
     servicioPago = mock(ServicioPago.class);
-    controlador = new ControladorHome(servicioOfertaEmpleador, servicioPago);
+    servicioPostulacion = mock(ServicioPostulacion.class);
+    controlador = new ControladorHome(servicioOfertaEmpleador, servicioPago, servicioPostulacion);
     when(servicioOfertaEmpleador.listarOfertasPublicadas()).thenReturn(List.of());
+    when(servicioOfertaEmpleador.listarPorEmpleador(42L)).thenReturn(List.of());
   }
 
   @Test

@@ -39,3 +39,6 @@ INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (2, 2) ON DUPLICATE KEY 
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (2, 3) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (3, 4) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;
 INSERT INTO Vacante_skill (vacante_id, skill_id) VALUES (4, 1) ON DUPLICATE KEY UPDATE vacante_id = vacante_id;
+SELECT COUNT(*) FROM Vacante WHERE cuestionario_ia IS NULL;
+
+;

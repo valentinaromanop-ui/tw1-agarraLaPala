@@ -110,7 +110,7 @@ public class ControladorOfertaEmpleadorIntegracionTest {
     String contenidoListado = listado.getResponse().getContentAsString();
     assertThat(contenidoListado, containsString("Analista de Integración"));
     assertThat(contenidoListado, containsString("Buenos Aires"));
-    assertThat(contenidoListado, containsString("1150000.50"));
+    assertThat(contenidoListado, containsString("1.150.000"));
     assertThat(contenidoListado, containsString("ARS"));
     assertThat(contenidoListado, containsString("La postulación se publicó correctamente."));
 

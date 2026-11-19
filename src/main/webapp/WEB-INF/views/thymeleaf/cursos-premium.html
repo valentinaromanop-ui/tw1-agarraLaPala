@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agarra la Pala | Cursos Premium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/home.css}" />
+    <link rel="stylesheet" th:href="@{/css/ia.css}" />
+</head>
+<body class="ia-pagina">
+<nav th:replace="~{fragments/navbar :: appNavbar('jobs', true, false)}"></nav>
+
+<main class="ia-contenedor ia-ancho">
+
+    <!-- Publicidad: solo si no es Premium -->
+    <section class="ia-promo" th:unless="${premium}">
+        <div>
+            <span class="ia-premium"><i class="bi bi-gem" aria-hidden="true"></i> Premium</span>
+            <h1>Formate en las skills que más piden las empresas</h1>
+            <p>Aprendé con profesionales en actividad y sumá a tu CV un <strong>certificado de asistencia</strong>.</p>
+            <ul class="ia-promo-lista">
+                <li><i class="bi bi-person-check" aria-hidden="true"></i> Cursos dictados por los mejores profesionales</li>
+                <li><i class="bi bi-award" aria-hidden="true"></i> Certificado de asistencia en cada curso</li>
+                <li><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Contenido basado en el ranking real de ofertas</li>
+            </ul>
+            <a class="primary-action" th:href="@{/premium/pagar}">
+                Pasarme a Premium <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+        </div>
+        <div class="ia-promo-visual" aria-hidden="true">
+            <i class="bi bi-patch-check-fill"></i>
+            <strong>Certificado de asistencia</strong>
+            <span>Agarra la Pala · Cursos Premium</span>
+        </div>
+    </section>
+
+    <header class="ia-encabezado" th:if="${premium}">
+        <div class="ia-icono"><i class="bi bi-mortarboard" aria-hidden="true"></i></div>
+        <div>
+            <h1>Cursos <span class="ia-premium"><i class="bi bi-gem" aria-hidden="true"></i> Premium</span></h1>
+            <p>Elegí un curso y empezá cuando quieras.</p>
+        </div>
+    </header>
+
+    <div class="ia-chips" th:unless="${#lists.isEmpty(top)}">
+        <span class="ia-chips-titulo"><i class="bi bi-fire" aria-hidden="true"></i> Más pedidas:</span>
+        <span class="ia-chip" th:each="habilidad : ${top}" th:text="${habilidad.nombre()}">Java</span>
+    </div>
+
+    <div class="ia-cursos">
+        <a class="ia-curso" th:each="curso : ${cursos}" th:href="@{/cursos/{id}(id=${curso.id()})}">
+            <div class="ia-curso-miniatura">
+                <img th:src="@{/img/cursos/{id}.jpg(id=${curso.id()})}" alt="" onerror="this.remove()">
+                <span class="ia-curso-skill" th:text="${curso.skill()}">Java</span>
+                <span class="ia-curso-hot" th:if="${#lists.contains(skillsTop, curso.skill().toLowerCase())}">
+            <i class="bi bi-fire" aria-hidden="true"></i> Muy pedida
+          </span>
+                <span class="ia-curso-estado">
+            <i class="bi" th:classappend="${premium ? 'bi-play-fill' : 'bi-lock-fill'}" aria-hidden="true"></i>
+          </span>
+            </div>
+            <div class="ia-curso-cuerpo">
+                <h2 th:text="${curso.titulo()}">Título del curso</h2>
+                <p class="ia-curso-instructor" th:text="${curso.instructor()}">Instructor</p>
+                <div class="ia-curso-meta">
+                    <span><i class="bi bi-bar-chart" aria-hidden="true"></i> <span th:text="${curso.nivel()}">Nivel</span></span>
+                    <span><i class="bi bi-clock" aria-hidden="true"></i> <span th:text="${curso.duracion()}">4 h</span></span>
+                    <span><i class="bi bi-collection-play" aria-hidden="true"></i> <span th:text="${#lists.size(curso.lecciones()) + ' lecciones'}">4 lecciones</span></span>
+                </div>
+            </div>
+        </a>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

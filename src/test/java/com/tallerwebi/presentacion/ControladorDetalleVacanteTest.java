@@ -3,6 +3,7 @@ package com.tallerwebi.presentacion;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.tallerwebi.dominio.BusquedaVacanteDTO;
 import com.tallerwebi.dominio.ServicioPostulacion;
 import com.tallerwebi.dominio.VacanteDTO;
 import java.util.List;
@@ -61,6 +62,17 @@ public class ControladorDetalleVacanteTest {
     ModelAndView vista = controlador.mostrarDetalle("JOBICY", 10L, session);
 
     assertEquals(true, vista.getModel().get("yaPostulado"));
+  }
+
+  @Test
+  public void volverAResultadosIncluyeElEstadoDelFiltroCv() {
+    session.setAttribute("busqueda", new BusquedaVacanteDTO());
+    session.setAttribute("usarCv", true);
+    when(servicio.obtenerOfertasPostuladas(1L)).thenReturn(List.of());
+
+    ModelAndView vista = controlador.volverAResultados(session);
+
+    assertEquals(true, vista.getModel().get("usarCv"));
   }
 
   @Test

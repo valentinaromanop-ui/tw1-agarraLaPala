@@ -1,0 +1,49 @@
+<div th:fragment="popupCursos" xmlns:th="http://www.thymeleaf.org"
+     th:if="${session.ROL == 'CANDIDATO' or session.ROL == 'POSTULANTE'}">
+    <aside id="popup-cursos" class="ia-popup" role="dialog" aria-labelledby="popup-cursos-titulo" hidden>
+        <button type="button" class="ia-popup-cerrar" id="popup-cursos-cerrar" aria-label="Cerrar">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+        <span class="ia-premium"><i class="bi bi-gem" aria-hidden="true"></i> Premium</span>
+        <h2 id="popup-cursos-titulo">Las skills que más piden las empresas</h2>
+        <ol class="ia-popup-top" id="popup-cursos-top"></ol>
+        <p>Formate con cursos de profesionales y obtené tu certificado de asistencia.</p>
+        <a class="primary-action" th:href="@{/cursos}">Ver cursos</a>
+    </aside>
+    <script th:inline="javascript">
+        (function () {
+          var clave = 'popupCursosVisto:v2';
+          var unDia = 24 * 60 * 60 * 1000;
+          var popup = document.getElementById('popup-cursos');
+          try {
+            var ultimo = Number(localStorage.getItem(clave));
+            if (ultimo && Date.now() - ultimo < unDia) { return; }
+          } catch (e) { /* sin storage */ }
+          document.getElementById('popup-cursos-cerrar').addEventListener('click', function () {
+            popup.hidden = true;
+          });
+          var lista = document.getElementById('popup-cursos-top');
+          var mostrar = function () {
+            setTimeout(function () {
+              popup.hidden = false;
+              try { localStorage.setItem(clave, String(Date.now())); } catch (e) { /* sin storage */ }
+            }, 1500);
+          };
+
+          fetch(/*[[@{/habilidades/top/datos}]]*/ '/habilidades/top/datos', { headers: { Accept: 'application/json' } })
+            .then(function (respuesta) { return respuesta.ok ? respuesta.json() : []; })
+            .then(function (top) {
+              if (top.length) {
+                top.forEach(function (habilidad) {
+                  var item = document.createElement('li');
+                  item.textContent = habilidad.nombre + ' · ' + habilidad.cantidad
+                    + (habilidad.cantidad === 1 ? ' oferta' : ' ofertas');
+                  lista.appendChild(item);
+                });
+              }
+              mostrar();
+            })
+            .catch(function () { mostrar(); });
+        })();
+    </script>
+</div>

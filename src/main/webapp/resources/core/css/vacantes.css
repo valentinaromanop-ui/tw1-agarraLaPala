@@ -397,10 +397,9 @@ body.vacantes-page {
 }
 
 .employer-offer-premium-badge {
-  position: absolute;
-  right: 0.9rem;
-  bottom: 3.8rem;
-  margin: 0;
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 0.5rem;
 }
 
 .premium-payment-form {
